@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nexly_temp/modules/post/post.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
@@ -85,69 +86,77 @@ class _IndexState extends State<IndexPage> {
                       itemCount: 5, // 資料數量
                       itemBuilder: (context, index) {
                         // final post = posts[index]; // 換成你的資料
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: 250,
-                                  decoration: ShapeDecoration(
-                                    // image: DecorationImage(
-                                    //   image: AssetImage('assets/images/sample.png'), // ✅ 用 AssetImage
-                                    //   fit: BoxFit.cover,
-                                    // ),
-                                    color: Color(0xFFE7E7E7),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(4),
-                                        topRight: Radius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  left: 4,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                        return GestureDetector(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  Container(
+                                    width: double.infinity,
+                                    height: 250,
                                     decoration: ShapeDecoration(
-                                      color: Colors.black.withValues(alpha: 0.30),
+                                      // image: DecorationImage(
+                                      //   image: AssetImage('assets/images/sample.png'), // ✅ 用 AssetImage
+                                      //   fit: BoxFit.cover,
+                                      // ),
+                                      color: Color(0xFFE7E7E7),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '旅遊',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w500,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(4),
+                                          topRight: Radius.circular(4),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  '標題文字',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
+                                  Positioned(
+                                    top: 4,
+                                    left: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                      decoration: ShapeDecoration(
+                                        color: Colors.black.withValues(alpha: 0.30),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '旅遊',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontFamily: 'PingFang TC',
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                Spacer(),
-                                Icon(Icons.more_vert),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    '標題文字',
+                                    style: TextStyle(
+                                      color: const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  Spacer(),
+                                  Icon(Icons.more_vert),
+                                ],
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => Post()),
+                            );
+                          },
                         );
                       },
                     ),

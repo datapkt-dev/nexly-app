@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nexly_temp/modules/index/pages/notification_page.dart';
 import 'pages/index_page.dart';
 import 'pages/search_page.dart';
 import 'pages/personal_page.dart';
@@ -269,7 +270,7 @@ class _IndexFrameState extends State<Index> {
                 width: 24,
                 height: 24,
                 decoration: ShapeDecoration(
-                  color: const Color(0xFF24B7BD),
+                  color: const Color(0xFF241172),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                 ),
                 child: Icon(
@@ -302,25 +303,6 @@ class _IndexFrameState extends State<Index> {
         onTap: () {
           setState(() {
             contentIndex = index;
-            // if (index == 1) {
-            //   showDialog(
-            //     context: context,
-            //     builder: (BuildContext context) {
-            //       return AlertDialog(
-            //         title: const Text('尚未開放'),
-            //         content: const Text('該功能尚未開放，敬請期待！'),
-            //         actions: <Widget>[
-            //           TextButton(
-            //             onPressed: () {
-            //               Navigator.of(context).pop();  // 關閉對話框
-            //             },
-            //             child: const Text('確定'),
-            //           ),
-            //         ],
-            //       );
-            //     },
-            //   );
-            // }
           });
         },
 
@@ -345,19 +327,10 @@ class _IndexFrameState extends State<Index> {
         return IndexPage();
       case 1:
         return SearchPage();
-        // return Center(
-        //   child: Text('搜尋頁'),
-        // );
       case 2:
-        // return MessagePage();
-        return Center(
-          child: Text('通知頁'),
-        );
+        return NotificationPage();
       case 3:
         return PersonalPage();
-        // return Center(
-        //   child: Text('個人頁'),
-        // );
       default:
         return const Center(child: Text("尚未開放"));
     }

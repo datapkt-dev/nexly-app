@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly_temp/modules/login/pages/forget_pwd.dart';
 import 'package:nexly_temp/modules/login/pages/member.dart';
 import 'package:nexly_temp/modules/login/pages/sign_up.dart';
-import '../index/index.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -68,7 +67,7 @@ class _LoginState extends State<Login> {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(10),
                     decoration: ShapeDecoration(
-                      color: const Color(0xFF24B7BD),
+                      color: const Color(0xFF241172),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
                     child: Text(
@@ -123,7 +122,7 @@ class _LoginState extends State<Login> {
                       child: Text(
                         '立即註冊',
                         style: TextStyle(
-                          color: const Color(0xFF24B7BD),
+                          color: const Color(0xFF241172),
                           fontSize: 14,
                           fontFamily: 'PingFang TC',
                           fontWeight: FontWeight.w500,

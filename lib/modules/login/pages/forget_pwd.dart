@@ -89,7 +89,7 @@ class _ForgetPwdState extends State<ForgetPwd> {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(10),
                     decoration: ShapeDecoration(
-                      color: const Color(0xFF24B7BD),
+                      color: const Color(0xFF241172),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
                     child: Text(

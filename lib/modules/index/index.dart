@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly_temp/modules/index/pages/notification_page.dart';
+import 'package:nexly_temp/modules/new_post/new_post.dart';
 import 'pages/index_page.dart';
 import 'pages/search_page.dart';
 import 'pages/personal_page.dart';
@@ -266,18 +267,26 @@ class _IndexFrameState extends State<Index> {
                 '搜尋',
               ),
               const SizedBox(width: 25),
-              Container(
-                width: 24,
-                height: 24,
-                decoration: ShapeDecoration(
-                  color: const Color(0xFF241172),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              GestureDetector(
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: ShapeDecoration(
+                    color: const Color(0xFF241172),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
-                child: Icon(
-                  Icons.add,
-                  size: 18,
-                  color: Colors.white,
-                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NewPost()),
+                  );
+                },
               ),
               const SizedBox(width: 25),
               _buildBottomNavigationBarItem(

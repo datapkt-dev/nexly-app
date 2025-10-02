@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../components/widgets/LabeledProgressBar.dart';
 
 class PersonalPage extends StatefulWidget {
   const PersonalPage({super.key});
@@ -10,6 +13,13 @@ class PersonalPage extends StatefulWidget {
 class _PersonalPageState extends State<PersonalPage> {
   List<String> info = ['Tales', '粉絲', '追蹤中', 'Trusted Circle'];
   List<String> category = ['Tales', '協作', '收藏'];
+  final List<String> img = [
+    'assets/images/landscape/dog.jpg',
+    'assets/images/landscape/egypt.jpg',
+    'assets/images/landscape/goingup.jpg',
+    'assets/images/landscape/hiking.jpg',
+    'assets/images/postImg.png',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +49,19 @@ class _PersonalPageState extends State<PersonalPage> {
                             Container(
                               width: 60,
                               height: 60,
-                              decoration: ShapeDecoration(
-                                // image: DecorationImage(
-                                //   image: NetworkImage("https://placehold.co/60x60"),
-                                //   fit: BoxFit.cover,
-                                // ),
-                                shape: OvalBorder(
-                                  side: BorderSide(
-                                    width: 1,
-                                    color: const Color(0xFFE7E7E7),
-                                  ),
-                                ),
-                              ),
+                              // decoration: ShapeDecoration(
+                              //   // image: DecorationImage(
+                              //   //   image: NetworkImage("https://placehold.co/60x60"),
+                              //   //   fit: BoxFit.cover,
+                              //   // ),
+                              //   shape: OvalBorder(
+                              //     side: BorderSide(
+                              //       width: 1,
+                              //       color: const Color(0xFFE7E7E7),
+                              //     ),
+                              //   ),
+                              // ),
+                              child: SvgPicture.asset('assets/images/avatar_1.svg'),
                             ),
                             SizedBox(width: 10,),
                             Column(
@@ -180,6 +191,9 @@ class _PersonalPageState extends State<PersonalPage> {
                               ),
                               Row(
                                 children: [
+                                  Expanded(
+                                    child: LabeledProgressBar(percent: 0.5),
+                                  ),
                                   SizedBox(width: 16,),
                                   Text(
                                     '50%',
@@ -221,6 +235,9 @@ class _PersonalPageState extends State<PersonalPage> {
                               ),
                               Row(
                                 children: [
+                                  Expanded(
+                                    child: LabeledProgressBar(percent: 0.25),
+                                  ),
                                   SizedBox(width: 16,),
                                   Text(
                                     '25%',
@@ -249,7 +266,7 @@ class _PersonalPageState extends State<PersonalPage> {
                                     Text(
                                       category[index],
                                       style: const TextStyle(
-                                        color: Color(0xFF24B7BD),
+                                        color: Color(0xFF241172),
                                         fontSize: 14,
                                         fontFamily: 'PingFang TC',
                                         fontWeight: FontWeight.w500,
@@ -259,7 +276,7 @@ class _PersonalPageState extends State<PersonalPage> {
                                       margin: const EdgeInsets.only(top: 10),
                                       height: 2,
                                       width: 40, // 這裡你可以改成固定長度 或 動態依文字寬度
-                                      color: const Color(0xFF24B7BD),
+                                      color: const Color(0xFF241172),
                                     ),
                                   ],
                                 ),
@@ -288,18 +305,12 @@ class _PersonalPageState extends State<PersonalPage> {
                         child: Container(
                           width: double.infinity,
                           height: 250,
-                          decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: AssetImage('assets/images/sample.png'), // ✅ 用 AssetImage
-                            //   fit: BoxFit.cover,
-                            // ),
-                            color: Color(0xFFE7E7E7),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(4),
-                                topRight: Radius.circular(4),
-                              ),
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(img[index%5]), // ✅ 用 AssetImage
+                              fit: BoxFit.cover,
                             ),
+                            color: Color(0xFFE7E7E7),
                           ),
                         ),
                         onTap: () {},

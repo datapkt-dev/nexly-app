@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -59,18 +60,19 @@ class _NotificationPageState extends State<NotificationPage> {
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage("https://placehold.co/48x48"),
-                            //   fit: BoxFit.cover,
-                            // ),
-                            shape: OvalBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFE7E7E7),
-                              ),
-                            ),
-                          ),
+                          // decoration: ShapeDecoration(
+                          //   // image: DecorationImage(
+                          //   //   image: NetworkImage("https://placehold.co/48x48"),
+                          //   //   fit: BoxFit.cover,
+                          //   // ),
+                          //   shape: OvalBorder(
+                          //     side: BorderSide(
+                          //       width: 2,
+                          //       color: const Color(0xFFE7E7E7),
+                          //     ),
+                          //   ),
+                          // ),
+                          child: SvgPicture.asset('assets/images/avatar_2.svg'),
                         ),
                         SizedBox(width: 8,),
                         Expanded(

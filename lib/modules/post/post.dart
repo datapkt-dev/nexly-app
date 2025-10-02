@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Post extends StatefulWidget {
   const Post({super.key});
@@ -35,7 +36,15 @@ class _PostState extends State<Post> {
           children: [
             Container(
               height: 513,
-              color: const Color(0xFFEFEFEF),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFEFEF),
+                borderRadius: BorderRadius.circular(20),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/postImg.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16,),
@@ -49,18 +58,23 @@ class _PostState extends State<Post> {
                         Container(
                           width: 32,
                           height: 32,
-                          decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage("https://placehold.co/32x32"),
-                            //   fit: BoxFit.cover,
-                            // ),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: const Color(0xFFE7E7E7),
-                              ),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
+                          // decoration: ShapeDecoration(
+                          //   image: DecorationImage(
+                          //     image: AssetImage('assets/images/postImg.png'),
+                          //     fit: BoxFit.cover,
+                          //   ),
+                          //   shape: RoundedRectangleBorder(
+                          //     side: BorderSide(
+                          //       width: 1,
+                          //       color: const Color(0xFFE7E7E7),
+                          //     ),
+                          //     borderRadius: BorderRadius.circular(100),
+                          //   ),
+                          // ),
+                          // clipBehavior: Clip.antiAlias,
+                          child: SvgPicture.asset(
+                            'assets/images/avatar.svg',
+                            // fit: BoxFit.cover,
                           ),
                         ),
                         SizedBox(width: 7,),
@@ -77,7 +91,7 @@ class _PostState extends State<Post> {
                         Spacer(),
                         Icon(
                           Icons.bookmark,
-                          color: Color(0xFF24B7BD),
+                          color: Color(0xFFD63C95),
                         ),
                       ],
                     ),

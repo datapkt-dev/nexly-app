@@ -11,6 +11,12 @@ class IndexPage extends StatefulWidget {
 class _IndexState extends State<IndexPage> {
   bool _showOverlay = false;
   final List<String> tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
+  final List<String> img = [
+    'assets/images/landscape/dog.jpg',
+    'assets/images/landscape/egypt.jpg',
+    'assets/images/landscape/goingup.jpg',
+    'assets/images/landscape/hiking.jpg',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +43,11 @@ class _IndexState extends State<IndexPage> {
                                 margin: EdgeInsets.only(right: 10,),
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
                                 decoration: ShapeDecoration(
-                                  color: Colors.white,
+                                  color: index == 0 ? Color(0xFF241172) : Colors.white,
                                   shape: RoundedRectangleBorder(
                                     side: BorderSide(
                                       width: 1,
-                                      color: index == 0 ? Color(0xFF24B7BD) : Color(0xFFE7E7E7),
+                                      color: index == 0 ? Color(0xFF241172) : Color(0xFF241172),
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -49,7 +55,7 @@ class _IndexState extends State<IndexPage> {
                                 child: Text(
                                   tags[index],
                                   style: TextStyle(
-                                    color: index == 0 ? Color(0xFF24B7BD) :  Color(0xFF333333),
+                                    color: index == 0 ? Colors.white : Color(0xFF241172),
                                     fontSize: 14,
                                     fontFamily: 'PingFang TC',
                                     fontWeight: FontWeight.w400,
@@ -83,7 +89,7 @@ class _IndexState extends State<IndexPage> {
                         mainAxisSpacing: 10,   // 上下間距
                         mainAxisExtent: 278,   // ✅ 固定每個 item 的高度 (250 圖片 + 文字空間)
                       ),
-                      itemCount: 5, // 資料數量
+                      itemCount: 6, // 資料數量
                       itemBuilder: (context, index) {
                         // final post = posts[index]; // 換成你的資料
                         return GestureDetector(
@@ -96,10 +102,10 @@ class _IndexState extends State<IndexPage> {
                                     width: double.infinity,
                                     height: 250,
                                     decoration: ShapeDecoration(
-                                      // image: DecorationImage(
-                                      //   image: AssetImage('assets/images/sample.png'), // ✅ 用 AssetImage
-                                      //   fit: BoxFit.cover,
-                                      // ),
+                                      image: DecorationImage(
+                                        image: AssetImage(img[index%4]), // ✅ 用 AssetImage
+                                        fit: BoxFit.cover,
+                                      ),
                                       color: Color(0xFFE7E7E7),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.only(
@@ -239,11 +245,11 @@ class _IndexState extends State<IndexPage> {
                           margin: EdgeInsets.only(right: 10,),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
                           decoration: ShapeDecoration(
-                            color: Colors.white,
+                            color: index == 0 ? Color(0xFF241172) : Colors.white,
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
                                 width: 1,
-                                color: index == 0 ? Color(0xFF24B7BD) :  Color(0xFFE7E7E7),
+                                color: index == 0 ? Color(0xFF241172) : Color(0xFF241172),
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -251,7 +257,7 @@ class _IndexState extends State<IndexPage> {
                           child: Text(
                             tags[index],
                             style: TextStyle(
-                              color: index == 0 ? Color(0xFF24B7BD) :  Color(0xFF333333),
+                              color: index == 0 ? Colors.white : Color(0xFF241172),
                               fontSize: 14,
                               fontFamily: 'PingFang TC',
                               fontWeight: FontWeight.w400,

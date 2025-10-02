@@ -8,6 +8,12 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final List<String> img = [
+    'assets/images/landscape/goingup.jpg',
+    'assets/images/postImg.png',
+    'assets/images/landscape/egypt.jpg',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -86,16 +92,16 @@ class _SearchPageState extends State<SearchPage> {
                             margin: EdgeInsets.only(right: 4),
                             alignment: Alignment.center,
                             decoration: ShapeDecoration(
-                              // image: DecorationImage(
-                              //   image: NetworkImage("https://placehold.co/124x124"),
-                              //   fit: BoxFit.cover,
-                              // ),
+                              image: DecorationImage(
+                                image: AssetImage(img[index%3]),
+                                fit: BoxFit.cover,
+                              ),
                               color: Color(0xFFE7E7E7),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('${index+1}'),
+                            // child: Text('${index+1}'),
                           );
                         }),
                       ),
@@ -126,16 +132,16 @@ class _SearchPageState extends State<SearchPage> {
                             margin: EdgeInsets.only(right: 4),
                             alignment: Alignment.center,
                             decoration: ShapeDecoration(
-                              // image: DecorationImage(
-                              //   image: NetworkImage("https://placehold.co/124x124"),
-                              //   fit: BoxFit.cover,
-                              // ),
+                              image: DecorationImage(
+                                image: AssetImage(img[index%3]),
+                                fit: BoxFit.cover,
+                              ),
                               color: Color(0xFFE7E7E7),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('${index+1}'),
+                            // child: Text('${index+1}'),
                           );
                         }),
                       ),
@@ -166,16 +172,16 @@ class _SearchPageState extends State<SearchPage> {
                             margin: EdgeInsets.only(right: 4),
                             alignment: Alignment.center,
                             decoration: ShapeDecoration(
-                              // image: DecorationImage(
-                              //   image: NetworkImage("https://placehold.co/124x124"),
-                              //   fit: BoxFit.cover,
-                              // ),
+                              image: DecorationImage(
+                                image: AssetImage(img[index%3]),
+                                fit: BoxFit.cover,
+                              ),
                               color: Color(0xFFE7E7E7),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('${index+1}'),
+                            // child: Text('${index+1}'),
                           );
                         }),
                       ),

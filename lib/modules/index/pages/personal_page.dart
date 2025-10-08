@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'package:nexly_temp/modules/setting/setting.dart';
+import 'package:provider/provider.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../l10n/l10n.dart';
+import '../../../models/locale.dart';
 
 class PersonalPage extends StatefulWidget {
   const PersonalPage({super.key});
@@ -11,8 +15,8 @@ class PersonalPage extends StatefulWidget {
 }
 
 class _PersonalPageState extends State<PersonalPage> {
-  List<String> info = ['Tales', '粉絲', '追蹤中', 'Trusted Circle'];
-  List<String> category = ['Tales', '協作', '收藏'];
+  List<String> info = [/*'Tales', '粉絲', '追蹤中', 'Trusted Circle'*/];
+  List<String> category = [/*'Tales', '協作', '收藏'*/];
   final List<String> img = [
     'assets/images/landscape/dog.jpg',
     'assets/images/landscape/egypt.jpg',
@@ -23,6 +27,21 @@ class _PersonalPageState extends State<PersonalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
+    final info = <String>[
+      t.tale,            // 你 ARB 需要有 "tale"
+      t.follower,       // 建議補 "followers"
+      t.following,       // 建議補 "following"
+      t.trusted_circle,   // 建議補 "trustedCircle"
+    ];
+
+    final category = <String>[
+      t.tale,        // 建議補 "talesTab"
+      t.cooperation,    // 建議補 "cooperateTab"
+      t.collection,    // 建議補 "favoritesTab"
+    ];
+
     return SafeArea(
       child: Column(
         children: [
@@ -30,10 +49,30 @@ class _PersonalPageState extends State<PersonalPage> {
             backgroundColor: Colors.transparent,
             leading: SizedBox.shrink(),
             actions: [
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.more_vert),
-              ),
+              PopupMenuButton<int>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  switch (value) {
+                    case 0: // 前往設定/編輯
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Setting()),
+                      );
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 0,
+                    child: Text('語言設定'),
+                  ),
+                ],
+              )
+
+              // IconButton(
+              //   onPressed: () {},
+              //   icon: Icon(Icons.more_vert),
+              // ),
             ],
           ),
           Expanded(
@@ -43,6 +82,7 @@ class _PersonalPageState extends State<PersonalPage> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
@@ -90,9 +130,11 @@ class _PersonalPageState extends State<PersonalPage> {
                           ],
                         ),
                         SizedBox(height: 10,),
-                        Row(
+                        Wrap(
+                          spacing: 10,
                           children: List.generate(info.length, (index) {
                             return Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   '100',
@@ -113,7 +155,6 @@ class _PersonalPageState extends State<PersonalPage> {
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
-                                SizedBox(width: 10,),
                               ],
                             );
                           }),
@@ -151,7 +192,7 @@ class _PersonalPageState extends State<PersonalPage> {
                               Row(
                                 children: [
                                   Text(
-                                    'progress 成就',
+                                    t.progress,
                                     style: TextStyle(
                                       color: const Color(0xFF333333),
                                       fontSize: 16,
@@ -167,7 +208,7 @@ class _PersonalPageState extends State<PersonalPage> {
                               Row(
                                 children: [
                                   Text(
-                                    '個人',
+                                    t.personal,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: const Color(0xFF333333),
@@ -211,7 +252,7 @@ class _PersonalPageState extends State<PersonalPage> {
                               Row(
                                 children: [
                                   Text(
-                                    '團體',
+                                    t.group,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: const Color(0xFF333333),

@@ -8,7 +8,7 @@ class Post extends StatefulWidget {
   State<Post> createState() => _PostState();
 }
 
-enum _PostMenu { edit, copyToCollab, delete }
+enum _PostMenu {edit, copyToCollab, delete,}
 
 class _PostState extends State<Post> {
   @override

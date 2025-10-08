@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PostContentEdit extends StatefulWidget {
-  const PostContentEdit({super.key});
+  final String? filePath;
+  const PostContentEdit({super.key, this.filePath});
 
   @override
   State<PostContentEdit> createState() => _ContentEditState();
@@ -10,6 +11,17 @@ class PostContentEdit extends StatefulWidget {
 
 class _ContentEditState extends State<PostContentEdit> {
   List<String> tags = ['情感', '個人', '挑戰', '冒險', '冒險', '冒險', '冒險', '冒險'];
+  String filePath = '';
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.filePath);
+    if (widget.filePath != null) {
+      filePath = widget.filePath!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +51,7 @@ class _ContentEditState extends State<PostContentEdit> {
                     margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10,),
                     decoration: ShapeDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/postImg.png'),
+                        image: AssetImage(filePath),
                         fit: BoxFit.cover,
                       ),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
@@ -172,7 +184,6 @@ class _ContentEditState extends State<PostContentEdit> {
                       }),
                     ),
                   ),
-                  
                   SizedBox(height: 20,),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),

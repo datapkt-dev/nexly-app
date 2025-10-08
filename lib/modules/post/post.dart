@@ -8,6 +8,8 @@ class Post extends StatefulWidget {
   State<Post> createState() => _PostState();
 }
 
+enum _PostMenu { edit, copyToCollab, delete }
+
 class _PostState extends State<Post> {
   @override
   Widget build(BuildContext context) {
@@ -25,9 +27,52 @@ class _PostState extends State<Post> {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.more_vert),
+          PopupMenuButton<_PostMenu>(
+            icon: const Icon(Icons.more_vert),
+            position: PopupMenuPosition.under,
+            offset: const Offset(0, 8),                    // 往下偏移一點
+            shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFFEDEDED)),
+            ),
+            color: Colors.white,
+            elevation: 8,
+            constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
+            onSelected: (v) async {
+              switch (v) {
+                case _PostMenu.edit:
+                // TODO: 編輯貼文
+                  break;
+                case _PostMenu.copyToCollab:
+                // TODO: 複製至協作
+                  break;
+                case _PostMenu.delete:
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('刪除貼文'),
+                      content: const Text('確定要刪除此貼文嗎？'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+                        TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('確定')),
+                      ],
+                    ),
+                  );
+                  if (ok == true) {
+                    // TODO: 呼叫刪除 API
+                  }
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: _PostMenu.edit,          child: Text('編輯貼文')),
+              const PopupMenuItem(value: _PostMenu.copyToCollab,  child: Text('複製至協作')),
+              // const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: _PostMenu.delete,
+                child: Text('刪除貼文', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nexly_temp/components/widgets/upload_image_widget.dart';
 import 'package:nexly_temp/modules/index/pages/notification_page.dart';
 import 'package:nexly_temp/modules/new_post/new_post.dart';
+import '../new_post/pages/post_content_edit.dart';
 import 'pages/index_page.dart';
 import 'pages/search_page.dart';
 import 'pages/personal_page.dart';
@@ -267,7 +269,7 @@ class _IndexFrameState extends State<Index> {
                 '搜尋',
               ),
               const SizedBox(width: 25),
-              GestureDetector(
+              UploadImageWidget(
                 child: Container(
                   width: 24,
                   height: 24,
@@ -281,10 +283,14 @@ class _IndexFrameState extends State<Index> {
                     color: Colors.white,
                   ),
                 ),
-                onTap: () {
+                onImagePicked: (imgRoute) {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const NewPost()),
+                  // );
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const NewPost()),
+                    MaterialPageRoute(builder: (context) => PostContentEdit(filePath: imgRoute,)),
                   );
                 },
               ),

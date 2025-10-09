@@ -114,7 +114,7 @@ class _MemberState extends State<Member> {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(10),
                     decoration: ShapeDecoration(
-                      color: const Color(0xFF241172),
+                      color: const Color(0xFF2C538A),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
                     child: Text(
@@ -160,7 +160,7 @@ class _MemberState extends State<Member> {
                     Text(
                       '立即註冊',
                       style: TextStyle(
-                        color: const Color(0xFF241172),
+                        color: const Color(0xFF2C538A),
                         fontSize: 14,
                         fontFamily: 'PingFang TC',
                         fontWeight: FontWeight.w500,

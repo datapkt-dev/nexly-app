@@ -36,7 +36,7 @@ class _RegisterState extends State<Register> {
   TextEditingController controllerPasswordCheck = TextEditingController();
   Color _number = Color(0xFFE7E7E7);
   String err = '';
-  Color _tooltip = Colors.amber;
+  Color _tooltip = Color(0xFF656565);
   Color _password = Color(0xFFE7E7E7);
   Color _passwordCheck = Color(0xFFE7E7E7);
   bool errCheck = false;
@@ -791,7 +791,6 @@ class _RegisterState extends State<Register> {
               ),
               child: Icon(
                 Icons.arrow_back_ios_rounded,
-                color: const Color(0xFFEFEFEF),
               ),
             ),
             onPressed: () {
@@ -804,7 +803,7 @@ class _RegisterState extends State<Register> {
           Text(
             '用戶註冊',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 24,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w500,
@@ -814,7 +813,7 @@ class _RegisterState extends State<Register> {
           Text(
             '密碼設定',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 16,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w400,
@@ -826,13 +825,13 @@ class _RegisterState extends State<Register> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
-              color: const Color(0xFF333333),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
-                  color: _password,
-                  width: 0,
+                  width: 1,
+                  color: const Color(0xFFE7E7E7),
                 ),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: TextField(
@@ -871,14 +870,21 @@ class _RegisterState extends State<Register> {
               Tooltip(
                 message: '密碼必須包含至少8字元，可使用大寫字母、小寫字母和數字',
                 textStyle: const TextStyle(
-                  color: Color(0xFFEFEFEF),
+                  color: Color(0xFF303133),
                   fontSize: 12,
                   fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w400,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: IconButton(
                   icon: Icon(
@@ -896,13 +902,13 @@ class _RegisterState extends State<Register> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
-              color: const Color(0xFF333333),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
-                  color: _passwordCheck,
-                  width: 0,
+                  width: 1,
+                  color: const Color(0xFFE7E7E7),
                 ),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: TextField(
@@ -945,7 +951,7 @@ class _RegisterState extends State<Register> {
               setState(() {
                 _password = Color(0xFF333333);
                 _passwordCheck = Color(0xFF333333);
-                _tooltip = Colors.amber;
+                _tooltip = Color(0xFF656565);
                 err = '';
                 errCheck = false;
                 if (controllerPassword.text == controllerPasswordCheck.text) {
@@ -1020,10 +1026,10 @@ class _RegisterState extends State<Register> {
                   // });
                   showDialog(
                     context: context,
-                    barrierDismissible: false, // 一定要按按鈕
+                    // barrierDismissible: false, // 一定要按按鈕
                     builder: (context) {
                       return Dialog(
-                        backgroundColor: const Color(0xFF2E2E2E),
+                        backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
@@ -1037,10 +1043,10 @@ class _RegisterState extends State<Register> {
                               const SizedBox(height: 40),
                               Text(
                                 /*'${result['message']}',*/
-                                '',
+                                '註冊成功，請重新登入',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: const Color(0xFFEFEFEF),
+                                  color: const Color(0xFF333333),
                                   fontSize: 16,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w500,
@@ -1053,13 +1059,13 @@ class _RegisterState extends State<Register> {
                                   height: 40,
                                   alignment: Alignment.center,
                                   decoration: ShapeDecoration(
-                                    color: const Color(0xFFF9D400),
+                                    color: Color(0xFF2C538A),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                                   ),
                                   child: const Text(
                                     '確定',
                                     style: TextStyle(
-                                      color: const Color(0xFF333333),
+                                      color: Colors.white,
                                       fontSize: 14,
                                       fontFamily: 'PingFang TC',
                                       fontWeight: FontWeight.w500,
@@ -1100,13 +1106,13 @@ class _RegisterState extends State<Register> {
               alignment: Alignment.center,
               padding: const EdgeInsets.all(10),
               decoration: ShapeDecoration(
-                color: const Color(0xFFF9D400),
+                color: const Color(0xFF2C538A),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(
                 '建立帳號',
                 style: TextStyle(
-                  color: const Color(0xFF333333),
+                  color: Colors.white,
                   fontSize: 14,
                   fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w500,

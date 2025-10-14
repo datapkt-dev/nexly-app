@@ -43,11 +43,11 @@ class _IndexState extends State<IndexPage> {
                                 margin: EdgeInsets.only(right: 10,),
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
                                 decoration: ShapeDecoration(
-                                  color: index == 0 ? Color(0xFF241172) : Colors.white,
+                                  color: index == 0 ? Color(0xFF2C538A) : Colors.white,
                                   shape: RoundedRectangleBorder(
                                     side: BorderSide(
                                       width: 1,
-                                      color: index == 0 ? Color(0xFF241172) : Color(0xFF241172),
+                                      color: index == 0 ? Color(0xFF2C538A) : Color(0xFF2C538A),
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -55,7 +55,7 @@ class _IndexState extends State<IndexPage> {
                                 child: Text(
                                   tags[index],
                                   style: TextStyle(
-                                    color: index == 0 ? Colors.white : Color(0xFF241172),
+                                    color: index == 0 ? Colors.white : Color(0xFF2C538A),
                                     fontSize: 14,
                                     fontFamily: 'PingFang TC',
                                     fontWeight: FontWeight.w400,
@@ -245,11 +245,11 @@ class _IndexState extends State<IndexPage> {
                           margin: EdgeInsets.only(right: 10,),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
                           decoration: ShapeDecoration(
-                            color: index == 0 ? Color(0xFF241172) : Colors.white,
+                            color: index == 0 ? Color(0xFF2C538A) : Colors.white,
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
                                 width: 1,
-                                color: index == 0 ? Color(0xFF241172) : Color(0xFF241172),
+                                color: index == 0 ? Color(0xFF2C538A) : Color(0xFF2C538A),
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -257,7 +257,7 @@ class _IndexState extends State<IndexPage> {
                           child: Text(
                             tags[index],
                             style: TextStyle(
-                              color: index == 0 ? Colors.white : Color(0xFF241172),
+                              color: index == 0 ? Colors.white : Color(0xFF2C538A),
                               fontSize: 14,
                               fontFamily: 'PingFang TC',
                               fontWeight: FontWeight.w400,

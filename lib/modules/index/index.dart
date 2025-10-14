@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly_temp/components/widgets/upload_image_widget.dart';
@@ -270,17 +272,30 @@ class _IndexFrameState extends State<Index> {
               ),
               const SizedBox(width: 25),
               UploadImageWidget(
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFF241172),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    size: 18,
-                    color: Colors.white,
+                child: Transform.rotate(
+                  angle: math.pi / 4,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFF2C538A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5), // 會變成圓角菱形
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: const Color(0xFF2C538A).withOpacity(0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    // 內層：把 Icon 轉回 -45°，視覺上就是正的「＋」
+                    child: Transform.rotate(
+                      angle: -math.pi / 4,
+                      child: const Icon(Icons.add, size: 18, color: Colors.white),
+                    ),
                   ),
                 ),
                 onImagePicked: (imgRoute) {

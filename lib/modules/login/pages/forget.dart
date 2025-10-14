@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nexly_temp/modules/login/pages/resetPWD.dart';
 // import '../../../config/app_config.dart';
 // import '../../../units/auth_service.dart';
 
@@ -86,7 +87,7 @@ class _ForgetState extends State<Forget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF282828),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Container(
           height: double.infinity,
@@ -146,7 +147,6 @@ class _ForgetState extends State<Forget> {
               ),
               child: Icon(
                 Icons.arrow_back_rounded,
-                color: const Color(0xFFEFEFEF),
               ),
             ),
             onPressed: () {
@@ -157,7 +157,7 @@ class _ForgetState extends State<Forget> {
           Text(
             '忘記密碼',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 24,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w500,
@@ -167,7 +167,7 @@ class _ForgetState extends State<Forget> {
           Text(
             '請輸入手機',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 16,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w400,
@@ -179,7 +179,7 @@ class _ForgetState extends State<Forget> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
-              color: const Color(0xFF333333),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
@@ -192,7 +192,7 @@ class _ForgetState extends State<Forget> {
               controller: controllerNumber,
               maxLines: 1,
               decoration: const InputDecoration(
-                hintText: '手機號碼',
+                hintText: '信箱',
                 hintStyle: TextStyle(
                   color: Color(0xFFB0B0B0),
                   fontSize: 16,
@@ -224,18 +224,29 @@ class _ForgetState extends State<Forget> {
           const SizedBox(height: 32,),
           GestureDetector(
             onTap: () {
-              final raw = controllerNumber.text.trim();
-              final phone = raw.replaceAll(RegExp(r'\s+'), ''); // 去除空白
+              final input = controllerNumber.text.trim();
+              err = '';
+              _number = Color(0xFF333333);
 
-              // 驗證 09 開頭 + 共 10 碼
-              final isValid = RegExp(r'^09\d{8}$').hasMatch(phone);
+              // 不接受任何空白
+              if (RegExp(r'\s').hasMatch(input)) {
+                setState(() {
+                  err = 'Email 不可包含空白字元';
+                  _number = const Color(0xFFFF3F23);
+                });
+                return;
+              }
+
+              // 簡潔實用版檢查：有一個 @、後面至少一個點 + 至少2位 TLD
+              final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
+              final isValid = emailRegex.hasMatch(input);
 
               if (!isValid) {
                 setState(() {
-                  err = '請輸入正確的手機號碼（09 開頭，共 10 碼）';
-                  _number = const Color(0xFFFF3F23); // 邊框變紅
+                  err = '請輸入正確的 Email 格式';
+                  _number = const Color(0xFFFF3F23);
                 });
-                return; // 不送出 API
+                return;
               }
 
               setState(() {
@@ -257,13 +268,13 @@ class _ForgetState extends State<Forget> {
               alignment: Alignment.center,
               padding: const EdgeInsets.all(10),
               decoration: ShapeDecoration(
-                color: const Color(0xFFF9D400),
+                color: const Color(0xFF2C538A),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(
                 '發送驗證碼',
                 style: TextStyle(
-                  color: const Color(0xFF333333),
+                  color: Colors.white,
                   fontSize: 14,
                   fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w500,
@@ -296,7 +307,6 @@ class _ForgetState extends State<Forget> {
               ),
               child: Icon(
                 Icons.arrow_back_rounded,
-                color: const Color(0xFFEFEFEF),
               ),
             ),
             onPressed: () {
@@ -309,7 +319,7 @@ class _ForgetState extends State<Forget> {
           Text(
             '忘記密碼',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 24,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w500,
@@ -319,7 +329,7 @@ class _ForgetState extends State<Forget> {
           Text(
             '驗證碼已經發送至${controllerNumber.text}',
             style: TextStyle(
-              color: const Color(0xFFEFEFEF),
+              color: const Color(0xFF333333),
               fontSize: 16,
               fontFamily: 'PingFang TC',
               fontWeight: FontWeight.w400,
@@ -332,7 +342,7 @@ class _ForgetState extends State<Forget> {
               '重寄驗證碼(180s)',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: const Color(0xFFF9D400),
+                color: const Color(0xFF2C538A),
                 fontSize: 14,
                 fontFamily: 'PingFang TC',
                 fontWeight: FontWeight.w500,
@@ -345,7 +355,7 @@ class _ForgetState extends State<Forget> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
-              color: const Color(0xFF333333),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
@@ -409,10 +419,10 @@ class _ForgetState extends State<Forget> {
                 //   }
                 // });
 
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => ResetPWD(number: number)),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ResetPWD(number: number)),
+                );
               });
             },
             child: Container(
@@ -420,13 +430,13 @@ class _ForgetState extends State<Forget> {
               alignment: Alignment.center,
               padding: const EdgeInsets.all(10),
               decoration: ShapeDecoration(
-                color: const Color(0xFFF9D400),
+                color: const Color(0xFF2C538A),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(
                 '下一步',
                 style: TextStyle(
-                  color: const Color(0xFF333333),
+                  color: Colors.white,
                   fontSize: 14,
                   fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w500,

@@ -105,7 +105,7 @@ class _LoginState extends State<Login> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ForgetPwd()),
+                          MaterialPageRoute(builder: (context) => Forget()),
                         );
                       },
                     ),
@@ -139,23 +139,6 @@ class _LoginState extends State<Login> {
                       },
                     ),
                   ],
-                ),
-                GestureDetector(
-                  child: Text(
-                    '忘記密碼？',
-                    style: TextStyle(
-                      color: const Color(0xFF838383),
-                      fontSize: 14,
-                      fontFamily: 'PingFang SC',
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Forget()),
-                    );
-                  },
                 ),
                 SizedBox(height: 32,),
                 Text(

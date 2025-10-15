@@ -18,7 +18,7 @@ class LabeledProgressBar extends StatelessWidget {
     this.total,
     this.barHeight = 8,
     this.trackColor = const Color(0xFFE7E7E7),
-    this.barGradient = const [Color(0xFF52A7F8), Color(0xFF2D8CF0)],
+    this.barGradient = const [Color(0xFFEDB60C), Color(0xFFEDB60C)],
   }) : assert(
   percent != null || (current != null && total != null),
   '請提供 percent 或 current/total 其一',

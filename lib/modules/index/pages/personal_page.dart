@@ -44,6 +44,7 @@ class _PersonalPageState extends State<PersonalPage> {
         children: [
           AppBar(
             backgroundColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             leading: SizedBox.shrink(),
             actions: [
               PopupMenuButton<int>(
@@ -602,7 +603,28 @@ class _PersonalPageState extends State<PersonalPage> {
                                         size: 18,
                                         color: Color(0xFFABABAB),
                                       ),
-                                      Spacer(),
+                                      Expanded(
+                                        child: TextField(
+                                          // controller: controller,
+                                          maxLines: 1,
+                                          decoration: const InputDecoration(
+                                            hintText: '好友帳號、名稱',
+                                            hintStyle: TextStyle(
+                                              color: Color(0xFFB0B0B0),
+                                              fontSize: 16,
+                                              fontFamily: 'PingFang TC',
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
+                                          style: TextStyle(
+                                            color: const Color(0xFF333333),
+                                            fontSize: 16,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

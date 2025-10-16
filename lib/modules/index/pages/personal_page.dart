@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nexly_temp/modules/cooperation/cooperation.dart';
+import 'package:nexly_temp/modules/profile/profile.dart';
 import 'package:nexly_temp/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
@@ -49,9 +51,24 @@ class _PersonalPageState extends State<PersonalPage> {
             actions: [
               PopupMenuButton<int>(
                 icon: const Icon(Icons.more_vert),
+                position: PopupMenuPosition.under,
+                offset: const Offset(0, 8),                    // 往下偏移一點
+                shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Color(0xFFEDEDED)),
+                ),
+                color: Colors.white,
+                elevation: 8,
+                constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
                 onSelected: (value) {
                   switch (value) {
-                    case 0: // 前往設定/編輯
+                    case 0: // 帳號設定
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Profile()),
+                      );
+                      break;
+                    case 1: // 前往語言設定
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const Setting()),
@@ -62,6 +79,10 @@ class _PersonalPageState extends State<PersonalPage> {
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 0,
+                    child: Text('帳號設定'),
+                  ),
+                  PopupMenuItem(
+                    value: 1,
                     child: Text('語言設定'),
                   ),
                 ],
@@ -727,64 +748,72 @@ class _PersonalPageState extends State<PersonalPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 115,
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        width: 1,
-                        color: Colors.white,
+                GestureDetector(
+                  child: Container(
+                    height: 115,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 1,
+                          color: Colors.white,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(img[3]), // ✅ 用 AssetImage
-                                fit: BoxFit.cover,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(img[3]), // ✅ 用 AssetImage
+                                  fit: BoxFit.cover,
+                                ),
+                                color: Color(0xFFE7E7E7),
                               ),
-                              color: Color(0xFFE7E7E7),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage(img[1]), // ✅ 用 AssetImage
-                                      fit: BoxFit.cover,
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(img[1]), // ✅ 用 AssetImage
+                                        fit: BoxFit.cover,
+                                      ),
+                                      color: Color(0xFFE7E7E7),
                                     ),
-                                    color: Color(0xFFE7E7E7),
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage(img[2]), // ✅ 用 AssetImage
-                                      fit: BoxFit.cover,
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(img[2]), // ✅ 用 AssetImage
+                                        fit: BoxFit.cover,
+                                      ),
+                                      color: Color(0xFFE7E7E7),
                                     ),
-                                    color: Color(0xFFE7E7E7),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Cooperation()),
+                    );
+                  },
                 ),
                 SizedBox(height: 4,),
                 Row(

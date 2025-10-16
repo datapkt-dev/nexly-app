@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly_temp/modules/login/pages/forget.dart';
-import 'package:nexly_temp/modules/login/pages/forget_pwd.dart';
 import 'package:nexly_temp/modules/login/pages/member.dart';
 import 'package:nexly_temp/modules/login/pages/register.dart';
-import 'package:nexly_temp/modules/login/pages/sign_up.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../components/widgets/upload_image_widget.dart';
@@ -26,6 +27,8 @@ class _ProfileState extends State<Profile> {
     "Other": "不透露",
   };
   String displayPhone = '';
+
+  String temp = '';
 
   // Future<void> _loadUser() async {
   //   final profile = await authStorage.getProfile();
@@ -155,9 +158,9 @@ class _ProfileState extends State<Profile> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        // iconTheme: const IconThemeData(color: Color(0xFFEFEFEF)),
+        // iconTheme: const IconThemeData(color: Color(0xFF333333)),
         title: Text(
-          '帳號設定 ',
+          '帳號設定',
           style: TextStyle(
             color: const Color(0xFF333333),
             fontSize: 18,
@@ -199,7 +202,8 @@ class _ProfileState extends State<Profile> {
                                 height: 80,
                                 decoration: ShapeDecoration(
                                   image: DecorationImage(
-                                    image: NetworkImage(userProfile['avatar_url'] ?? ''),
+                                    // image: NetworkImage(userProfile['avatar_url'] ?? ''),
+                                    image: AssetImage(temp),
                                     fit: BoxFit.cover,
                                   ),
                                   shape: OvalBorder(
@@ -232,6 +236,11 @@ class _ProfileState extends State<Profile> {
                             ],
                           ),
                           onImagePicked: (imgRoute) async {
+                            print('success pick');
+                            print(imgRoute);
+                            setState(() {
+                              temp = imgRoute;
+                            });
                             // final res = await uploadImg(imgRoute);
                             // if (res.containsKey('error') && res['error'] != null) {
                             //   print('有錯誤');
@@ -245,7 +254,8 @@ class _ProfileState extends State<Profile> {
                         ),
                         SizedBox(width: 16,),
                         Text(
-                          '${userProfile['name']} (id: ${userProfile['id']})',
+                          // '${userProfile['name']} (id: ${userProfile['id']})',
+                          'Sam',
                           style: TextStyle(
                             color: const Color(0xFF333333),
                             fontSize: 16,
@@ -253,14 +263,33 @@ class _ProfileState extends State<Profile> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                        SizedBox(width: 4,),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFF2C538A),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              SvgPicture.asset('assets/icons/logo_main.svg'),
+                              SizedBox(width: 2,),
+                              SvgPicture.asset('assets/icons/logo_words.svg'),
+                              SizedBox(width: 2,),
+                              SvgPicture.asset('assets/icons/logo_+.svg'),
+                            ],
+                          ),
+                        ),
                         Spacer(),
                         GestureDetector(
                           child: Row(
                             children: [
                               Text(
-                                '編輯',
+                                '編輯個人資料',
                                 style: TextStyle(
-                                  color: const Color(0xFFF9D400),
+                                  color: const Color(0xFF333333),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w400,
@@ -270,7 +299,7 @@ class _ProfileState extends State<Profile> {
                               Icon(
                                 Icons.border_color_outlined,
                                 size: 13,
-                                color: const Color(0xFFF9D400),
+                                // color: const Color(0xFFF9D400),
                               ),
                             ],
                           ),
@@ -299,9 +328,10 @@ class _ProfileState extends State<Profile> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: ShapeDecoration(
-                      color: Color(0xFF3A3A3A),
-                      // color: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       shadows: [
                         BoxShadow(
                           color: Color(0x26000000),
@@ -318,9 +348,9 @@ class _ProfileState extends State<Profile> {
                         Row(
                           children: [
                             Text(
-                              '姓名',
+                              '👤 姓名',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -330,7 +360,7 @@ class _ProfileState extends State<Profile> {
                             Text(
                               '${userProfile['name']}',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -338,15 +368,67 @@ class _ProfileState extends State<Profile> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 20,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
-                              '生日',
+                              '😄 社交帳號',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Text(
+                              'sam9527',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '💬 個人簡介',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 10,),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  '個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介',
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
+                        Row(
+                          children: [
+                            Text(
+                              '🎂 生日',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -356,7 +438,7 @@ class _ProfileState extends State<Profile> {
                             Text(
                               '${userProfile['birthday']??'未輸入'}',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -364,15 +446,13 @@ class _ProfileState extends State<Profile> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
-                              '性別',
+                              '👥 性別',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -382,7 +462,7 @@ class _ProfileState extends State<Profile> {
                             Text(
                               genderMap[userProfile['gender']] ?? '其他',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -390,15 +470,37 @@ class _ProfileState extends State<Profile> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
-                              '信箱',
+                              '🌐 國家/地區',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Text(
+                              '美國紐約',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
+                        Row(
+                          children: [
+                            Text(
+                              '✉️ 信箱',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -408,7 +510,7 @@ class _ProfileState extends State<Profile> {
                             Text(
                               '${userProfile['email']}',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -416,35 +518,7 @@ class _ProfileState extends State<Profile> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
-                        Row(
-                          children: [
-                            Text(
-                              '電話',
-                              style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Spacer(),
-                            Text(
-                              displayPhone,
-                              style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                       ],
                     ),
                   ),
@@ -453,9 +527,10 @@ class _ProfileState extends State<Profile> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: ShapeDecoration(
-                      color: Color(0xFF3A3A3A),
-                      // color: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       shadows: [
                         BoxShadow(
                           color: Color(0x26000000),
@@ -471,34 +546,50 @@ class _ProfileState extends State<Profile> {
                         Text(
                           '其他',
                           style: TextStyle(
-                            color: const Color(0xFFEFEFEF),
+                            color: const Color(0xFF333333),
                             fontSize: 14,
                             fontFamily: 'PingFang TC',
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        InkWell(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '變更密碼',
-                                  style: TextStyle(
-                                    color: const Color(0xFFEFEFEF),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Spacer(),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: const Color(0xFFEFEFEF),
-                                ),
-                              ],
+                        SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Text(
+                              '🔒 隱私設定',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                            Spacer(),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
+                        InkWell(
+                          child: Row(
+                            children: [
+                              Text(
+                                '🔑 變更密碼',
+                                style: TextStyle(
+                                  color: const Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
+                            ],
                           ),
                           onTap: () {
                             // Navigator.push(
@@ -507,13 +598,31 @@ class _ProfileState extends State<Profile> {
                             // );
                           },
                         ),
-                        Divider(),
+                        Divider(height: 40,),
+                        Row(
+                          children: [
+                            Text(
+                              '🌍 語言',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
                         InkWell(
-                          child: Container(
+                          child: SizedBox(
                             width: double.infinity,
-                            padding: EdgeInsets.symmetric(vertical: 20),
                             child: Text(
-                              '刪除帳號',
+                              '👏 登出',
                               style: TextStyle(
                                 color: const Color(0xFFFF5858),
                                 fontSize: 14,
@@ -528,7 +637,7 @@ class _ProfileState extends State<Profile> {
                               barrierDismissible: false, // 一定要按按鈕
                               builder: (context) {
                                 return Dialog(
-                                  backgroundColor: const Color(0xFF2E2E2E),
+                                  backgroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
@@ -540,10 +649,10 @@ class _ProfileState extends State<Profile> {
                                       children: [
                                         const SizedBox(height: 40),
                                         Text(
-                                          '是否確定刪除此帳號?',
+                                          '是否確定要登出?',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: const Color(0xFFEFEFEF),
+                                            color: const Color(0xFF333333),
                                             fontSize: 16,
                                             fontFamily: 'PingFang TC',
                                             fontWeight: FontWeight.w500,
@@ -568,9 +677,9 @@ class _ProfileState extends State<Profile> {
                                                     ),
                                                   ),
                                                   child: const Text(
-                                                    '確認刪除',
+                                                    '確認登出',
                                                     style: TextStyle(
-                                                      color: const Color(0xFFFF3F23),
+                                                      color: Color(0xFFFF3F23),
                                                       fontSize: 14,
                                                       fontFamily: 'PingFang TC',
                                                       fontWeight: FontWeight.w500,
@@ -612,7 +721,7 @@ class _ProfileState extends State<Profile> {
                                                   child: const Text(
                                                     '取消',
                                                     style: TextStyle(
-                                                      color: const Color(0xFFEFEFEF),
+                                                      color: const Color(0xFF333333),
                                                       fontSize: 14,
                                                       fontFamily: 'PingFang TC',
                                                       fontWeight: FontWeight.w500,
@@ -634,6 +743,133 @@ class _ProfileState extends State<Profile> {
                             );
                           },
                         ),
+                        Divider(height: 40,),
+                        InkWell(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              '🗑️ 刪除帳號',
+                              style: TextStyle(
+                                color: const Color(0xFFFF5858),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false, // 一定要按按鈕
+                              builder: (context) {
+                                return Dialog(
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20), // 四邊 20
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const SizedBox(height: 40),
+                                        Text(
+                                          '是否確定刪除此帳號?',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: const Color(0xFF333333),
+                                            fontSize: 16,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 60),
+                                        Row(
+                                          children: [
+                                            // 確認刪除
+                                            Expanded(
+                                              child: GestureDetector(
+                                                child: Container(
+                                                  alignment: Alignment.center,
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: ShapeDecoration(
+                                                    shape: RoundedRectangleBorder(
+                                                      side: BorderSide(
+                                                        width: 1,
+                                                        color: const Color(0xFF949292),
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    '確認刪除',
+                                                    style: TextStyle(
+                                                      color: Color(0xFFFF3F23),
+                                                      fontSize: 14,
+                                                      fontFamily: 'PingFang TC',
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  // futureData = delUser();
+                                                  // futureData.then((result) async {
+                                                  //   print(result);
+                                                  //   if (result['message'] == '訪客刪除成功') {
+                                                  //     await authStorage.logout();
+                                                  //     Navigator.pushAndRemoveUntil(
+                                                  //       context,
+                                                  //       MaterialPageRoute(builder: (context) => const Login()),
+                                                  //           (Route<dynamic> route) => false, // 移除所有先前頁面
+                                                  //     );
+                                                  //   }
+                                                  // });
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            // 取消
+                                            Expanded(
+                                              child: GestureDetector(
+                                                child: Container(
+                                                  alignment: Alignment.center,
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: ShapeDecoration(
+                                                    shape: RoundedRectangleBorder(
+                                                      side: BorderSide(
+                                                        width: 1,
+                                                        color: const Color(0xFF949292),
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    '取消',
+                                                    style: TextStyle(
+                                                      color: const Color(0xFF333333),
+                                                      fontSize: 14,
+                                                      fontFamily: 'PingFang TC',
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        SizedBox(height: 20,),
                       ],
                     ),
                   ),

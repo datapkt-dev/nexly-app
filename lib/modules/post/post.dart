@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nexly_temp/modules/post/widgets/report.dart';
 import 'package:nexly_temp/modules/user/user.dart';
 
 class Post extends StatefulWidget {
@@ -10,7 +11,7 @@ class Post extends StatefulWidget {
   State<Post> createState() => _PostState();
 }
 
-enum _PostMenu {edit, copyToCollab, delete,}
+enum _PostMenu {edit, copyToCollab, delete, report,}
 
 class _PostState extends State<Post> {
   bool collected = true;
@@ -81,6 +82,13 @@ class _PostState extends State<Post> {
                     // TODO: 呼叫刪除 API
                   }
                   break;
+                case _PostMenu.report:
+                  final result = await ReportBottomSheet.show(
+                    context,
+                    targetId: 'post_123',
+                    targetType: ReportTarget.post, // 或 ReportTarget.user
+                  );
+                  break;
               }
             },
             itemBuilder: (context) => [
@@ -102,7 +110,7 @@ class _PostState extends State<Post> {
                 ),
               ] else ...[
                 const PopupMenuItem(
-                  // value: _PostMenu.edit,
+                  value: _PostMenu.report,
                   child: Text('檢舉貼文'),
                 ),
               ],

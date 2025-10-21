@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:nexly_temp/modules/payment/payment.dart';
+import 'package:nexly_temp/modules/profile/pages/profile_edit.dart';
+import 'package:nexly_temp/modules/profile/widgets/privacy.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../setting/setting.dart';
@@ -306,6 +308,10 @@ class _ProfileState extends State<Profile> {
                             ],
                           ),
                           onTap: () {
+                            Navigator.push(
+                              context,
+                                MaterialPageRoute(builder: (context) => ProfileEdit()),
+                            );
                             // userProfile['displayPhone'] = displayPhone;
                             // Navigator.push(
                             //   context,
@@ -635,23 +641,33 @@ class _ProfileState extends State<Profile> {
                           ),
                         ),
                         SizedBox(height: 20,),
-                        Row(
-                          children: [
-                            Text(
-                              '🔒 隱私設定',
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
+                        InkWell(
+                          child: Row(
+                            children: [
+                              Text(
+                                '🔒 隱私設定',
+                                style: TextStyle(
+                                  color: const Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            Spacer(),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
-                          ],
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) => const Privacy(),
+                            );
+                          },
                         ),
                         Divider(height: 40,),
                         InkWell(

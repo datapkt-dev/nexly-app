@@ -25,6 +25,7 @@ class _CooperationState extends State<Cooperation> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         title: Text(
           '協作資料夾名稱',
           style: TextStyle(
@@ -35,6 +36,10 @@ class _CooperationState extends State<Cooperation> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.open_in_new),
+            onPressed: () {},
+          ),
           PopupMenuButton<_PostMenu>(
             icon: const Icon(Icons.more_vert),
             position: PopupMenuPosition.under,

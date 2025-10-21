@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nexly_temp/modules/payment/payment.dart';
 import 'package:nexly_temp/modules/post/post.dart';
 
 class IndexPage extends StatefulWidget {
@@ -137,6 +138,108 @@ class _IndexState extends State<IndexPage> {
                                       ),
                                     ),
                                   ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      child: Icon(
+                                        Icons.bookmark_border,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () {
+                                        setState(() {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+                                            builder: (ctx) {
+                                              return Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 16,),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.1),
+                                                      blurRadius: 12,
+                                                      offset: const Offset(0, -4),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const SizedBox(height: 10),
+                                                    // 小手把
+                                                    Center(
+                                                      child: Container(
+                                                        width: 36,
+                                                        height: 4,
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFDADADA),
+                                                          borderRadius: BorderRadius.circular(2),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 22),
+
+                                                    // 標題列 + 關閉
+                                                    Align(
+                                                      alignment: AlignmentGeometry.centerRight,
+                                                      child: IconButton(
+                                                        icon: Icon(Icons.close),
+                                                        onPressed: () => Navigator.pop(context),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      '你的Tales已達上限。\n「升級至 nexly+，解鎖無限 Tales 與 Co-Tales，讓你的故事沒有界限。」',
+                                                      style: TextStyle(
+                                                        color: const Color(0xFF333333),
+                                                        fontSize: 14,
+                                                        fontFamily: 'PingFang TC',
+                                                        fontWeight: FontWeight.w400,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 20,),
+                                                    GestureDetector(
+                                                      child: Container(
+                                                        width: double.infinity,
+                                                        height: 40,
+                                                        padding: const EdgeInsets.all(10),
+                                                        alignment: Alignment.center,
+                                                        decoration: ShapeDecoration(
+                                                          color: const Color(0xFF2C538A),
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                                        ),
+                                                        child: Text(
+                                                          '去了解',
+                                                          textAlign: TextAlign.center,
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 14,
+                                                            fontFamily: 'PingFang TC',
+                                                            fontWeight: FontWeight.w400,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      onTap: () {
+                                                        Navigator.pop(context);
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(builder: (context) => Payment()),
+                                                        );
+                                                      },
+                                                    ),
+                                                    SizedBox(height: 30,),
+                                                  ],
+                                                ),
+                                              );// 自訂內容（見下）;
+                                            },
+                                          );
+                                        });
+                                      },
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -152,7 +255,12 @@ class _IndexState extends State<IndexPage> {
                                     ),
                                   ),
                                   Spacer(),
-                                  Icon(Icons.more_vert),
+                                  GestureDetector(
+                                    child: Icon(Icons.more_vert),
+                                    onTap: () {
+
+                                    },
+                                  ),
                                 ],
                               ),
                             ],

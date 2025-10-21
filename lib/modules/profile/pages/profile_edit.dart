@@ -75,14 +75,14 @@ class _ProfileEditState extends State<ProfileEdit> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF282828),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Color(0xFFEFEFEF)),
+        // iconTheme: const IconThemeData(color: Color(0xFF333333)),
         title: Text(
           '會員資料',
           style: TextStyle(
-            color: const Color(0xFFEFEFEF),
+            color: const Color(0xFF333333),
             fontSize: 18,
             fontFamily: 'PingFang TC',
             fontWeight: FontWeight.w600,
@@ -93,7 +93,7 @@ class _ProfileEditState extends State<ProfileEdit> {
             child: Text(
               '完成',
               style: TextStyle(
-                color: const Color(0xFFF9D400),
+                color: const Color(0xFF333333),
                 fontSize: 16,
                 fontFamily: 'PingFang TC',
                 fontWeight: FontWeight.w400,
@@ -139,9 +139,10 @@ class _ProfileEditState extends State<ProfileEdit> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: ShapeDecoration(
-                      color: Color(0xFF3A3A3A),
-                      // color: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       shadows: [
                         BoxShadow(
                           color: Color(0x26000000),
@@ -160,7 +161,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                             Text(
                               '姓名',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -184,7 +185,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
-                                  color: Color(0xFFEFEFEF),
+                                  color: Color(0xFF333333),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w500,
@@ -193,15 +194,67 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 20,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
+                        Row(
+                          children: [
+                            Text(
+                              '社交帳號',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Text(
+                              'sam9527',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '個人簡介',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: 10,),
+                            Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    '個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介',
+                                    style: TextStyle(
+                                      color: const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                )
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
                               '生日',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -230,7 +283,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                                   border: InputBorder.none,
                                 ),
                                 style: const TextStyle(
-                                  color: Color(0xFFEFEFEF),
+                                  color: Color(0xFF333333),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w500,
@@ -239,15 +292,13 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
                               '性別',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -288,7 +339,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                                 style: TextStyle(
                                   color: selectedGenderCode == null
                                       ? const Color(0xFFB0B0B0) // 提示文字灰色
-                                      : const Color(0xFFEFEFEF),
+                                      : const Color(0xFF333333),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w500,
@@ -297,15 +348,38 @@ class _ProfileEditState extends State<ProfileEdit> {
                             )
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
+                        Row(
+                          children: [
+                            Text(
+                              '國家/地區',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Text(
+                              // widget.userProfile?['displayPhone'],
+                              '美國紐約',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(height: 40,),
                         Row(
                           children: [
                             Text(
                               '信箱',
                               style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w500,
@@ -313,9 +387,9 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                             Spacer(),
                             Text(
-                              widget.userProfile?['email'],
+                              widget.userProfile?['email']??'',
                               style: TextStyle(
-                                color: const Color(0xFF999999),
+                                color: const Color(0xFF333333),
                                 fontSize: 14,
                                 fontFamily: 'PingFang TC',
                                 fontWeight: FontWeight.w400,
@@ -323,35 +397,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
-                        Row(
-                          children: [
-                            Text(
-                              '電話',
-                              style: TextStyle(
-                                color: const Color(0xFFEFEFEF),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Spacer(),
-                            Text(
-                              widget.userProfile?['displayPhone'],
-                              style: TextStyle(
-                                color: const Color(0xFF999999),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Divider(),
-                        SizedBox(height: 10,),
+                        Divider(height: 40,),
                       ],
                     ),
                   ),

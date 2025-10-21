@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly_temp/modules/cooperation/cooperation.dart';
+import 'package:nexly_temp/modules/payment/widgets/NoticeBlock.dart';
 import 'package:nexly_temp/modules/profile/profile.dart';
 import 'package:nexly_temp/modules/progress/progress.dart';
 import 'package:nexly_temp/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
+import '../post/widgets/report.dart';
 
 class User extends StatefulWidget {
   const User({super.key});
@@ -60,21 +62,110 @@ class _PersonalPageState extends State<User> {
             color: Colors.white,
             elevation: 8,
             constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
-            onSelected: (value) {
-              // switch (value) {
-              //   case 0: // 帳號設定
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(builder: (context) => const Profile()),
-              //     );
-              //     break;
-              //   case 1: // 前往語言設定
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(builder: (context) => const Setting()),
-              //     );
-              //     break;
-              // }
+            onSelected: (value) async {
+              switch (value) {
+                case 0:
+                  final result = await ReportBottomSheet.show(
+                    context,
+                    targetId: 'post_123',
+                    targetType: ReportTarget.user, // 或 ReportTarget.user
+                  );
+                  break;
+                case 1:
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+                    builder: (ctx) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16,),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 12,
+                              offset: const Offset(0, -4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 10),
+                            // 小手把
+                            Center(
+                              child: Container(
+                                width: 36,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDADADA),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+
+                            // 標題列 + 關閉
+                            Align(
+                              alignment: AlignmentGeometry.centerRight,
+                              child: IconButton(
+                                icon: Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ),
+                            NoticeBlock(
+                              title: '封鎖後此用戶將無法',
+                              items: [
+                                '查看你個人頁面及已發布的tales',
+                                '解除你們彼此的追蹤關係',
+                                '從彼此所屬的co-tales中移除',
+                                '無法邀請你至co-tales',
+                                '分享訊息給你',
+                              ],
+                            ),
+                            SizedBox(height: 20,),
+                            GestureDetector(
+                              child: Container(
+                                width: double.infinity,
+                                height: 40,
+                                padding: const EdgeInsets.all(10),
+                                alignment: Alignment.center,
+                                decoration: ShapeDecoration(
+                                  color: const Color(0xFF2C538A),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                ),
+                                child: Text(
+                                  '確定',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context); // 關閉選單
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('已封鎖'),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: 30,),
+                          ],
+                        ),
+                      );// 自訂內容（見下）;
+                    },
+                  );
+                  break;
+              }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -147,29 +238,36 @@ class _PersonalPageState extends State<User> {
                           ],
                         ),
                         Spacer(),
-                        Container(
-                          width: 80,
-                          height: 32,
-                          alignment: Alignment.center,
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: const Color(0xFFE7E7E7),
+                        InkWell(
+                          child: Container(
+                            width: 80,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: ShapeDecoration(
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  width: 1,
+                                  color: const Color(0xFFE7E7E7),
+                                ),
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '追蹤${light ? '中' : ''}',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            '追蹤中',
-                            style: TextStyle(
-                              color: const Color(0xFF333333),
-                              fontSize: 14,
-                              fontFamily: 'PingFang TC',
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
+                          onTap: () {
+                            setState(() {
+                              light = !light;
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -334,10 +432,10 @@ class _PersonalPageState extends State<User> {
                         ),
                       ),
                       onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(builder: (context) => const Progress()),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Progress()),
+                        );
                       },
                     ),
                     SizedBox(height: 10,),
@@ -443,440 +541,5 @@ class _PersonalPageState extends State<User> {
           },
         );
     }
-  }
-
-  Widget cooperation() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.builder(
-        padding: const EdgeInsets.all(0),
-        shrinkWrap: true, // 高度隨內容變化
-        physics: NeverScrollableScrollPhysics(), // 交給外層滾動
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,     // 一列 2 個
-          crossAxisSpacing: 10,   // 左右間距
-          mainAxisSpacing: 10,   // 上下間距
-          mainAxisExtent: 162,   // ✅ 固定每個 item 的高度 (250 圖片 + 文字空間)
-        ),
-        itemCount: 4, // 資料數量
-        itemBuilder: (context, index) {
-          // final post = posts[index]; // 換成你的資料
-          if (index == 0) {
-            return Column(
-              children: [
-                GestureDetector(
-                  child: Container(
-                    height: 115,
-                    alignment: Alignment.center,
-                    decoration: ShapeDecoration(
-                      color: const Color(0x1924B7BD),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: Color(0xFF2C538A),
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 30,),
-                        Icon(Icons.add),
-                        SizedBox(height: 4,),
-                        Text(
-                          '新增資料夾',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,           // 解除預設高度限制
-                      backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                      builder: (ctx) {
-                        return FractionallySizedBox(
-                          heightFactor: 0.9, // 90% 螢幕高度
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16,),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, -4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 10),
-                                // 小手把
-                                Center(
-                                  child: Container(
-                                    width: 36,
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFDADADA),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 22),
-
-                                // 標題列 + 關閉
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(child: SizedBox.shrink()),
-                                    Text(
-                                      '協作設定',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: const Color(0xFF333333),
-                                        fontSize: 18,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
-                                        children: [
-                                          TextButton(
-                                            child: Text(
-                                              '完成',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: const Color(0xFF333333),
-                                                fontSize: 16,
-                                                fontFamily: 'PingFang TC',
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                            onPressed: () => Navigator.pop(context),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: const Color(0xFFEEEEEE),
-                                      width: 1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: TextField(
-                                    // controller: controller,
-                                    maxLines: 1,
-                                    decoration: const InputDecoration(
-                                      hintText: '輸入資料夾名稱',
-                                      hintStyle: TextStyle(
-                                        color: Color(0xFFB0B0B0),
-                                        fontSize: 16,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      border: InputBorder.none,
-                                    ),
-                                    style: TextStyle(
-                                      color: const Color(0xFF333333),
-                                      fontSize: 16,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 20,),
-                                Text(
-                                  '協作隱私權限',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '公開',
-                                      style: TextStyle(
-                                        color: const Color(0xFF333333),
-                                        fontSize: 14,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Switch(
-                                      // This bool value toggles the switch.
-                                      value: light,
-                                      activeColor: Color(0xFFE9416C),
-                                      onChanged: (bool value) {
-                                        // This is called when the user toggles the switch.
-                                        setState(() {
-                                          light = value;
-                                        });
-                                      },
-                                    )
-                                  ],
-                                ),
-                                SizedBox(height: 20,),
-                                Container(
-                                  width: double.infinity,
-                                  height: 46,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  decoration: ShapeDecoration(
-                                    color: const Color(0xFFEEEEEE),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.search,
-                                        size: 18,
-                                        color: Color(0xFFABABAB),
-                                      ),
-                                      Expanded(
-                                        child: TextField(
-                                          // controller: controller,
-                                          maxLines: 1,
-                                          decoration: const InputDecoration(
-                                            hintText: '好友帳號、名稱',
-                                            hintStyle: TextStyle(
-                                              color: Color(0xFFB0B0B0),
-                                              fontSize: 16,
-                                              fontFamily: 'PingFang TC',
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                            border: InputBorder.none,
-                                          ),
-                                          style: TextStyle(
-                                            color: const Color(0xFF333333),
-                                            fontSize: 16,
-                                            fontFamily: 'PingFang TC',
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // 可滾動內容
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      children: List.generate(10, (index) {
-                                        return Container(
-                                          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10,),
-                                          padding: EdgeInsets.symmetric(vertical: 4),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 40,
-                                                height: 40,
-                                                decoration: ShapeDecoration(
-                                                  // image: DecorationImage(
-                                                  //   image: NetworkImage("https://placehold.co/60x60"),
-                                                  //   fit: BoxFit.cover,
-                                                  // ),
-                                                  shape: OvalBorder(
-                                                    side: BorderSide(
-                                                      width: 1,
-                                                      color: const Color(0xFFE7E7E7),
-                                                    ),
-                                                  ),
-                                                ),
-                                                child: SvgPicture.asset('assets/images/avatar_1.svg'),
-                                              ),
-                                              SizedBox(width: 8,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'jane',
-                                                    style: TextStyle(
-                                                      color: const Color(0xFF333333),
-                                                      fontSize: 14,
-                                                      fontFamily: 'PingFang TC',
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    'jane05171921',
-                                                    style: TextStyle(
-                                                      color: const Color(0xFF898989),
-                                                      fontSize: 12,
-                                                      fontFamily: 'PingFang TC',
-                                                      fontWeight: FontWeight.w400,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Spacer(),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    '已加入',
-                                                    style: TextStyle(
-                                                      color: const Color(0xFF333333),
-                                                      fontSize: 14,
-                                                      fontFamily: 'PingFang TC',
-                                                      fontWeight: FontWeight.w400,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '2025.01.01 加入',
-                                                    style: TextStyle(
-                                                      color: const Color(0xFF898989),
-                                                      fontSize: 12,
-                                                      fontFamily: 'PingFang TC',
-                                                      fontWeight: FontWeight.w400,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(width: 4,),
-                                              Icon(Icons.more_vert),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),// 自訂內容（見下）
-                        );
-                      },
-                    );
-                  },
-                ),
-                Spacer(),
-              ],
-            );
-          } else {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  child: Container(
-                    height: 115,
-                    decoration: ShapeDecoration(
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: Colors.white,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(img[3]), // ✅ 用 AssetImage
-                                  fit: BoxFit.cover,
-                                ),
-                                color: Color(0xFFE7E7E7),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: AssetImage(img[1]), // ✅ 用 AssetImage
-                                        fit: BoxFit.cover,
-                                      ),
-                                      color: Color(0xFFE7E7E7),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: AssetImage(img[2]), // ✅ 用 AssetImage
-                                        fit: BoxFit.cover,
-                                      ),
-                                      color: Color(0xFFE7E7E7),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Cooperation()),
-                    );
-                  },
-                ),
-                SizedBox(height: 4,),
-                Row(
-                  children: [
-                    Text(
-                      '協作資料夾名稱',
-                      style: TextStyle(
-                        color: const Color(0xFF333333),
-                        fontSize: 14,
-                        fontFamily: 'PingFang TC',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(Icons.more_vert),
-                  ],
-                ),
-                SizedBox(height: 1.5,),
-                Text(
-                  '3 Tales • 5 參與者',
-                  style: TextStyle(
-                    color: const Color(0xFF898989),
-                    fontSize: 12,
-                    fontFamily: 'PingFang TC',
-                    fontWeight: FontWeight.w400,
-                  ),
-                )
-              ],
-            );
-          }
-        },
-      ),
-    );
   }
 }

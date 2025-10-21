@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nexly_temp/modules/payment/payment.dart';
 import 'package:nexly_temp/modules/post/post.dart';
 
+import '../widgets/action_menu_bottom_sheet.dart';
+
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
 
@@ -258,7 +260,11 @@ class _IndexState extends State<IndexPage> {
                                   GestureDetector(
                                     child: Icon(Icons.more_vert),
                                     onTap: () {
-
+                                      ActionMenuBottomSheet.show(
+                                        context,
+                                        rootContext: context, // 用來顯示下一層 & SnackBar
+                                        targetId: 'post_123',
+                                      );
                                     },
                                   ),
                                 ],

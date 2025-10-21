@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly_temp/modules/post/widgets/report.dart';
 import 'package:nexly_temp/modules/user/user.dart';
 
+import '../index/widgets/share_bottom_sheet.dart';
+
 class Post extends StatefulWidget {
   final bool myself;
   const Post({super.key, this.myself = false});
@@ -43,7 +45,9 @@ class _PostState extends State<Post> {
         actions: [
           if (!myself) ...[
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                ShareBottomSheet.show(context);
+              },
               icon: Icon(Icons.open_in_new),
             ),
           ],
@@ -452,6 +456,30 @@ class _PostState extends State<Post> {
                                           },
                                         ),
                                       ),
+                                      Divider(),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 24,),
+                                        width: double.infinity,
+                                        decoration: ShapeDecoration(
+                                          color: const Color(0xFFF4F4F4),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(38),
+                                          ),
+                                        ),
+                                        child: const TextField(
+                                          decoration: InputDecoration(
+                                            hintText: '新增留言',
+                                            hintStyle: TextStyle(
+                                              color: Color(0xFF999999),
+                                              fontSize: 16,
+                                              fontFamily: 'PingFang TC',
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 30),
                                     ],
                                   ),
                                 ),// 自訂內容（見下）

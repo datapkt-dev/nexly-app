@@ -137,7 +137,7 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
               const SizedBox(height: 12),
               // 標題
               Text(
-                '檢舉此貼文',
+                title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: const Color(0xFF333333),

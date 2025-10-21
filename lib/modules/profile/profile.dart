@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:nexly_temp/modules/payment/payment.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
+import '../setting/setting.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -324,6 +326,86 @@ class _ProfileState extends State<Profile> {
                       ],
                     ),
                   ),
+
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: ShapeDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/banner_upgrade.png'),
+                        fit: BoxFit.cover,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: OvalBorder(),
+                          ),
+                          child: Image.asset(
+                            'assets/images/logo_small.png',
+                            height: 32,
+                            width: 32,
+                          ),
+                        ),
+                        SizedBox(width: 10,),
+                        Text(
+                          '將幸福延續簡單傳遞',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        Spacer(),
+                        GestureDetector(
+                          child: Container(
+                            padding: const EdgeInsets.only(top: 2, left: 10, right: 8, bottom: 2),
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFFEDB60C),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '升級',
+                                  style: TextStyle(
+                                    color: const Color(0xFF2C538A),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 10,
+                                  color: const Color(0xFF2C538A),
+                                ),
+                              ],
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Payment()),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -599,23 +681,31 @@ class _ProfileState extends State<Profile> {
                           },
                         ),
                         Divider(height: 40,),
-                        Row(
-                          children: [
-                            Text(
-                              '🌍 語言',
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
+                        InkWell(
+                          child: Row(
+                            children: [
+                              Text(
+                                '🌍 語言',
+                                style: TextStyle(
+                                  color: const Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            Spacer(),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
-                          ],
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Setting()),
+                            );
+                          },
                         ),
                         Divider(height: 40,),
                         InkWell(

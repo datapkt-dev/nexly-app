@@ -4,6 +4,8 @@ import 'package:nexly_temp/modules/login/pages/forget.dart';
 import 'package:nexly_temp/modules/login/pages/member.dart';
 import 'package:nexly_temp/modules/login/pages/register.dart';
 
+import '../index/index.dart';
+
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -12,6 +14,8 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  bool _obscure = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,6 +65,54 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(height: 32,),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: const Color(0xFFEEEEEE),
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          // controller: controller,
+                          obscureText: _obscure,
+                          maxLines: 1,
+                          decoration: const InputDecoration(
+                            hintText: '密碼',
+                            hintStyle: TextStyle(
+                              color: Color(0xFFB0B0B0),
+                              fontSize: 16,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w400,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xFF454545),
+                            fontSize: 16,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _obscure = !_obscure;
+                          });
+                        },
+                        child: _obscure ? const Icon(Icons.visibility_outlined) : const Icon(Icons.visibility_off_outlined),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 32,),
                 GestureDetector(
                   child: Container(
                     width: double.infinity,
@@ -81,9 +133,13 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   onTap: () {
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => Member()),
+                    // );
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Member()),
+                      MaterialPageRoute(builder: (context) => Index()),
                     );
                   },
                 ),

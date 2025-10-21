@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nexly_temp/modules/user/user.dart';
 
 class Post extends StatefulWidget {
-  const Post({super.key});
+  final bool myself;
+  const Post({super.key, this.myself = false});
 
   @override
   State<Post> createState() => _PostState();
@@ -11,12 +13,23 @@ class Post extends StatefulWidget {
 enum _PostMenu {edit, copyToCollab, delete,}
 
 class _PostState extends State<Post> {
+  bool collected = true;
+  bool liked = true;
+  late bool myself;
+
+  @override
+  void initState() {
+    super.initState();
+    myself = widget.myself;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         title: Text(
           '貼文',
           style: TextStyle(
@@ -27,6 +40,12 @@ class _PostState extends State<Post> {
           ),
         ),
         actions: [
+          if (!myself) ...[
+            IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.open_in_new),
+            ),
+          ],
           PopupMenuButton<_PostMenu>(
             icon: const Icon(Icons.more_vert),
             position: PopupMenuPosition.under,
@@ -65,13 +84,28 @@ class _PostState extends State<Post> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: _PostMenu.edit,          child: Text('編輯貼文')),
-              const PopupMenuItem(value: _PostMenu.copyToCollab,  child: Text('複製至協作')),
-              // const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: _PostMenu.delete,
-                child: Text('刪除貼文', style: TextStyle(color: Colors.red)),
-              ),
+              if (myself) ...[
+                const PopupMenuItem(
+                  value: _PostMenu.edit,
+                  child: Text('編輯貼文'),
+                ),
+                const PopupMenuItem(
+                  value: _PostMenu.copyToCollab,
+                  child: Text('複製至協作'),
+                ),
+                const PopupMenuItem(
+                  value: _PostMenu.delete,
+                  child: Text(
+                    '刪除貼文',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ] else ...[
+                const PopupMenuItem(
+                  // value: _PostMenu.edit,
+                  child: Text('檢舉貼文'),
+                ),
+              ],
             ],
           ),
         ],
@@ -123,20 +157,35 @@ class _PostState extends State<Post> {
                           ),
                         ),
                         SizedBox(width: 7,),
-                        Text(
-                          'sam9527',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
-                            height: 1.50,
+                        GestureDetector(
+                          child: Text(
+                            'sam9527',
+                            style: TextStyle(
+                              color: const Color(0xFF333333),
+                              fontSize: 14,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w500,
+                              height: 1.50,
+                            ),
                           ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const User()),
+                            );
+                          },
                         ),
                         Spacer(),
-                        Icon(
-                          Icons.bookmark,
-                          color: Color(0xFFD63C95),
+                        GestureDetector(
+                          child: Icon(
+                            Icons.bookmark,
+                            color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              collected = !collected;
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -144,9 +193,16 @@ class _PostState extends State<Post> {
                   SizedBox(height: 12,),
                   Row(
                     children: [
-                      Icon(
-                        Icons.favorite,
-                        color: Color(0xFFED4D4D),
+                      GestureDetector(
+                        child: Icon(
+                          Icons.favorite,
+                          color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            liked = !liked;
+                          });
+                        },
                       ),
                       SizedBox(width: 4,),
                       Text(
@@ -159,9 +215,242 @@ class _PostState extends State<Post> {
                         ),
                       ),
                       SizedBox(width: 10,),
-                      Icon(
-                        Icons.chat_bubble,
-                        color: Color(0xFFD9D9D9),
+                      GestureDetector(
+                        child: Icon(
+                          Icons.chat_bubble,
+                          color: Color(0xFFD9D9D9),
+                        ),
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,           // 解除預設高度限制
+                            backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+                            builder: (ctx) {
+                              return FractionallySizedBox(
+                                heightFactor: 0.7, // 90% 螢幕高度
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 16,),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, -4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 10),
+                                      // 小手把
+                                      Center(
+                                        child: Container(
+                                          width: 36,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFDADADA),
+                                            borderRadius: BorderRadius.circular(2),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 22),
+
+                                      // 標題列 + 關閉
+                                      Center(
+                                        child: Text(
+                                          '留言',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: const Color(0xFF333333),
+                                            fontSize: 18,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 8,),
+                                      // 可滾動內容
+                                      Expanded(
+                                        child: ListView.separated(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          itemCount: 1, // 你的資料長度
+                                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                          itemBuilder: (context, index) {
+                                            return Column(
+                                              children: [
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    // 圖片卡（給固定寬/高避免擠壓）
+                                                    Container(
+                                                      width: 40,
+                                                      height: 40,
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/avatar.svg',
+                                                        // fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 右側文字塊
+                                                    Expanded(
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              Text(
+                                                                'Ella_1019',
+                                                                style: TextStyle(
+                                                                  color: const Color(0xFF333333),
+                                                                  fontSize: 14,
+                                                                  fontFamily: 'PingFang TC',
+                                                                  fontWeight: FontWeight.w500,
+                                                                ),
+                                                              ),
+                                                              Icon(
+                                                                Icons.favorite,
+                                                                size: 20,
+                                                                color: Color(0xFFD9D9D9),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                          Text.rich(
+                                                            TextSpan(
+                                                              children: [
+                                                                TextSpan(
+                                                                  text: '＠chris1123 ',
+                                                                  style: TextStyle(
+                                                                    color: Color(0xFF3B5AF8),
+                                                                    fontSize: 14,
+                                                                    fontFamily: 'PingFang TC',
+                                                                    fontWeight: FontWeight.w400,
+                                                                  ),
+                                                                ),
+                                                                TextSpan(
+                                                                  text: '來看看這個',
+                                                                  style: TextStyle(
+                                                                    color: const Color(0xFF333333),
+                                                                    fontSize: 14,
+                                                                    fontFamily: 'PingFang TC',
+                                                                    fontWeight: FontWeight.w400,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                '今天 12:00',
+                                                                style: TextStyle(
+                                                                  color: Color(0xFF888888),
+                                                                  fontSize: 12,
+                                                                  fontFamily: 'PingFang TC',
+                                                                  fontWeight: FontWeight.w400,
+                                                                ),
+                                                              ),
+                                                              SizedBox(width: 10,),
+                                                              Text(
+                                                                '回覆 1',
+                                                                style: TextStyle(
+                                                                  color: Color(0xFF888888),
+                                                                  fontSize: 12,
+                                                                  fontFamily: 'PingFang TC',
+                                                                  fontWeight: FontWeight.w400,
+                                                                ),
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                SizedBox(height: 20,),
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    SizedBox(width: 48,),
+                                                    // 圖片卡（給固定寬/高避免擠壓）
+                                                    Container(
+                                                      width: 40,
+                                                      height: 40,
+                                                      child: SvgPicture.asset(
+                                                        'assets/images/avatar.svg',
+                                                        // fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // 右側文字塊
+                                                    Expanded(
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              Text(
+                                                                'Chris1122',
+                                                                style: TextStyle(
+                                                                  color: const Color(0xFF333333),
+                                                                  fontSize: 14,
+                                                                  fontFamily: 'PingFang TC',
+                                                                  fontWeight: FontWeight.w500,
+                                                                ),
+                                                              ),
+                                                              Icon(
+                                                                Icons.favorite,
+                                                                size: 20,
+                                                                color: Color(0xFFD9D9D9),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            '看起來很讚欸',
+                                                            style: TextStyle(
+                                                              color: const Color(0xFF333333),
+                                                              fontSize: 14,
+                                                              fontFamily: 'PingFang TC',
+                                                              fontWeight: FontWeight.w400,
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            '今天 12:00',
+                                                            style: TextStyle(
+                                                              color: Color(0xFF888888),
+                                                              fontSize: 12,
+                                                              fontFamily: 'PingFang TC',
+                                                              fontWeight: FontWeight.w400,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),//
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),// 自訂內容（見下）
+                              );
+                            },
+                          );
+                        },
                       ),
                       SizedBox(width: 4,),
                       Text(

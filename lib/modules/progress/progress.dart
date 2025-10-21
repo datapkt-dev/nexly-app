@@ -1,8 +1,6 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-
-import 'widgets/ringchart.dart';
+import 'package:nexly_temp/modules/progress/widgets/StatsCard.dart';
 
 class Progress extends StatefulWidget {
   const Progress({super.key});
@@ -40,7 +38,7 @@ class _ProgressState extends State<Progress> {
             backgroundColor: Colors.transparent,
             iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
-              '帳號設定',
+              '個人成就',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -51,108 +49,109 @@ class _ProgressState extends State<Progress> {
           ),
           body: Column(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // 模糊強度可調
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    padding: const EdgeInsets.all(20),
-                    // 這層只負責著色，不會影響背後以外的內容
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.20),       // 玻璃白霧
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.30),     // 可選：玻璃邊緣亮線
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        RingChart(percent: 0.5, centerTitle: '個人', subtitle: '50%',),
-                        SizedBox(width: 40,),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  '已完成',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Text(
-                                  '10',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10,),
-                            Row(
-                              children: [
-                                Text(
-                                  '未完成',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Text(
-                                  '32',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10,),
-                            Row(
-                              children: [
-                                Text(
-                                  '總計',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                SizedBox(width: 10,),
-                                Text(
-                                  '42',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              // ClipRRect(
+              //   borderRadius: BorderRadius.circular(20),
+              //   child: BackdropFilter(
+              //     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // 模糊強度可調
+              //     child: Container(
+              //       margin: const EdgeInsets.symmetric(horizontal: 20),
+              //       padding: const EdgeInsets.all(20),
+              //       // 這層只負責著色，不會影響背後以外的內容
+              //       decoration: BoxDecoration(
+              //         color: Colors.white.withOpacity(0.20),       // 玻璃白霧
+              //         borderRadius: BorderRadius.circular(20),
+              //         border: Border.all(
+              //           color: Colors.white.withOpacity(0.30),     // 可選：玻璃邊緣亮線
+              //           width: 1,
+              //         ),
+              //       ),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.center,
+              //         children: const [
+              //           RingChart(percent: 0.5, centerTitle: '個人', subtitle: '50%',),
+              //           SizedBox(width: 40,),
+              //           Column(
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Row(
+              //                 children: [
+              //                   Text(
+              //                     '已完成',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 14,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w400,
+              //                     ),
+              //                   ),
+              //                   SizedBox(width: 10,),
+              //                   Text(
+              //                     '10',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 16,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w500,
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //               SizedBox(height: 10,),
+              //               Row(
+              //                 children: [
+              //                   Text(
+              //                     '未完成',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 14,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w400,
+              //                     ),
+              //                   ),
+              //                   SizedBox(width: 10,),
+              //                   Text(
+              //                     '32',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 16,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w500,
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //               SizedBox(height: 10,),
+              //               Row(
+              //                 children: [
+              //                   Text(
+              //                     '總計',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 14,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w400,
+              //                     ),
+              //                   ),
+              //                   SizedBox(width: 10,),
+              //                   Text(
+              //                     '42',
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 16,
+              //                       fontFamily: 'PingFang TC',
+              //                       fontWeight: FontWeight.w500,
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ],
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              StatsCarousel(),
               SizedBox(height: 30,),
               Expanded(
                 child: Container(
@@ -247,7 +246,7 @@ class _ProgressState extends State<Progress> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         '巴黎喝咖啡活動',
                                         style: TextStyle(

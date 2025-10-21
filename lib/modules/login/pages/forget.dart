@@ -165,7 +165,7 @@ class _ForgetState extends State<Forget> {
           ),
           const SizedBox(height: 20,),
           Text(
-            '請輸入手機',
+            '請輸入信箱',
             style: TextStyle(
               color: const Color(0xFF333333),
               fontSize: 16,

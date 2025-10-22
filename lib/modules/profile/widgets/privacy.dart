@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import 'black_list.dart';
+
 class Privacy extends StatefulWidget {
   const Privacy({super.key});
 
@@ -111,22 +113,37 @@ class _PrivacyState extends State<Privacy> {
               ),
             ],
           ),
-          SizedBox(height: 10,),
-          Row(
-            children: [
-              const Text(
-                '封鎖名單',
-                style: TextStyle(
-                  color: Color(0xFF333333),
-                  fontSize: 14,
-                  fontFamily: 'PingFang TC',
+          SizedBox(height: 13,),
+          InkWell(
+            child: Row(
+              children: [
+                const Text(
+                  '封鎖名單',
+                  style: TextStyle(
+                    color: Color(0xFF333333),
+                    fontSize: 14,
+                    fontFamily: 'PingFang TC',
+                  ),
                 ),
-              ),
-              const Spacer(),
-
-            ],
+                const Spacer(),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                ),
+              ],
+            ),
+            onTap: () async {
+              Navigator.pop(context); // 關閉選單
+              await Future.microtask(() {}); // 確保已關閉後再開下一層
+              // BlackList.show(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => const BlackList(),
+              );
+            },
           ),
-
           const SizedBox(height: 30),
         ],
       ),

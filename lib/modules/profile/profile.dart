@@ -205,11 +205,11 @@ class _ProfileState extends State<Profile> {
                                 width: 80,
                                 height: 80,
                                 decoration: ShapeDecoration(
-                                  image: DecorationImage(
+                                  image: temp != '' ? DecorationImage(
                                     // image: NetworkImage(userProfile['avatar_url'] ?? ''),
                                     image: AssetImage(temp),
                                     fit: BoxFit.cover,
-                                  ),
+                                  ) : null,
                                   shape: OvalBorder(
                                     side: BorderSide(
                                       width: 2,

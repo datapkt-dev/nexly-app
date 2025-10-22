@@ -71,13 +71,29 @@ class ShareBottomSheet extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // CircleAvatar(radius: 28, backgroundImage: AssetImage('assets/images/avatar_${(i%4)+1}.png')),
+                    // Container(
+                    //   width: 65,
+                    //   height: 65,
+                    //   decoration: ShapeDecoration(
+                    //     color: const Color(0xFFF5F5F5),
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(100),
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       width: 65,
                       height: 65,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/ChatGPTphoto.png'),
+                          fit: BoxFit.cover,
+                        ),
+                        shape: OvalBorder(
+                          side: BorderSide(
+                            width: 2,
+                            color: const Color(0xFFE7E7E7),
+                          ),
                         ),
                       ),
                     ),
@@ -105,13 +121,29 @@ class ShareBottomSheet extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // CircleAvatar(radius: 28, backgroundImage: AssetImage('assets/images/avatar_${(i%4)+1}.png')),
+                    // Container(
+                    //   width: 65,
+                    //   height: 65,
+                    //   decoration: ShapeDecoration(
+                    //     color: const Color(0xFFF5F5F5),
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(100),
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       width: 65,
                       height: 65,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/ChatGPTphoto.png'),
+                          fit: BoxFit.cover,
+                        ),
+                        shape: OvalBorder(
+                          side: BorderSide(
+                            width: 2,
+                            color: const Color(0xFFE7E7E7),
+                          ),
                         ),
                       ),
                     ),

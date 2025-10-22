@@ -146,26 +146,42 @@ class _PostState extends State<Post> {
                     padding: EdgeInsets.symmetric(vertical: 8,),
                     child: Row(
                       children: [
+                        // Container(
+                        //   width: 32,
+                        //   height: 32,
+                        //   // decoration: ShapeDecoration(
+                        //   //   image: DecorationImage(
+                        //   //     image: AssetImage('assets/images/postImg.png'),
+                        //   //     fit: BoxFit.cover,
+                        //   //   ),
+                        //   //   shape: RoundedRectangleBorder(
+                        //   //     side: BorderSide(
+                        //   //       width: 1,
+                        //   //       color: const Color(0xFFE7E7E7),
+                        //   //     ),
+                        //   //     borderRadius: BorderRadius.circular(100),
+                        //   //   ),
+                        //   // ),
+                        //   // clipBehavior: Clip.antiAlias,
+                        //   child: SvgPicture.asset(
+                        //     'assets/images/avatar.svg',
+                        //     // fit: BoxFit.cover,
+                        //   ),
+                        // ),
                         Container(
                           width: 32,
                           height: 32,
-                          // decoration: ShapeDecoration(
-                          //   image: DecorationImage(
-                          //     image: AssetImage('assets/images/postImg.png'),
-                          //     fit: BoxFit.cover,
-                          //   ),
-                          //   shape: RoundedRectangleBorder(
-                          //     side: BorderSide(
-                          //       width: 1,
-                          //       color: const Color(0xFFE7E7E7),
-                          //     ),
-                          //     borderRadius: BorderRadius.circular(100),
-                          //   ),
-                          // ),
-                          // clipBehavior: Clip.antiAlias,
-                          child: SvgPicture.asset(
-                            'assets/images/avatar.svg',
-                            // fit: BoxFit.cover,
+                          decoration: ShapeDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
+                            shape: OvalBorder(
+                              side: BorderSide(
+                                width: 2,
+                                color: const Color(0xFFE7E7E7),
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(width: 7,),
@@ -297,12 +313,28 @@ class _PostState extends State<Post> {
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     // 圖片卡（給固定寬/高避免擠壓）
+                                                    // Container(
+                                                    //   width: 40,
+                                                    //   height: 40,
+                                                    //   child: SvgPicture.asset(
+                                                    //     'assets/images/avatar.svg',
+                                                    //     // fit: BoxFit.cover,
+                                                    //   ),
+                                                    // ),
                                                     Container(
                                                       width: 40,
                                                       height: 40,
-                                                      child: SvgPicture.asset(
-                                                        'assets/images/avatar.svg',
-                                                        // fit: BoxFit.cover,
+                                                      decoration: ShapeDecoration(
+                                                        image: DecorationImage(
+                                                          image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                        shape: OvalBorder(
+                                                          side: BorderSide(
+                                                            width: 2,
+                                                            color: const Color(0xFFE7E7E7),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                     const SizedBox(width: 8),
@@ -392,12 +424,28 @@ class _PostState extends State<Post> {
                                                   children: [
                                                     SizedBox(width: 48,),
                                                     // 圖片卡（給固定寬/高避免擠壓）
+                                                    // Container(
+                                                    //   width: 40,
+                                                    //   height: 40,
+                                                    //   child: SvgPicture.asset(
+                                                    //     'assets/images/avatar.svg',
+                                                    //     // fit: BoxFit.cover,
+                                                    //   ),
+                                                    // ),
                                                     Container(
                                                       width: 40,
                                                       height: 40,
-                                                      child: SvgPicture.asset(
-                                                        'assets/images/avatar.svg',
-                                                        // fit: BoxFit.cover,
+                                                      decoration: ShapeDecoration(
+                                                        image: DecorationImage(
+                                                          image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                        shape: OvalBorder(
+                                                          side: BorderSide(
+                                                            width: 2,
+                                                            color: const Color(0xFFE7E7E7),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                     const SizedBox(width: 8),

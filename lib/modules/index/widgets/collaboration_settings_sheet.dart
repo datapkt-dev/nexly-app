@@ -162,14 +162,30 @@ class _CollaborationSettingsSheetState extends State<CollaborationSettingsSheet>
                       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                       child: Row(
                         children: [
+                          // Container(
+                          //   width: 40,
+                          //   height: 40,
+                          //   decoration: BoxDecoration(
+                          //     shape: BoxShape.circle,
+                          //     border: Border.all(color: const Color(0xFFE7E7E7)),
+                          //   ),
+                          //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                          // ),
                           Container(
                             width: 40,
                             height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFE7E7E7)),
+                            decoration: ShapeDecoration(
+                              image: DecorationImage(
+                                image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                fit: BoxFit.cover,
+                              ),
+                              shape: OvalBorder(
+                                side: BorderSide(
+                                  width: 2,
+                                  color: const Color(0xFFE7E7E7),
+                                ),
+                              ),
                             ),
-                            child: SvgPicture.asset('assets/images/avatar_1.svg'),
                           ),
                           const SizedBox(width: 8),
                           Column(

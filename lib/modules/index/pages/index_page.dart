@@ -14,6 +14,7 @@ class IndexPage extends StatefulWidget {
 class _IndexState extends State<IndexPage> {
   bool _showOverlay = false;
   final List<String> tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
+  List<bool> tagsActive = [true, false, false, false, false,];
   final List<String> img = [
     'assets/images/landscape/dog.jpg',
     'assets/images/landscape/egypt.jpg',
@@ -41,29 +42,36 @@ class _IndexState extends State<IndexPage> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: List.generate(tags.length, (index) {
-                              return Container(
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(right: 10,),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
-                                decoration: ShapeDecoration(
-                                  color: index == 0 ? Color(0xFF2C538A) : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      width: 1,
-                                      color: index == 0 ? Color(0xFF2C538A) : Color(0xFF2C538A),
+                              return GestureDetector(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  margin: EdgeInsets.only(right: 10,),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
+                                  decoration: ShapeDecoration(
+                                    color: tagsActive[index] ? Color(0xFF2C538A) : Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        width: 1,
+                                        color: tagsActive[index] ? Color(0xFF2C538A) : Color(0xFF2C538A),
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    tags[index],
+                                    style: TextStyle(
+                                      color: tagsActive[index] ? Colors.white : Color(0xFF2C538A),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  tags[index],
-                                  style: TextStyle(
-                                    color: index == 0 ? Colors.white : Color(0xFF2C538A),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
+                                onTap: () {
+                                  setState(() {
+                                    tagsActive[index] = !tagsActive[index];
+                                  });
+                                },
                               );
                             }),
                           ),
@@ -353,31 +361,39 @@ class _IndexState extends State<IndexPage> {
                     spacing: 10,
                     runSpacing: 10,
                     children: List.generate(tags.length, (index) {
-                      return IntrinsicWidth(
-                        child: Container(
-                          alignment: Alignment.center,
-                          margin: EdgeInsets.only(right: 10,),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
-                          decoration: ShapeDecoration(
-                            color: index == 0 ? Color(0xFF2C538A) : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: index == 0 ? Color(0xFF2C538A) : Color(0xFF2C538A),
+                      return GestureDetector(
+                        child: IntrinsicWidth(
+                          child: Container(
+                            alignment: Alignment.center,
+                            margin: EdgeInsets.only(right: 10,),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
+                            decoration: ShapeDecoration(
+                              color: tagsActive[index] ? Color(0xFF2C538A) : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  width: 1,
+                                  color: tagsActive[index] ? Color(0xFF2C538A) : Color(0xFF2C538A),
+                                ),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ),
-                          child: Text(
-                            tags[index],
-                            style: TextStyle(
-                              color: index == 0 ? Colors.white : Color(0xFF2C538A),
-                              fontSize: 14,
-                              fontFamily: 'PingFang TC',
-                              fontWeight: FontWeight.w400,
+                            child: Text(
+                              tags[index],
+                              style: TextStyle(
+                                color: tagsActive[index] ? Colors.white : Color(0xFF2C538A),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
                         ),
+                        onTap: () {
+                          setState(() {
+                            tagsActive[index] = !tagsActive[index];
+                            print(tagsActive);
+                          });
+                        },
                       );
                     }),
                   ),

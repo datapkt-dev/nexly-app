@@ -196,22 +196,38 @@ class _PersonalPageState extends State<User> {
                   children: [
                     Row(
                       children: [
+                        // Container(
+                        //   width: 60,
+                        //   height: 60,
+                        //   // decoration: ShapeDecoration(
+                        //   //   // image: DecorationImage(
+                        //   //   //   image: NetworkImage("https://placehold.co/60x60"),
+                        //   //   //   fit: BoxFit.cover,
+                        //   //   // ),
+                        //   //   shape: OvalBorder(
+                        //   //     side: BorderSide(
+                        //   //       width: 1,
+                        //   //       color: const Color(0xFFE7E7E7),
+                        //   //     ),
+                        //   //   ),
+                        //   // ),
+                        //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                        // ),
                         Container(
                           width: 60,
                           height: 60,
-                          // decoration: ShapeDecoration(
-                          //   // image: DecorationImage(
-                          //   //   image: NetworkImage("https://placehold.co/60x60"),
-                          //   //   fit: BoxFit.cover,
-                          //   // ),
-                          //   shape: OvalBorder(
-                          //     side: BorderSide(
-                          //       width: 1,
-                          //       color: const Color(0xFFE7E7E7),
-                          //     ),
-                          //   ),
-                          // ),
-                          child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                          decoration: ShapeDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
+                            shape: OvalBorder(
+                              side: BorderSide(
+                                width: 2,
+                                color: const Color(0xFFE7E7E7),
+                              ),
+                            ),
+                          ),
                         ),
                         SizedBox(width: 10,),
                         Column(

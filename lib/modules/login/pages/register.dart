@@ -634,12 +634,12 @@ class _RegisterState extends State<Register> {
             child: Row(
               children: List.generate(gender.length, (index) {
                 return Expanded(
-                  child: GestureDetector(
+                  child: InkWell(
                     child: Container(
                       alignment: Alignment.center,
                       height: double.infinity,
                       decoration: selectedGender == index ? ShapeDecoration(
-                        color: const Color(0xFF2C538A),
+                        color: const Color(0xFFF46C3F),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ) : null,
                       child: Text(

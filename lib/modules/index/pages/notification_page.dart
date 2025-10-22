@@ -57,22 +57,38 @@ class _NotificationPageState extends State<NotificationPage> {
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20,),
                     child: Row(
                       children: [
+                        // Container(
+                        //   width: 48,
+                        //   height: 48,
+                        //   decoration: ShapeDecoration(
+                        //     image: DecorationImage(
+                        //       image: NetworkImage("https://placehold.co/48x48"),
+                        //       fit: BoxFit.cover,
+                        //     ),
+                        //     shape: OvalBorder(
+                        //       side: BorderSide(
+                        //         width: 2,
+                        //         color: const Color(0xFFE7E7E7),
+                        //       ),
+                        //     ),
+                        //   ),
+                        //   child: SvgPicture.asset('assets/images/avatar_2.svg'),
+                        // ),
                         Container(
                           width: 48,
                           height: 48,
-                          // decoration: ShapeDecoration(
-                          //   // image: DecorationImage(
-                          //   //   image: NetworkImage("https://placehold.co/48x48"),
-                          //   //   fit: BoxFit.cover,
-                          //   // ),
-                          //   shape: OvalBorder(
-                          //     side: BorderSide(
-                          //       width: 2,
-                          //       color: const Color(0xFFE7E7E7),
-                          //     ),
-                          //   ),
-                          // ),
-                          child: SvgPicture.asset('assets/images/avatar_2.svg'),
+                          decoration: ShapeDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
+                            shape: OvalBorder(
+                              side: BorderSide(
+                                width: 2,
+                                color: const Color(0xFFE7E7E7),
+                              ),
+                            ),
+                          ),
                         ),
                         SizedBox(width: 8,),
                         Expanded(

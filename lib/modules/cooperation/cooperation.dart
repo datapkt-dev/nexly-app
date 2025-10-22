@@ -202,62 +202,110 @@ class _CooperationState extends State<Cooperation> {
                     children: [
                       Positioned(
                         left: 0,
+                        // child: Container(
+                        //   width: 40,
+                        //   height: 40,
+                        //   decoration: ShapeDecoration(
+                        //     // image: DecorationImage(
+                        //     //   image: NetworkImage("https://placehold.co/40x40"),
+                        //     //   fit: BoxFit.cover,
+                        //     // ),
+                        //     shape: OvalBorder(
+                        //       side: BorderSide(
+                        //         width: 1,
+                        //         color: const Color(0xFFE7E7E7),
+                        //       ),
+                        //     ),
+                        //   ),
+                        //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                        // ),
                         child: Container(
                           width: 40,
                           height: 40,
                           decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage("https://placehold.co/40x40"),
-                            //   fit: BoxFit.cover,
-                            // ),
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
                             shape: OvalBorder(
                               side: BorderSide(
-                                width: 1,
+                                width: 2,
                                 color: const Color(0xFFE7E7E7),
                               ),
                             ),
                           ),
-                          child: SvgPicture.asset('assets/images/avatar_1.svg'),
                         ),
                       ),
                       Positioned(
                         left: 30,
+                        // child: Container(
+                        //   width: 40,
+                        //   height: 40,
+                        //   decoration: ShapeDecoration(
+                        //     // image: DecorationImage(
+                        //     //   image: NetworkImage("https://placehold.co/40x40"),
+                        //     //   fit: BoxFit.cover,
+                        //     // ),
+                        //     shape: OvalBorder(
+                        //       side: BorderSide(
+                        //         width: 1,
+                        //         color: const Color(0xFFE7E7E7),
+                        //       ),
+                        //     ),
+                        //   ),
+                        //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                        // ),
                         child: Container(
                           width: 40,
                           height: 40,
                           decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage("https://placehold.co/40x40"),
-                            //   fit: BoxFit.cover,
-                            // ),
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
                             shape: OvalBorder(
                               side: BorderSide(
-                                width: 1,
+                                width: 2,
                                 color: const Color(0xFFE7E7E7),
                               ),
                             ),
                           ),
-                          child: SvgPicture.asset('assets/images/avatar_1.svg'),
                         ),
                       ),
                       Positioned(
                         left: 60,
+                        // child: Container(
+                        //   width: 40,
+                        //   height: 40,
+                        //   decoration: ShapeDecoration(
+                        //     // image: DecorationImage(
+                        //     //   image: NetworkImage("https://placehold.co/40x40"),
+                        //     //   fit: BoxFit.cover,
+                        //     // ),
+                        //     shape: OvalBorder(
+                        //       side: BorderSide(
+                        //         width: 1,
+                        //         color: const Color(0xFFE7E7E7),
+                        //       ),
+                        //     ),
+                        //   ),
+                        //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
+                        // ),
                         child: Container(
                           width: 40,
                           height: 40,
                           decoration: ShapeDecoration(
-                            // image: DecorationImage(
-                            //   image: NetworkImage("https://placehold.co/40x40"),
-                            //   fit: BoxFit.cover,
-                            // ),
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/ChatGPTphoto.png'),
+                              fit: BoxFit.cover,
+                            ),
                             shape: OvalBorder(
                               side: BorderSide(
-                                width: 1,
+                                width: 2,
                                 color: const Color(0xFFE7E7E7),
                               ),
                             ),
                           ),
-                          child: SvgPicture.asset('assets/images/avatar_1.svg'),
                         ),
                       ),
                       Positioned(

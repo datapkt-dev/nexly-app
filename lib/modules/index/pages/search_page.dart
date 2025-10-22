@@ -8,10 +8,11 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final List<String> group = ['挑戰', '學習', '旅遊',];
   final List<String> img = [
     'assets/images/landscape/goingup.jpg',
-    'assets/images/postImg.png',
     'assets/images/landscape/egypt.jpg',
+    'assets/images/postImg.png',
   ];
 
   @override
@@ -64,130 +65,58 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          '挑戰',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 16,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Spacer(),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(5, (index) {
-                          return Container(
-                            width: 123.66,
-                            height: 123.66,
-                            margin: EdgeInsets.only(right: 4),
-                            alignment: Alignment.center,
-                            decoration: ShapeDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(img[index%3]),
-                                fit: BoxFit.cover,
-                              ),
-                              color: Color(0xFFE7E7E7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+              child: ListView.separated(
+                itemCount: 6,
+                separatorBuilder: (_, __) => const SizedBox(height: 10,),
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      Container(
+                        height: 40,
+                        alignment: Alignment.center,
+                        child: Row(
+                          children: [
+                            Text(
+                              group[index % 3],
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 16,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            // child: Text('${index+1}'),
-                          );
-                        }),
-                      ),
-                    ),
-                    SizedBox(height: 18,),
-                    Row(
-                      children: [
-                        Text(
-                          '學習',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 16,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
-                          ),
+                            Spacer(),
+                            Icon(Icons.keyboard_arrow_right),
+                          ],
                         ),
-                        Spacer(),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(5, (index) {
-                          return Container(
-                            width: 123.66,
-                            height: 123.66,
-                            margin: EdgeInsets.only(right: 4),
-                            alignment: Alignment.center,
-                            decoration: ShapeDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(img[index%3]),
-                                fit: BoxFit.cover,
-                              ),
-                              color: Color(0xFFE7E7E7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            // child: Text('${index+1}'),
-                          );
-                        }),
                       ),
-                    ),
-                    SizedBox(height: 18,),
-                    Row(
-                      children: [
-                        Text(
-                          '旅遊',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 16,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
-                          ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(6, (index) {
+                            return Container(
+                              width: 125,
+                              height: 125,
+                              margin: EdgeInsets.only(right: 4),
+                              alignment: Alignment.center,
+                              decoration: ShapeDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(img[index%3]),
+                                  fit: BoxFit.cover,
+                                ),
+                                color: Color(0xFFE7E7E7),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              // child: Text('${index+1}'),
+                            );
+                          }),
                         ),
-                        Spacer(),
-                        Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(5, (index) {
-                          return Container(
-                            width: 123.66,
-                            height: 123.66,
-                            margin: EdgeInsets.only(right: 4),
-                            alignment: Alignment.center,
-                            decoration: ShapeDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(img[index%3]),
-                                fit: BoxFit.cover,
-                              ),
-                              color: Color(0xFFE7E7E7),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            // child: Text('${index+1}'),
-                          );
-                        }),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly_temp/modules/cooperation/cooperation.dart';
+import 'package:nexly_temp/modules/followed/followed.dart';
 import 'package:nexly_temp/modules/payment/widgets/NoticeBlock.dart';
 import 'package:nexly_temp/modules/profile/profile.dart';
 import 'package:nexly_temp/modules/progress/progress.dart';
@@ -291,29 +292,39 @@ class _PersonalPageState extends State<User> {
                     Wrap(
                       spacing: 10,
                       children: List.generate(info.length, (index) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '100',
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
+                        return InkWell(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '100',
+                                style: TextStyle(
+                                  color: const Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 4,),
-                            Text(
-                              info[index],
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w400,
+                              SizedBox(width: 4,),
+                              Text(
+                                info[index],
+                                style: TextStyle(
+                                  color: const Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                          onTap: () {
+                            if (index == 1 || index == 2) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const Followed()),
+                              );
+                            }
+                          },
                         );
                       }),
                     ),

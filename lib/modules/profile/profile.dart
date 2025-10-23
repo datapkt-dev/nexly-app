@@ -8,6 +8,7 @@ import 'package:nexly_temp/modules/profile/pages/profile_edit.dart';
 import 'package:nexly_temp/modules/profile/widgets/privacy.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
+import '../login/pages/resetPWD.dart';
 import '../setting/setting.dart';
 
 class Profile extends StatefulWidget {
@@ -690,10 +691,10 @@ class _ProfileState extends State<Profile> {
                             ],
                           ),
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(builder: (context) => ResetPWD(number: userProfile['phone'],)),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ResetPWD()),
+                            );
                           },
                         ),
                         Divider(height: 40,),

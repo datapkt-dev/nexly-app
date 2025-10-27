@@ -85,7 +85,12 @@ class StatsCard extends StatelessWidget {
 
 // 2) 走馬燈：左右滑動的統計卡列表（使用 PageView 內建）
 class StatsCarousel extends StatefulWidget {
-  const StatsCarousel({super.key});
+  const StatsCarousel({
+    super.key,
+    this.onIndexChanged, // 新增：回傳索引給父層
+  });
+
+  final ValueChanged<int>? onIndexChanged;
 
   @override
   State<StatsCarousel> createState() => _StatsCarouselState();
@@ -98,8 +103,23 @@ class _StatsCarouselState extends State<StatsCarousel> {
   final items = const [
     // 你可以從後端計算 percent = done/(done+todo)
     (title: '個人', percent: 0.5, done: 10, todo: 32),
-    (title: '團隊', percent: 0.25, done: 8,  todo: 24),
+    (title: '團體', percent: 0.25, done: 8,  todo: 24),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // 可選：初始化時先回報一次 0
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onIndexChanged?.call(_index);
+    });
+  }
+
+  @override
+  void dispose() {
+    _page.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +130,10 @@ class _StatsCarouselState extends State<StatsCarousel> {
           child: PageView.builder(
             controller: _page,
             itemCount: items.length,
-            onPageChanged: (i) => setState(() => _index = i),
+            onPageChanged: (i) {
+              setState(() => _index = i);
+              widget.onIndexChanged?.call(i); // ✅ 回傳給父層
+            },
             itemBuilder: (context, i) {
               final it = items[i];
               return Padding(

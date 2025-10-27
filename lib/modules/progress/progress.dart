@@ -12,6 +12,7 @@ class Progress extends StatefulWidget {
 class _ProgressState extends State<Progress> {
   List<String> tags = ['最近完成活動', '未完成活動',];
   int selectedTag = 0;
+  int current = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +152,13 @@ class _ProgressState extends State<Progress> {
               //     ),
               //   ),
               // ),
-              StatsCarousel(),
+              StatsCarousel(
+                onIndexChanged: (i) {
+                  setState(() => current = i);
+                  // 這裡可以做任何事，例如切換說明文字、記錄事件等
+                  // debugPrint('目前在第 $i 張卡片');
+                },
+              ),
               SizedBox(height: 30,),
               Expanded(
                 child: Container(
@@ -232,7 +239,7 @@ class _ProgressState extends State<Progress> {
                                   height: 95,
                                   decoration: ShapeDecoration(
                                     image: DecorationImage(
-                                      image: AssetImage('assets/images/landscape/goingup.jpg'),
+                                      image: AssetImage(current == 0 ? 'assets/images/landscape/goingup.jpg' : 'assets/images/landscape/hiking.jpg'),
                                       fit: BoxFit.cover,
                                     ),
                                     shape: RoundedRectangleBorder(
@@ -248,7 +255,7 @@ class _ProgressState extends State<Progress> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '巴黎喝咖啡活動',
+                                        '巴黎喝咖啡活動(${current == 0 ? '個人' : '團體'})',
                                         style: TextStyle(
                                           color: Color(0xFF333333),
                                           fontSize: 16,

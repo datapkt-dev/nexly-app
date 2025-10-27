@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../index/widgets/share_bottom_sheet.dart';
+
 class Cooperation extends StatefulWidget {
   const Cooperation({super.key});
 
@@ -38,7 +40,9 @@ class _CooperationState extends State<Cooperation> {
         actions: [
           IconButton(
             icon: Icon(Icons.open_in_new),
-            onPressed: () {},
+            onPressed: () {
+              ShareBottomSheet.show(context);
+            },
           ),
           PopupMenuButton<_PostMenu>(
             icon: const Icon(Icons.more_vert),
@@ -103,11 +107,11 @@ class _CooperationState extends State<Cooperation> {
                                         height: 40,
                                         alignment: Alignment.center,
                                         decoration: ShapeDecoration(
-                                          color: Color(0xFF2C538A),
+                                          color: Color(0xFFE9416C),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                                         ),
                                         child: const Text(
-                                          '確定',
+                                          '確定刪除',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
@@ -141,7 +145,7 @@ class _CooperationState extends State<Cooperation> {
                                         child: const Text(
                                           '取消',
                                           style: TextStyle(
-                                            color: const Color(0xFF333333),
+                                            color: Color(0xFF333333),
                                             fontSize: 14,
                                             fontFamily: 'PingFang TC',
                                             fontWeight: FontWeight.w500,
@@ -149,7 +153,6 @@ class _CooperationState extends State<Cooperation> {
                                         ),
                                       ),
                                       onTap: () {
-                                        Navigator.pop(context);
                                         Navigator.pop(context);
                                       },
                                     ),

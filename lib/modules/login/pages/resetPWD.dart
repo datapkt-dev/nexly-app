@@ -29,6 +29,8 @@ class _ResetPWDState extends State<ResetPWD> {
   String err = '';
   bool errCheck = false;
 
+  final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
+
   // Future<Map<String, dynamic>> resetPassword() async {
   //   final url = Uri.parse('$baseUrl/auth/set-password');
   //
@@ -178,6 +180,8 @@ class _ResetPWDState extends State<ResetPWD> {
                       ],
                       Spacer(),
                       Tooltip(
+                        key: _tooltipKey,
+                        triggerMode: TooltipTriggerMode.manual, // ✅ 改成手動控制
                         message: '密碼必須包含至少8字元，可使用大寫字母、小寫字母和數字',
                         textStyle: const TextStyle(
                           color: Color(0xFFEFEFEF),
@@ -190,11 +194,12 @@ class _ResetPWDState extends State<ResetPWD> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: IconButton(
-                          icon: Icon(
-                            Icons.info_outline,
-                            color: _tooltip,
-                          ),
-                          onPressed: () {},
+                          icon: const Icon(Icons.info_outline, color: Colors.grey),
+                          onPressed: () {
+                            // ✅ 點擊時顯示 Tooltip
+                            final tooltip = _tooltipKey.currentState;
+                            tooltip?.ensureTooltipVisible();
+                          },
                         ),
                       ),
                     ],

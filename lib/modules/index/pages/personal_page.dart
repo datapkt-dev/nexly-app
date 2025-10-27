@@ -592,7 +592,6 @@ class _PersonalPageState extends State<PersonalPage> {
                       ),
                     ),
                     Spacer(),
-                    Icon(Icons.more_vert),
                   ],
                 ),
                 SizedBox(height: 1.5,),

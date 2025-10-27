@@ -69,7 +69,16 @@ class _IndexState extends State<IndexPage> {
                                 ),
                                 onTap: () {
                                   setState(() {
-                                    tagsActive[index] = !tagsActive[index];
+                                    if (index == 0) {
+                                      // ✅ 點擊「全部」
+                                      for (int i = 0; i < tagsActive.length; i++) {
+                                        tagsActive[i] = (i == 0); // 只有全部為 true
+                                      }
+                                    } else {
+                                      // ✅ 點擊其他：多選 + 關閉「全部」
+                                      tagsActive[0] = false;
+                                      tagsActive[index] = !tagsActive[index];
+                                    }
                                   });
                                 },
                               );
@@ -390,8 +399,16 @@ class _IndexState extends State<IndexPage> {
                         ),
                         onTap: () {
                           setState(() {
-                            tagsActive[index] = !tagsActive[index];
-                            print(tagsActive);
+                            if (index == 0) {
+                              // ✅ 點擊「全部」
+                              for (int i = 0; i < tagsActive.length; i++) {
+                                tagsActive[i] = (i == 0); // 只有全部為 true
+                              }
+                            } else {
+                              // ✅ 點擊其他：多選 + 關閉「全部」
+                              tagsActive[0] = false;
+                              tagsActive[index] = !tagsActive[index];
+                            }
                           });
                         },
                       );

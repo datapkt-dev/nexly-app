@@ -11,7 +11,9 @@ class Privacy extends StatefulWidget {
 }
 
 class _PrivacyState extends State<Privacy> {
-  bool isPublic = false;
+  bool tales = false;
+  bool cooperate = false;
+  bool collection = false;
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +73,9 @@ class _PrivacyState extends State<Privacy> {
               ),
               const Spacer(),
               Switch(
-                value: isPublic,
+                value: tales,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => isPublic = val),
+                onChanged: (val) => setState(() => tales = val),
               ),
             ],
           ),
@@ -89,9 +91,9 @@ class _PrivacyState extends State<Privacy> {
               ),
               const Spacer(),
               Switch(
-                value: isPublic,
+                value: cooperate,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => isPublic = val),
+                onChanged: (val) => setState(() => cooperate = val),
               ),
             ],
           ),
@@ -107,9 +109,9 @@ class _PrivacyState extends State<Privacy> {
               ),
               const Spacer(),
               Switch(
-                value: isPublic,
+                value: collection,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => isPublic = val),
+                onChanged: (val) => setState(() => collection = val),
               ),
             ],
           ),

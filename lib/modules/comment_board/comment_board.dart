@@ -13,6 +13,7 @@ class _CommentBoardState extends State<CommentBoard> {
   final TextEditingController _controller = TextEditingController();
   bool _isFocused = false;
   bool _replyMode = false;
+  List<bool> like = [false, false];
 
   @override
   void initState() {
@@ -128,10 +129,17 @@ class _CommentBoardState extends State<CommentBoard> {
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        Icon(
-                                          Icons.favorite,
-                                          size: 20,
-                                          color: Color(0xFFD9D9D9),
+                                        GestureDetector(
+                                          child: Icon(
+                                            Icons.favorite,
+                                            size: 20,
+                                            color: like[0] ? Colors.red : Color(0xFFD9D9D9),
+                                          ),
+                                          onTap: () {
+                                            setState(() {
+                                              like[0] = !like[0];
+                                            });
+                                          },
                                         ),
                                       ],
                                     ),
@@ -281,10 +289,17 @@ class _CommentBoardState extends State<CommentBoard> {
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        Icon(
-                                          Icons.favorite,
-                                          size: 20,
-                                          color: Color(0xFFD9D9D9),
+                                        GestureDetector(
+                                          child: Icon(
+                                            Icons.favorite,
+                                            size: 20,
+                                            color: like[1] ? Colors.red : Color(0xFFD9D9D9),
+                                          ),
+                                          onTap: () {
+                                            setState(() {
+                                              like[1] = !like[1];
+                                            });
+                                          },
                                         ),
                                       ],
                                     ),
@@ -371,16 +386,24 @@ class _CommentBoardState extends State<CommentBoard> {
                   ),
                   if (_isFocused) ...[
                     SizedBox(width: 10,),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFF2C538A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                    GestureDetector(
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFF2C538A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
                         ),
                       ),
-                    ),
+                      onTap: () {
+                        setState(() {
+                          _controller.text = '';
+                          _focusNode.unfocus();
+                        });
+                      },
+                    )
                   ],
                 ],
               ),

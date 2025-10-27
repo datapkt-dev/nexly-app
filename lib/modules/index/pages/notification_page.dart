@@ -113,7 +113,7 @@ class _NotificationPageState extends State<NotificationPage> {
                                       height: 24,
                                       alignment: Alignment.center,
                                       decoration: ShapeDecoration(
-                                        color: const Color(0xFF241172),
+                                        color: const Color(0xFF2C538A),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                       ),
                                       child: Text(

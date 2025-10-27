@@ -161,7 +161,7 @@ class _ContentEditState extends State<PostContentEdit> {
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
                                 width: 1,
-                                color: const Color(0xFF241172),
+                                color: const Color(0xFF2C538A),
                               ),
                               borderRadius: BorderRadius.circular(100),
                             ),
@@ -171,13 +171,13 @@ class _ContentEditState extends State<PostContentEdit> {
                               Text(
                                 tags[index-1],
                                 style: TextStyle(
-                                  color: const Color(0xFF241172),
+                                  color: const Color(0xFF2C538A),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              Icon(Icons.add, size: 16, color: const Color(0xFF241172),),
+                              Icon(Icons.add, size: 16, color: const Color(0xFF2C538A),),
                             ],
                           ),
                         );
@@ -229,7 +229,7 @@ class _ContentEditState extends State<PostContentEdit> {
                             shape: RoundedRectangleBorder(
                               side: BorderSide(
                                 width: 1,
-                                color: const Color(0xFF241172),
+                                color: const Color(0xFF2C538A),
                               ),
                               borderRadius: BorderRadius.circular(100),
                             ),
@@ -239,13 +239,13 @@ class _ContentEditState extends State<PostContentEdit> {
                               Text(
                                 tags[index-1],
                                 style: TextStyle(
-                                  color: const Color(0xFF241172),
+                                  color: const Color(0xFF2C538A),
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              Icon(Icons.add, size: 16, color: const Color(0xFF241172),),
+                              Icon(Icons.add, size: 16, color: const Color(0xFF2C538A),),
                             ],
                           ),
                         );
@@ -274,7 +274,7 @@ class _ContentEditState extends State<PostContentEdit> {
               padding: const EdgeInsets.all(10),
               alignment: Alignment.center,
               decoration: ShapeDecoration(
-                color: const Color(0xFF241172),
+                color: const Color(0xFF2C538A),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(

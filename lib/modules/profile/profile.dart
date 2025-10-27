@@ -775,10 +775,11 @@ class _ProfileState extends State<Profile> {
                                                   alignment: Alignment.center,
                                                   padding: const EdgeInsets.all(10),
                                                   decoration: ShapeDecoration(
+                                                    color: Color(0xFFE9416C),
                                                     shape: RoundedRectangleBorder(
                                                       side: BorderSide(
                                                         width: 1,
-                                                        color: const Color(0xFF949292),
+                                                        color: const Color(0xFFE9416C),
                                                       ),
                                                       borderRadius: BorderRadius.circular(6),
                                                     ),
@@ -786,7 +787,7 @@ class _ProfileState extends State<Profile> {
                                                   child: const Text(
                                                     '確認登出',
                                                     style: TextStyle(
-                                                      color: Color(0xFFFF3F23),
+                                                      color: Colors.white,
                                                       fontSize: 14,
                                                       fontFamily: 'PingFang TC',
                                                       fontWeight: FontWeight.w500,
@@ -901,10 +902,11 @@ class _ProfileState extends State<Profile> {
                                                   alignment: Alignment.center,
                                                   padding: const EdgeInsets.all(10),
                                                   decoration: ShapeDecoration(
+                                                    color: Color(0xFFE9416C),
                                                     shape: RoundedRectangleBorder(
                                                       side: BorderSide(
                                                         width: 1,
-                                                        color: const Color(0xFF949292),
+                                                        color: const Color(0xFFE9416C),
                                                       ),
                                                       borderRadius: BorderRadius.circular(6),
                                                     ),
@@ -912,7 +914,7 @@ class _ProfileState extends State<Profile> {
                                                   child: const Text(
                                                     '確認刪除',
                                                     style: TextStyle(
-                                                      color: Color(0xFFFF3F23),
+                                                      color: Colors.white,
                                                       fontSize: 14,
                                                       fontFamily: 'PingFang TC',
                                                       fontWeight: FontWeight.w500,

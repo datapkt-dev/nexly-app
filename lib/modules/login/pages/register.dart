@@ -41,6 +41,8 @@ class _RegisterState extends State<Register> {
   Color _passwordCheck = Color(0xFFE7E7E7);
   bool errCheck = false;
 
+  final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
+
   // Future<Map<String, dynamic>> sendCode(String tempNumber) async {
   //   print('sendCode');
   //   print(tempNumber);
@@ -240,18 +242,16 @@ class _RegisterState extends State<Register> {
           ),
           const SizedBox(height: 32,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            clipBehavior: Clip.antiAlias,
-            decoration: ShapeDecoration(
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
               color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: _number,
-                  width: 0,
-                ),
+              border: Border.all(
+                color: const Color(0xFFEEEEEE),
+                width: 1,
               ),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: TextField(
               controller: controllerNumber,
@@ -265,6 +265,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: TextStyle(
                 color: Color(0xFFABABAB),
@@ -431,8 +433,8 @@ class _RegisterState extends State<Register> {
           ),
           SizedBox(height: 16,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
               color: Colors.white,
@@ -456,6 +458,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -554,8 +558,8 @@ class _RegisterState extends State<Register> {
           ),
           const SizedBox(height: 32,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
               color: Colors.white,
@@ -579,6 +583,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -590,8 +596,9 @@ class _RegisterState extends State<Register> {
           ),
           SizedBox(height: 10,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            alignment: Alignment.center,
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
               color: Colors.white,
@@ -615,6 +622,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -639,7 +648,7 @@ class _RegisterState extends State<Register> {
                       alignment: Alignment.center,
                       height: double.infinity,
                       decoration: selectedGender == index ? ShapeDecoration(
-                        color: const Color(0xFFF46C3F),
+                        color: const Color(0xFF2C538A),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ) : null,
                       child: Text(
@@ -665,9 +674,8 @@ class _RegisterState extends State<Register> {
           ),
           SizedBox(height: 10,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            clipBehavior: Clip.antiAlias,
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: ShapeDecoration(
               color: Colors.white,
               shape: RoundedRectangleBorder(
@@ -695,6 +703,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -706,8 +716,8 @@ class _RegisterState extends State<Register> {
           ),
           SizedBox(height: 10,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
               color: Colors.white,
@@ -731,6 +741,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -821,8 +833,8 @@ class _RegisterState extends State<Register> {
           ),
           const SizedBox(height: 32,),
           Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            // height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
               color: Colors.white,
@@ -846,6 +858,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),
@@ -868,30 +882,26 @@ class _RegisterState extends State<Register> {
               ),
               Spacer(),
               Tooltip(
+                key: _tooltipKey,
+                triggerMode: TooltipTriggerMode.manual, // ✅ 改成手動控制
                 message: '密碼必須包含至少8字元，可使用大寫字母、小寫字母和數字',
                 textStyle: const TextStyle(
-                  color: Color(0xFF303133),
+                  color: Color(0xFFEFEFEF),
                   fontSize: 12,
                   fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w400,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.black,
                   borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    Icons.info_outline,
-                    color: _tooltip,
-                  ),
-                  onPressed: () {},
+                  icon: const Icon(Icons.info_outline, color: Colors.grey),
+                  onPressed: () {
+                    // ✅ 點擊時顯示 Tooltip
+                    final tooltip = _tooltipKey.currentState;
+                    tooltip?.ensureTooltipVisible();
+                  },
                 ),
               ),
             ],
@@ -923,6 +933,8 @@ class _RegisterState extends State<Register> {
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(
                 color: Color(0xFFB0B0B0),

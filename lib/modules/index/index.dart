@@ -22,7 +22,7 @@ class _IndexFrameState extends State<Index> {
   int contentIndex = 0;
 
   Color _getItemColor(int index) {
-    return contentIndex == index ? const Color(0xFF454545) : const Color(0xFFD1D1D1);
+    return contentIndex == index ? const Color(0xFF2C538A) : const Color(0xFFD1D1D1);
   }
 
   @override
@@ -263,12 +263,12 @@ class _IndexFrameState extends State<Index> {
             children: [
               _buildBottomNavigationBarItem(
                 0,
-                'assets/icons/index_frame/home.svg',
+                'assets/icons/index_frame/home${contentIndex == 0 ? '_active' : ''}.svg',
                 '首頁',
               ),
               _buildBottomNavigationBarItem(
                 1,
-                'assets/icons/index_frame/search.svg',
+                'assets/icons/index_frame/search${contentIndex == 1 ? '_active' : ''}.svg',
                 '搜尋',
               ),
               const SizedBox(width: 25),
@@ -313,12 +313,12 @@ class _IndexFrameState extends State<Index> {
               const SizedBox(width: 25),
               _buildBottomNavigationBarItem(
                 2,
-                'assets/icons/index_frame/notification.svg',
+                'assets/icons/index_frame/notification${contentIndex == 2 ? '_active' : ''}.svg',
                 '通知',
               ),
               _buildBottomNavigationBarItem(
                 3,
-                'assets/icons/index_frame/user.svg',
+                'assets/icons/index_frame/user${contentIndex == 3 ? '_active' : ''}.svg',
                 '會員',
               ),
             ],

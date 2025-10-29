@@ -3,8 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/login/pages/forget.dart';
 import 'package:nexly/modules/login/pages/member.dart';
 import 'package:nexly/modules/login/pages/register.dart';
-
 import '../index/index.dart';
+import 'package:nexly/auth_service.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -15,6 +15,37 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   bool _obscure = true;
+  bool _googleLoading = false;           // 👈 Google 登入 loading 狀態
+  final _authService = AuthService();    // 👈 使用你的 AuthService
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    print(msg);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_googleLoading) return;
+    setState(() => _googleLoading = true);
+    try {
+      final cred = await _authService.signInWithGoogle();
+      if (!mounted) return;
+      if (cred == null) {
+        _showSnack('已取消 Google 登入');
+      } else {
+        _showSnack('登入成功：${cred.user?.email ?? ''}');
+        // 成功後導向首頁（用 replace 避免返回登入頁）
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Index()),
+        );
+      }
+    } catch (e) {
+      if (mounted) _showSnack('登入失敗：$e');
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -212,21 +243,24 @@ class _LoginState extends State<Login> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.center,
-                      decoration: ShapeDecoration(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(
-                            width: 1,
-                            color: const Color(0xFFE7E7E7),
+                    GestureDetector(
+                      onTap: _googleLoading ? null : _handleGoogleSignIn,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: 48,
+                        height: 48,
+                        alignment: Alignment.center,
+                        decoration: ShapeDecoration(
+                          color: Colors.white.withOpacity(_googleLoading ? 0.6 : 1),
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(width: 1, color: Color(0xFFE7E7E7)),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          borderRadius: BorderRadius.circular(6),
                         ),
+                        child: _googleLoading
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                            : SvgPicture.asset('assets/icons/google.svg'),
                       ),
-                      child: SvgPicture.asset('assets/icons/google.svg',),
                     ),
                     SizedBox(width: 16,),
                     Container(

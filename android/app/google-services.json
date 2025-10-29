@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:680908606851:android:4dc87f0045dc812f4d7ab6",
+        "mobilesdk_app_id": "1:680908606851:android:76f867b478180ce74d7ab6",
         "android_client_info": {
-          "package_name": "com.example.nexly_temp"
+          "package_name": "com.example.nexly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "680908606851-hoa13p3rbu4b6tu1p8cuaj6g4nbgb16k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4"
@@ -20,7 +25,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680908606851-8a3ft24qtceltso2cn2jtj71hdjqok3o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "tw.com.datapkt.nexly"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680908606851:android:aea94c5364d941bc4d7ab6",
+        "android_client_info": {
+          "package_name": "tw.com.datapkt.nexly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680908606851-gnp6a2oed4l4el49fngbjggrkbc4mnad.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tw.com.datapkt.nexly",
+            "certificate_hash": "5db832a95cc88d7f4e6d793235e5f61febdb841a"
+          }
+        },
+        {
+          "client_id": "680908606851-hoa13p3rbu4b6tu1p8cuaj6g4nbgb16k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680908606851-8a3ft24qtceltso2cn2jtj71hdjqok3o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "tw.com.datapkt.nexly"
+              }
+            }
+          ]
         }
       }
     }

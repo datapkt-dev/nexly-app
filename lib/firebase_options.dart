@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4',
-    appId: '1:680908606851:android:4dc87f0045dc812f4d7ab6',
+    appId: '1:680908606851:android:76f867b478180ce74d7ab6',
     messagingSenderId: '680908606851',
     projectId: 'nexly-d2dcc',
     storageBucket: 'nexly-d2dcc.firebasestorage.app',
@@ -63,6 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '680908606851',
     projectId: 'nexly-d2dcc',
     storageBucket: 'nexly-d2dcc.firebasestorage.app',
+    androidClientId: '680908606851-gnp6a2oed4l4el49fngbjggrkbc4mnad.apps.googleusercontent.com',
+    iosClientId: '680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com',
     iosBundleId: 'tw.com.datapkt.nexly',
   );
+
 }

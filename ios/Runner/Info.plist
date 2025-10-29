@@ -22,10 +22,27 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.680908606851-snecbj1iqgl031qfhmv99pjn556evkqs</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires permission to access camera</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires permission to access microphone</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires permission to access photo library</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -45,11 +62,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSPhotoLibraryUsageDescription</key>
-    <string>This app requires permission to access photo library</string>
-    <key>NSCameraUsageDescription</key>
-    <string>This app requires permission to access camera</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>This app requires permission to access microphone</string>
 </dict>
 </plist>

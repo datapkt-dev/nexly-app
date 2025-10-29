@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:nexly_temp/modules/progress/widgets/StatsCard.dart';
+import 'package:nexly/modules/progress/widgets/StatsCard.dart';
 
 class Progress extends StatefulWidget {
   const Progress({super.key});

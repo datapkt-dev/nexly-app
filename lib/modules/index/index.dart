@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:nexly_temp/components/widgets/upload_image_widget.dart';
-import 'package:nexly_temp/modules/index/pages/notification_page.dart';
-import 'package:nexly_temp/modules/index/pages/search_page_rebuild.dart';
-import 'package:nexly_temp/modules/new_post/new_post.dart';
+import 'package:nexly/components/widgets/upload_image_widget.dart';
+import 'package:nexly/modules/index/pages/notification_page.dart';
+import 'package:nexly/modules/index/pages/search_page_rebuild.dart';
+import 'package:nexly/modules/new_post/new_post.dart';
 import '../new_post/pages/post_content_edit.dart';
 import 'pages/index_page.dart';
 import 'pages/search_page.dart';

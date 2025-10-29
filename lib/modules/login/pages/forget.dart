@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:nexly_temp/modules/login/pages/resetPWD.dart';
+import 'package:nexly/modules/login/pages/resetPWD.dart';
 // import '../../../config/app_config.dart';
 // import '../../../units/auth_service.dart';
 

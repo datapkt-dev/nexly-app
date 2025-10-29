@@ -34,7 +34,7 @@ class _RegisterState extends State<Register> {
   TextEditingController controllerMail = TextEditingController();
   TextEditingController controllerPassword = TextEditingController();
   TextEditingController controllerPasswordCheck = TextEditingController();
-  Color _number = Color(0xFFE7E7E7);
+  Color _number = Color(0xFFEEEEEE);
   String err = '';
   Color _tooltip = Color(0xFF656565);
   Color _password = Color(0xFFE7E7E7);
@@ -248,7 +248,7 @@ class _RegisterState extends State<Register> {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
-                color: const Color(0xFFEEEEEE),
+                color: _number,
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(8),

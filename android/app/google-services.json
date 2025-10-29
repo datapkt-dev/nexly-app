@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "680908606851",
+    "project_id": "nexly-d2dcc",
+    "storage_bucket": "nexly-d2dcc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680908606851:android:4dc87f0045dc812f4d7ab6",
+        "android_client_info": {
+          "package_name": "com.example.nexly_temp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

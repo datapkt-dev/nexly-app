@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nexly_temp/modules/index/index.dart';
+import 'package:nexly/modules/index/index.dart';
 
 class Member extends StatefulWidget {
   const Member({super.key});

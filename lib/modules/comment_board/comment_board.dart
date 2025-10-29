@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nexly_temp/components/widgets/keyboard_dismiss.dart';
+import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 
 class CommentBoard extends StatefulWidget {
   const CommentBoard({super.key});

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nexly_temp/modules/cooperation/cooperation.dart';
-import 'package:nexly_temp/modules/followed/followed.dart';
-import 'package:nexly_temp/modules/payment/widgets/NoticeBlock.dart';
-import 'package:nexly_temp/modules/profile/profile.dart';
-import 'package:nexly_temp/modules/progress/progress.dart';
-import 'package:nexly_temp/modules/setting/setting.dart';
+import 'package:nexly/modules/cooperation/cooperation.dart';
+import 'package:nexly/modules/followed/followed.dart';
+import 'package:nexly/modules/payment/widgets/NoticeBlock.dart';
+import 'package:nexly/modules/profile/profile.dart';
+import 'package:nexly/modules/progress/progress.dart';
+import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../post/widgets/report.dart';

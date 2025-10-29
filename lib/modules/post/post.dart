@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nexly_temp/modules/comment_board/comment_board.dart';
-import 'package:nexly_temp/modules/post/widgets/like_list.dart';
-import 'package:nexly_temp/modules/post/widgets/report.dart';
-import 'package:nexly_temp/modules/user/user.dart';
+import 'package:nexly/modules/comment_board/comment_board.dart';
+import 'package:nexly/modules/post/widgets/like_list.dart';
+import 'package:nexly/modules/post/widgets/report.dart';
+import 'package:nexly/modules/user/user.dart';
 
 import '../index/widgets/share_bottom_sheet.dart';
 

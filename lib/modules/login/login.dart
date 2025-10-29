@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nexly_temp/modules/login/pages/forget.dart';
-import 'package:nexly_temp/modules/login/pages/member.dart';
-import 'package:nexly_temp/modules/login/pages/register.dart';
+import 'package:nexly/modules/login/pages/forget.dart';
+import 'package:nexly/modules/login/pages/member.dart';
+import 'package:nexly/modules/login/pages/register.dart';
 
 import '../index/index.dart';
 
@@ -34,7 +34,8 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: 53,),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
@@ -55,6 +56,8 @@ class _LoginState extends State<Login> {
                         fontWeight: FontWeight.w400,
                       ),
                       border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
                     style: const TextStyle(
                       color: Color(0xFF454545),
@@ -62,6 +65,7 @@ class _LoginState extends State<Login> {
                       fontFamily: 'PingFang TC',
                       fontWeight: FontWeight.w400,
                     ),
+
                   ),
                 ),
                 SizedBox(height: 32,),

@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:nexly_temp/modules/payment/widgets/NoticeBlock.dart';
-import 'package:nexly_temp/modules/payment/widgets/PlanComparison.dart';
+import 'package:nexly/modules/payment/widgets/NoticeBlock.dart';
+import 'package:nexly/modules/payment/widgets/PlanComparison.dart';
 
 class Payment extends StatefulWidget {
   const Payment({super.key});

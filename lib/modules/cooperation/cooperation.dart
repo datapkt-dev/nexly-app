@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
 import '../index/widgets/share_bottom_sheet.dart';
+import '../post/post.dart';
 
 class Cooperation extends StatefulWidget {
   const Cooperation({super.key});
@@ -381,7 +380,12 @@ class _CooperationState extends State<Cooperation> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Post()),
+                    );
+                  },
                 );
               },
             ),

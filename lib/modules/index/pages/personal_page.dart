@@ -6,6 +6,7 @@ import 'package:nexly/modules/progress/progress.dart';
 import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../followed/followed.dart';
 import '../../post/post.dart';
 import '../widgets/collaboration_settings_sheet.dart';
 
@@ -171,29 +172,40 @@ class _PersonalPageState extends State<PersonalPage> {
                         Wrap(
                           spacing: 10,
                           children: List.generate(info.length, (index) {
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '100',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
+                            final isClickable = index == 1 || index == 2;
+                            return InkWell(
+                              onTap: isClickable
+                                  ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const Followed()),
+                                );
+                              }
+                                  : null,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '100',
+                                    style: TextStyle(
+                                      color: const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 4,),
-                                Text(
-                                  info[index],
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w400,
+                                  SizedBox(width: 4,),
+                                  Text(
+                                    info[index],
+                                    style: TextStyle(
+                                      color: const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             );
                           }),
                         ),

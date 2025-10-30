@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../post/post.dart';
 
 class SearchPageRebuild extends StatefulWidget {
   const SearchPageRebuild({super.key});
@@ -173,20 +174,28 @@ class _SearchPageState extends State<SearchPageRebuild> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: List.generate(6, (i) {
-                  return Container(
-                    width: 125,
-                    height: 125,
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: ShapeDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(img[i % 3]),
-                        fit: BoxFit.cover,
-                      ),
-                      color: const Color(0xFFE7E7E7),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  return GestureDetector(
+                    child: Container(
+                      width: 125,
+                      height: 125,
+                      margin: const EdgeInsets.only(right: 4),
+                      decoration: ShapeDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(img[i % 3]),
+                          fit: BoxFit.cover,
+                        ),
+                        color: const Color(0xFFE7E7E7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Post()),
+                      );
+                    },
                   );
                 }),
               ),

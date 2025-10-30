@@ -292,7 +292,16 @@ class _PersonalPageState extends State<User> {
                     Wrap(
                       spacing: 10,
                       children: List.generate(info.length, (index) {
+                        final isClickable = index == 1 || index == 2;
                         return InkWell(
+                          onTap: isClickable
+                              ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Followed()),
+                            );
+                          }
+                              : null,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -317,14 +326,6 @@ class _PersonalPageState extends State<User> {
                               ),
                             ],
                           ),
-                          onTap: () {
-                            if (index == 1 || index == 2) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const Followed()),
-                              );
-                            }
-                          },
                         );
                       }),
                     ),

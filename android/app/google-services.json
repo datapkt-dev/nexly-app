@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "680908606851-sf3t4o8f9q43qmrla1pdg4tjppoo9gfa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nexly",
+            "certificate_hash": "5db832a95cc88d7f4e6d793235e5f61febdb841a"
+          }
+        },
+        {
           "client_id": "680908606851-hoa13p3rbu4b6tu1p8cuaj6g4nbgb16k.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -1,4 +1,4 @@
-package com.example.nexly_temp
+package com.example.nexly
 
 import io.flutter.embedding.android.FlutterActivity
 

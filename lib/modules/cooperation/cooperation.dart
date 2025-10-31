@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../index/widgets/collaboration_settings_sheet.dart';
 import '../index/widgets/share_bottom_sheet.dart';
 import '../post/post.dart';
 
 class Cooperation extends StatefulWidget {
-  const Cooperation({super.key});
+  final bool myself;
+  const Cooperation({super.key, this.myself = false});
 
   @override
   State<Cooperation> createState() => _CooperationState();
@@ -12,6 +14,7 @@ class Cooperation extends StatefulWidget {
 enum _PostMenu {create, setting, delete,}
 
 class _CooperationState extends State<Cooperation> {
+  late bool myself;
   final List<String> img = [
     'assets/images/landscape/dog.jpg',
     'assets/images/landscape/egypt.jpg',
@@ -19,6 +22,12 @@ class _CooperationState extends State<Cooperation> {
     'assets/images/landscape/hiking.jpg',
     'assets/images/postImg.png',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    myself = widget.myself;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,152 +52,160 @@ class _CooperationState extends State<Cooperation> {
               ShareBottomSheet.show(context);
             },
           ),
-          PopupMenuButton<_PostMenu>(
-            icon: const Icon(Icons.more_vert),
-            position: PopupMenuPosition.under,
-            offset: const Offset(0, 8),                    // 往下偏移一點
-            shape: RoundedRectangleBorder(                 // 圓角 + 邊框
-              borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: Color(0xFFEDEDED)),
-            ),
-            color: Colors.white,
-            elevation: 8,
-            constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
-            onSelected: (v) async {
-              switch (v) {
-                case _PostMenu.create:
-                // TODO: 編輯貼文
-                  break;
-                case _PostMenu.setting:
-                // TODO: 複製至協作
-                  break;
-                case _PostMenu.delete:
-                  final ok = await showDialog<bool>(
-                    context: context,
-                    // builder: (_) => AlertDialog(
-                    //   title: const Text('刪除貼文'),
-                    //   content: const Text('確定要刪除此貼文嗎？'),
-                    //   actions: [
-                    //     TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
-                    //     TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('確定')),
-                    //   ],
-                    // ),
-                    builder: (context) {
-                      return Dialog(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20), // 四邊 20
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 40),
-                              Text(
-                                '是否確定刪除OOO協作資料夾?',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: const Color(0xFF333333),
-                                  fontSize: 16,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 60),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      child: Container(
-                                        height: 40,
-                                        alignment: Alignment.center,
-                                        decoration: ShapeDecoration(
-                                          color: Color(0xFFE9416C),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                        ),
-                                        child: const Text(
-                                          '確定刪除',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontFamily: 'PingFang TC',
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ),
-                                  SizedBox(width: 12,),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      child: Container(
-                                        height: 40,
-                                        alignment: Alignment.center,
-                                        decoration: ShapeDecoration(
-                                          color: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            side: BorderSide(
-                                              width: 1,
-                                              color: const Color(0xFFE7E7E7),
-                                            ),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          '取消',
-                                          style: TextStyle(
-                                            color: Color(0xFF333333),
-                                            fontSize: 14,
-                                            fontFamily: 'PingFang TC',
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+          if (myself) ...[
+            PopupMenuButton<_PostMenu>(
+              icon: const Icon(Icons.more_vert),
+              position: PopupMenuPosition.under,
+              offset: const Offset(0, 8),                    // 往下偏移一點
+              shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFFEDEDED)),
+              ),
+              color: Colors.white,
+              elevation: 8,
+              constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
+              onSelected: (v) async {
+                switch (v) {
+                  case _PostMenu.create:
+                  // TODO: 編輯貼文
+                    break;
+                  case _PostMenu.setting:
+                  // TODO: 複製至協作
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => const CollaborationSettingsSheet(),
+                    );
+                    break;
+                  case _PostMenu.delete:
+                    final ok = await showDialog<bool>(
+                      context: context,
+                      // builder: (_) => AlertDialog(
+                      //   title: const Text('刪除貼文'),
+                      //   content: const Text('確定要刪除此貼文嗎？'),
+                      //   actions: [
+                      //     TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+                      //     TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('確定')),
+                      //   ],
+                      // ),
+                      builder: (context) {
+                        return Dialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                  if (ok == true) {
-                    // TODO: 呼叫刪除 API
-                  }
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: _PostMenu.create,
-                child: Text('建立Tales'),
-              ),
-              const PopupMenuItem(
-                value: _PostMenu.setting,
-                child: Text('協作設定'),
-              ),
-              // const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: _PostMenu.delete,
-                child: Text(
-                  '刪除協作資料夾',
-                  style: TextStyle(color: Color(0xFFE9416C)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20), // 四邊 20
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 40),
+                                Text(
+                                  '是否確定刪除OOO協作資料夾?',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 16,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 60),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        child: Container(
+                                          height: 40,
+                                          alignment: Alignment.center,
+                                          decoration: ShapeDecoration(
+                                            color: Color(0xFFE9416C),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                          ),
+                                          child: const Text(
+                                            '確定刪除',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontFamily: 'PingFang TC',
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(width: 12,),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        child: Container(
+                                          height: 40,
+                                          alignment: Alignment.center,
+                                          decoration: ShapeDecoration(
+                                            color: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                width: 1,
+                                                color: const Color(0xFFE7E7E7),
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            '取消',
+                                            style: TextStyle(
+                                              color: Color(0xFF333333),
+                                              fontSize: 14,
+                                              fontFamily: 'PingFang TC',
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                    if (ok == true) {
+                      // TODO: 呼叫刪除 API
+                    }
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: _PostMenu.create,
+                  child: Text('建立Tales'),
                 ),
-              ),
-            ],
-          ),
+                const PopupMenuItem(
+                  value: _PostMenu.setting,
+                  child: Text('協作設定'),
+                ),
+                // const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: _PostMenu.delete,
+                  child: Text(
+                    '刪除協作資料夾',
+                    style: TextStyle(color: Color(0xFFE9416C)),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
       body: SingleChildScrollView(

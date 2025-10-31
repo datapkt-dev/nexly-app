@@ -11,6 +11,8 @@ class PostContentEdit extends StatefulWidget {
 
 class _ContentEditState extends State<PostContentEdit> {
   List<String> tags = ['情感', '個人', '挑戰', '冒險', '冒險', '冒險', '冒險', '冒險'];
+  List<bool> selectedClass = [false, false, false, false, false, false, false, false];
+  List<bool> selectedTarget = [false, false, false, false, false, false, false, false];
   String filePath = '';
 
   @override
@@ -151,35 +153,46 @@ class _ContentEditState extends State<PostContentEdit> {
                         } else if (index == tags.length+1) {
                           return SizedBox(width: 16,);
                         }
-                        return Container(
-                          height: 30,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.only(left: 8, right: 4),
-                          margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: const Color(0xFF2C538A),
+                        return GestureDetector(
+                          child: Container(
+                            height: 30,
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(left: 8, right: 4),
+                            margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
+                            decoration: ShapeDecoration(
+                              color: selectedClass[index-1] ? Color(0xFF2C538A) : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  width: 1,
+                                  color: const Color(0xFF2C538A),
+                                ),
+                                borderRadius: BorderRadius.circular(100),
                               ),
-                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  tags[index-1],
+                                  style: TextStyle(
+                                    color: selectedClass[index-1] ? Colors.white : Color(0xFF2C538A),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                Icon(
+                                  selectedClass[index-1] ? Icons.close : Icons.add,
+                                  size: 16,
+                                  color: selectedClass[index-1] ? Colors.white : Color(0xFF2C538A),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Text(
-                                tags[index-1],
-                                style: TextStyle(
-                                  color: const Color(0xFF2C538A),
-                                  fontSize: 14,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              Icon(Icons.add, size: 16, color: const Color(0xFF2C538A),),
-                            ],
-                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedClass[index-1] = !selectedClass[index-1];
+                            });
+                          },
                         );
                       }),
                     ),
@@ -219,35 +232,46 @@ class _ContentEditState extends State<PostContentEdit> {
                         } else if (index == tags.length+1) {
                           return SizedBox(width: 16,);
                         }
-                        return Container(
-                          height: 30,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.only(left: 8, right: 4),
-                          margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: const Color(0xFF2C538A),
+                        return GestureDetector(
+                          child: Container(
+                            height: 30,
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(left: 8, right: 4),
+                            margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
+                            decoration: ShapeDecoration(
+                              color: selectedTarget[index-1] ? Color(0xFF2C538A) : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  width: 1,
+                                  color: const Color(0xFF2C538A),
+                                ),
+                                borderRadius: BorderRadius.circular(100),
                               ),
-                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  tags[index-1],
+                                  style: TextStyle(
+                                    color: selectedTarget[index-1] ? Colors.white : Color(0xFF2C538A),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                Icon(
+                                  selectedTarget[index-1] ? Icons.close : Icons.add,
+                                  size: 16,
+                                  color: selectedTarget[index-1] ? Colors.white :  Color(0xFF2C538A),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Text(
-                                tags[index-1],
-                                style: TextStyle(
-                                  color: const Color(0xFF2C538A),
-                                  fontSize: 14,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              Icon(Icons.add, size: 16, color: const Color(0xFF2C538A),),
-                            ],
-                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedTarget[index-1] = !selectedTarget[index-1];
+                            });
+                          },
                         );
                       }),
                     ),
@@ -256,37 +280,42 @@ class _ContentEditState extends State<PostContentEdit> {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x19333333),
-                  blurRadius: 4,
-                  offset: Offset(0, -2),
-                  spreadRadius: 0,
-                )
-              ],
-            ),
+          GestureDetector(
             child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                color: const Color(0xFF2C538A),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x19333333),
+                    blurRadius: 4,
+                    offset: Offset(0, -2),
+                    spreadRadius: 0,
+                  )
+                ],
               ),
-              child: Text(
-                '發佈',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontFamily: 'PingFang TC',
-                  fontWeight: FontWeight.w500,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                alignment: Alignment.center,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFF2C538A),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: Text(
+                  '發佈',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'PingFang TC',
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
+            onTap: () {
+              Navigator.pop(context);
+            },
           ),
           SizedBox(height: 30,),
         ],

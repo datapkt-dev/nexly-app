@@ -8,6 +8,7 @@ import 'package:nexly/modules/progress/progress.dart';
 import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
+import '../post/post.dart';
 import '../post/widgets/report.dart';
 
 class User extends StatefulWidget {
@@ -536,8 +537,8 @@ class _PersonalPageState extends State<User> {
 
   Widget _buildContent() {
     switch (selectedIndex) {
-      // case 1:
-      //   return cooperation();
+      case 1:
+        return cooperation();
       default:
         return GridView.builder(
           padding: const EdgeInsets.all(0),
@@ -564,10 +565,133 @@ class _PersonalPageState extends State<User> {
                   color: Color(0xFFE7E7E7),
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Post(myself: false,)),
+                );
+              },
             );
           },
         );
     }
+  }
+
+  Widget cooperation() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        padding: const EdgeInsets.all(0),
+        shrinkWrap: true, // 高度隨內容變化
+        physics: NeverScrollableScrollPhysics(), // 交給外層滾動
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,     // 一列 2 個
+          crossAxisSpacing: 10,   // 左右間距
+          mainAxisSpacing: 10,   // 上下間距
+          mainAxisExtent: 162,   // ✅ 固定每個 item 的高度 (250 圖片 + 文字空間)
+        ),
+        itemCount: 4,
+        itemBuilder: (context, index) {
+          // final post = posts[index]; // 換成你的資料
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  child: Container(
+                    height: 115,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 1,
+                          color: Colors.white,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage(img[3]), // ✅ 用 AssetImage
+                                  fit: BoxFit.cover,
+                                ),
+                                color: Color(0xFFE7E7E7),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(img[1]), // ✅ 用 AssetImage
+                                        fit: BoxFit.cover,
+                                      ),
+                                      color: Color(0xFFE7E7E7),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(img[2]), // ✅ 用 AssetImage
+                                        fit: BoxFit.cover,
+                                      ),
+                                      color: Color(0xFFE7E7E7),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Cooperation()),
+                    );
+                  },
+                ),
+                SizedBox(height: 4,),
+                Row(
+                  children: [
+                    Text(
+                      '協作資料夾名稱',
+                      style: TextStyle(
+                        color: const Color(0xFF333333),
+                        fontSize: 14,
+                        fontFamily: 'PingFang TC',
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    Spacer(),
+                  ],
+                ),
+                SizedBox(height: 1.5,),
+                Text(
+                  '3 Tales • 5 參與者',
+                  style: TextStyle(
+                    color: const Color(0xFF898989),
+                    fontSize: 12,
+                    fontFamily: 'PingFang TC',
+                    fontWeight: FontWeight.w400,
+                  ),
+                )
+              ],
+            );
+        },
+      ),
+    );
   }
 }

@@ -587,7 +587,7 @@ class _PersonalPageState extends State<PersonalPage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const Cooperation()),
+                      MaterialPageRoute(builder: (context) => const Cooperation(myself: true,)),
                     );
                   },
                 ),

@@ -193,20 +193,10 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
 
                     // 只有選「其他」時顯示輸入框（可改為永遠顯示）
                     if (_reason == ReportReason.other) ...[
-                      const Text(
-                        '檢舉原因',
-                        style: TextStyle(
-                          color: Color(0xFF333333),
-                          fontSize: 16,
-                          fontFamily: 'PingFang TC',
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       Container(
                         decoration: ShapeDecoration(
                           color: Colors.white,
@@ -247,47 +237,37 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                     ],
                   ],
                 ),
               ),
 
               // 底部按鈕
-              // Padding(
-              //   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              //   child: Row(
-              //     children: [
-              //       Expanded(
-              //         child: OutlinedButton(
-              //           onPressed: _submitting ? null : () => Navigator.pop(context),
-              //           style: OutlinedButton.styleFrom(
-              //             minimumSize: const Size.fromHeight(48),
-              //             side: const BorderSide(color: Color(0xFFE5E5E5)),
-              //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              //           ),
-              //           child: const Text('取消', style: TextStyle(color: Color(0xFF333333))),
-              //         ),
-              //       ),
-              //       const SizedBox(width: 12),
-              //       Expanded(
-              //         child: ElevatedButton(
-              //           onPressed: _submitting ? null : _submit,
-              //           style: ElevatedButton.styleFrom(
-              //             minimumSize: const Size.fromHeight(48),
-              //             backgroundColor: const Color(0xFF3B5AF8),
-              //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              //             elevation: 0,
-              //           ),
-              //           child: _submitting
-              //               ? const SizedBox(
-              //               height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              //               : const Text('送出', style: TextStyle(color: Colors.white)),
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
+              GestureDetector(
+                child: Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.symmetric(vertical: 10,),
+                  padding: const EdgeInsets.all(10),
+                  alignment: Alignment.center,
+                  decoration: ShapeDecoration(
+                    color: const Color(0xFF2C538A),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  child: Text(
+                    '確定',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontFamily: 'PingFang TC',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
             ],
           ),
         ),

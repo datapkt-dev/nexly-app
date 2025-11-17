@@ -40,40 +40,9 @@ class _ProfileState extends State<Profile> {
     final profile = await authStorage.getProfile();
     setState(() {
       user = profile;
-      userProfile = profile!;
-      print(user);
-      // futureData = getUserProfile(user?['id']);
     });
   }
-  //
-  // Future<Map<String, dynamic>> getUserProfile(int id) async {
-  //   final url = Uri.parse('$baseUrl/projects/1/users/$id');
-  //   String? token = await authStorage.getToken();
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
-  //   };
-  //
-  //   try {
-  //     final response = await http.get(url, headers: headers); // GET, 不是 POST
-  //     final responseData = jsonDecode(response.body);
-  //     userProfile = responseData['data'];
-  //
-  //     final rawPhone = userProfile['phone'] ?? '';
-  //     displayPhone = rawPhone.startsWith('+886')
-  //         ? rawPhone.replaceFirst('+886', '0')
-  //         : rawPhone;
-  //
-  //     print(responseData);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
-  //
+
   // Future<Map<String, dynamic>> uploadImg(String filePath) async {
   //   final file = File(filePath);
   //   if (!await file.exists()) {
@@ -313,7 +282,7 @@ class _ProfileState extends State<Profile> {
                           onTap: () {
                             Navigator.push(
                               context,
-                                MaterialPageRoute(builder: (context) => ProfileEdit()),
+                                MaterialPageRoute(builder: (context) => ProfileEdit(userProfile: user,)),
                             );
                             // userProfile['displayPhone'] = displayPhone;
                             // Navigator.push(

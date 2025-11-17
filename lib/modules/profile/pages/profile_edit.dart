@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../controller/profile_controller.dart';
 
 class ProfileEdit extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -12,10 +11,9 @@ class ProfileEdit extends StatefulWidget {
 }
 
 class _ProfileEditState extends State<ProfileEdit> {
-  // final String baseUrl = AppConfig.baseURL;
-  // final LoginService loginService = LoginService(baseUrl: AppConfig.baseURL);
-  // final AuthService authStorage = AuthService();
+  final ProfileController profileController = ProfileController();
   Future<Map<String, dynamic>> futureData = Future.value({});
+  Map<String, dynamic> profileData = {};
 
   TextEditingController controllerName = TextEditingController();
   TextEditingController controllerBirth = TextEditingController();
@@ -26,50 +24,33 @@ class _ProfileEditState extends State<ProfileEdit> {
     'Other' : '不透露',
   };
 
-  // Future<Map<String, dynamic>> editUser() async {
-  //   final url = Uri.parse('$baseUrl/projects/1/users/${widget.userProfile?['id']}');
-  //   String? token = await authStorage.getToken();
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer $token',
-  //   };
-  //
-  //   final body = jsonEncode({
-  //     "name" : controllerName.text,
-  //     "birthday" : controllerBirth.text,
-  //     "gender" : selectedGenderCode,
-  //     "country" : "TW",
-  //     "avatar_url" : widget.userProfile?['avatar_url'],
-  //     "background_url" : ""
-  //   });
-  //
-  //   try {
-  //     final response = await http.patch(url, headers: headers, body: body);
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
+  Future<void> _loadUser() async {
+    setState(() {
+      futureData = profileController.getUserProfile(widget.userProfile?['id']);
+      futureData.then((result) {
+        profileData = result['data'];
+        print(profileData);
+        controllerName.text = profileData['user']['name'];
+      });
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     print(widget.userProfile);
-    if (widget.userProfile != null) {
-      controllerName.text = widget.userProfile?['name'];
-      controllerBirth.text = widget.userProfile?['birthday'];
-
-      final genderCode = widget.userProfile?['gender'];
-      if (gender.containsKey(genderCode)) {
-        selectedGenderCode = genderCode;
-      } else {
-        selectedGenderCode = null;
-      }
-    }
+    _loadUser();
+    // if (widget.userProfile != null) {
+    //   controllerName.text = widget.userProfile?['name'];
+    //   controllerBirth.text = widget.userProfile?['birthday'];
+    //
+    //   final genderCode = widget.userProfile?['gender'];
+    //   if (gender.containsKey(genderCode)) {
+    //     selectedGenderCode = genderCode;
+    //   } else {
+    //     selectedGenderCode = null;
+    //   }
+    // }
   }
 
   @override
@@ -208,7 +189,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                             Spacer(),
                             Text(
-                              'sam9527',
+                              '${profileData['user']['email'] ?? '-'}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,

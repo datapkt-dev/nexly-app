@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/login/pages/forget.dart';
-import 'package:nexly/modules/login/pages/member.dart';
 import 'package:nexly/modules/login/pages/register.dart';
 import '../index/index.dart';
 import 'package:nexly/auth_service.dart';
@@ -171,12 +170,8 @@ class _LoginState extends State<Login> {
                   onTap: () {
                     // Navigator.push(
                     //   context,
-                    //   MaterialPageRoute(builder: (context) => Member()),
+                    //   MaterialPageRoute(builder: (context) => Index()),
                     // );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Index()),
-                    );
                   },
                 ),
                 SizedBox(height: 16,),

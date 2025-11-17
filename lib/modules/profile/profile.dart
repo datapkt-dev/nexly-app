@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
 import 'package:nexly/modules/profile/widgets/privacy.dart';
+import '../../auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../login/pages/resetPWD.dart';
@@ -20,7 +21,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   // final String baseUrl = AppConfig.baseURL;
-  // final AuthService authStorage = AuthService();
+  final AuthService authStorage = AuthService();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   Map<String, dynamic>? user;
@@ -35,14 +36,15 @@ class _ProfileState extends State<Profile> {
 
   String temp = '';
 
-  // Future<void> _loadUser() async {
-  //   final profile = await authStorage.getProfile();
-  //   setState(() {
-  //     user = profile;
-  //     print(user);
-  //     futureData = getUserProfile(user?['id']);
-  //   });
-  // }
+  Future<void> _loadUser() async {
+    final profile = await authStorage.getProfile();
+    setState(() {
+      user = profile;
+      userProfile = profile!;
+      print(user);
+      // futureData = getUserProfile(user?['id']);
+    });
+  }
   //
   // Future<Map<String, dynamic>> getUserProfile(int id) async {
   //   final url = Uri.parse('$baseUrl/projects/1/users/$id');
@@ -154,7 +156,7 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    // _loadUser();
+    _loadUser();
   }
 
   @override
@@ -259,8 +261,8 @@ class _ProfileState extends State<Profile> {
                         ),
                         SizedBox(width: 16,),
                         Text(
-                          // '${userProfile['name']} (id: ${userProfile['id']})',
-                          'Sam',
+                          '${userProfile['name']}',
+                          // 'Sam',
                           style: TextStyle(
                             color: const Color(0xFF333333),
                             fontSize: 16,
@@ -794,19 +796,13 @@ class _ProfileState extends State<Profile> {
                                                     ),
                                                   ),
                                                 ),
-                                                onTap: () {
-                                                  // futureData = delUser();
-                                                  // futureData.then((result) async {
-                                                  //   print(result);
-                                                  //   if (result['message'] == '訪客刪除成功') {
-                                                  //     await authStorage.logout();
-                                                  //     Navigator.pushAndRemoveUntil(
-                                                  //       context,
-                                                  //       MaterialPageRoute(builder: (context) => const Login()),
-                                                  //           (Route<dynamic> route) => false, // 移除所有先前頁面
-                                                  //     );
-                                                  //   }
-                                                  // });
+                                                onTap: () async {
+                                                  await authStorage.logout();
+                                                  Navigator.pushAndRemoveUntil(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => const Login()),
+                                                        (Route<dynamic> route) => false, // 移除所有先前頁面
+                                                  );
                                                 },
                                               ),
                                             ),

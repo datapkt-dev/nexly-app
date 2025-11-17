@@ -1,34 +1,46 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:firebase_core/firebase_core.dart';        // 👈 新增
-import 'firebase_options.dart';                           // ← 這個檔案要在 lib/
+import 'package:firebase_core/firebase_core.dart';
+
+import 'auth_service.dart';
+import 'firebase_options.dart';
 
 import 'l10n/app_localizations.dart';
 import 'l10n/l10n.dart';
 import 'models/locale.dart';
 import 'models/theme_model.dart';
+import 'modules/index/index.dart';
 import 'modules/login/login.dart';
 
-Future<void> main() async {                               // 👈 改成 async
-  WidgetsFlutterBinding.ensureInitialized();              // 👈 先綁定
-  await Firebase.initializeApp(                          // 👈 用 options 初始化（跨平台）
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化 Firebase（跨平台）
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // 啟動前先檢查你自己的登入 Token（非 FCM）
+  final auth = AuthService();
+  final hasToken = await auth.getToken() != null;
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModel(ThemeData.light())),
         ChangeNotifierProvider(create: (_) => LocaleModel()),
+        Provider.value(value: auth), // 之後想在 App 任一處取用 AuthService 可直接讀取
       ],
-      child: const MyApp(),
+      child: MyApp(startOnIndex: hasToken),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.startOnIndex});
+  final bool startOnIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +48,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+      // theme: context.watch<ThemeModel>().theme,
       locale: locale,
       supportedLocales: L10n.all,
       localizationsDelegates: const [
@@ -45,22 +57,8 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // ✅ 直接決定起始頁，無需 push/pop
+      home: startOnIndex ? const Index() : const Login(),
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return const Login();
   }
 }

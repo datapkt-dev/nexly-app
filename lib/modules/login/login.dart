@@ -33,12 +33,12 @@ class _LoginState extends State<Login> {
       if (cred == null) {
         _showSnack('已取消 Google 登入');
       } else {
-        print(cred.credential);
+        // print(cred.credential);
         _showSnack('登入成功：${cred.user?.email ?? ''}');
         // 成功後導向首頁（用 replace 避免返回登入頁）
-        Navigator.pushReplacement(
-          context,
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const Index()),
+              (route) => false,
         );
       }
     } catch (e) {

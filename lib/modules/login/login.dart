@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/login/pages/forget.dart';
 import 'package:nexly/modules/login/pages/register.dart';
 import '../index/index.dart';
-import 'package:nexly/auth_service.dart';
+import 'package:nexly/unit/auth_service.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});

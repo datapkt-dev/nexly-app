@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import '../../../DateInputFormatter.dart';
 import '../controller/profile_controller.dart';
 
 class ProfileEdit extends StatefulWidget {
@@ -16,6 +18,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   Map<String, dynamic> profileData = {};
 
   TextEditingController controllerName = TextEditingController();
+  TextEditingController controllerBio = TextEditingController();
   TextEditingController controllerBirth = TextEditingController();
   String? selectedGenderCode;
   Map<String, dynamic> gender = {
@@ -28,29 +31,24 @@ class _ProfileEditState extends State<ProfileEdit> {
     setState(() {
       futureData = profileController.getUserProfile(widget.userProfile?['id']);
       futureData.then((result) {
-        profileData = result['data'];
+        profileData = result['data']['user'];
         print(profileData);
-        controllerName.text = profileData['user']['name'];
+        controllerName.text = profileData['name'];
+        controllerBio.text = profileData['bio'] ?? '';
+        controllerBirth.text = DateFormat('yyyy-MM-dd').format(DateTime.parse(profileData['birthday']).toLocal()) ?? '';
+        selectedGenderCode = profileData['gender'];
       });
     });
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   void initState() {
     super.initState();
-    print(widget.userProfile);
     _loadUser();
-    // if (widget.userProfile != null) {
-    //   controllerName.text = widget.userProfile?['name'];
-    //   controllerBirth.text = widget.userProfile?['birthday'];
-    //
-    //   final genderCode = widget.userProfile?['gender'];
-    //   if (gender.containsKey(genderCode)) {
-    //     selectedGenderCode = genderCode;
-    //   } else {
-    //     selectedGenderCode = null;
-    //   }
-    // }
   }
 
   @override
@@ -82,14 +80,20 @@ class _ProfileEditState extends State<ProfileEdit> {
             ),
             onPressed: () {
               setState(() {
-                // futureData = editUser();
-                // futureData.then((result) async {
-                //   print(result);
-                //   if (result['message'] == '員工更新成功') {
-                //     Navigator.pop(context, 'refresh');
-                //   }
-                //   // Navigator.pop(context);
-                // });
+                Map<String, dynamic> tempData = {
+                  "name": controllerName.text,
+                  "birthday": controllerBirth.text,
+                  "gender": selectedGenderCode, // M, F, Other
+                  "bio": controllerBio.text
+                };
+                futureData = profileController.editUser(tempData);
+                futureData.then((result) {
+                  if (result['message'] == 'User updated successfully') {
+                    Navigator.pop(context, 'refresh');
+                  } else {
+                    _showSnack('請正確填寫資料');
+                  }
+                });
               });
             },
           ),
@@ -189,7 +193,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                             Spacer(),
                             Text(
-                              '${profileData['user']['email'] ?? '-'}',
+                              '${profileData['email'] ?? '-'}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -214,18 +218,32 @@ class _ProfileEditState extends State<ProfileEdit> {
                             ),
                             SizedBox(width: 10,),
                             Expanded(
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    '個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介',
-                                    style: TextStyle(
-                                      color: const Color(0xFF333333),
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                              child: TextField(
+                                controller: controllerBio,
+                                textInputAction: TextInputAction.newline,
+                                minLines: 1,
+                                maxLines: null,
+                                textAlign: TextAlign.end,
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  isCollapsed: true,
+                                  contentPadding: EdgeInsets.zero,   // 內距 0
+                                  hintText: '輸入簡介',
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFFB0B0B0),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                )
+                                  border: InputBorder.none,
+                                ),
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -247,7 +265,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly, // 只允許數字
-                                  // DateInputFormatter(), // 自訂格式化
+                                  DateInputFormatter(), // 自訂格式化
                                 ],
                                 maxLines: 1,
                                 textAlign: TextAlign.end,

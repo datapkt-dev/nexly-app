@@ -1,12 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
 import 'package:nexly/modules/profile/widgets/privacy.dart';
-import '../../auth_service.dart';
+import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../login/pages/resetPWD.dart';
@@ -20,12 +18,11 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  // final String baseUrl = AppConfig.baseURL;
   final AuthService authStorage = AuthService();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   Map<String, dynamic>? user;
-  Map<String, dynamic> userProfile = {};
+  // Map<String, dynamic> userProfile = {};
 
   final genderMap = {
     "M": "男性",
@@ -230,7 +227,7 @@ class _ProfileState extends State<Profile> {
                         ),
                         SizedBox(width: 16,),
                         Text(
-                          '${userProfile['name']}',
+                          '${user?['name'] ?? '-'}',
                           // 'Sam',
                           style: TextStyle(
                             color: const Color(0xFF333333),
@@ -283,7 +280,11 @@ class _ProfileState extends State<Profile> {
                             Navigator.push(
                               context,
                                 MaterialPageRoute(builder: (context) => ProfileEdit(userProfile: user,)),
-                            );
+                            ).then((result) {
+                              if (result == 'refresh') {
+                                _loadUser();
+                              }
+                            });
                             // userProfile['displayPhone'] = displayPhone;
                             // Navigator.push(
                             //   context,
@@ -418,7 +419,7 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-                              '${userProfile['name']}',
+                              '${user?['name']}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -442,7 +443,7 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-                              'sam9527',
+                              '${user?['email']??'-'}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -470,7 +471,7 @@ class _ProfileState extends State<Profile> {
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  '個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介個人簡介',
+                                  '${user?['bio']??'-'}',
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -496,7 +497,8 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-                              '${userProfile['birthday']??'未輸入'}',
+
+                              '${DateFormat('yyyy-MM-dd').format(DateTime.parse(user?['birthday']).toLocal())??'未輸入'}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -520,7 +522,7 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-                              genderMap[userProfile['gender']] ?? '其他',
+                              genderMap[user?['gender']] ?? '未輸入',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -568,7 +570,7 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-                              '${userProfile['email']}',
+                              '${user?['email']}',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,

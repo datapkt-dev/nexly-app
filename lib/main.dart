@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'auth_service.dart';
+import 'unit/auth_service.dart';
 import 'firebase_options.dart';
 
 import 'l10n/app_localizations.dart';

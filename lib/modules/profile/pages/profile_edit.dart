@@ -32,10 +32,13 @@ class _ProfileEditState extends State<ProfileEdit> {
       futureData = profileController.getUserProfile(widget.userProfile?['id']);
       futureData.then((result) {
         profileData = result['data']['user'];
-        print(profileData);
         controllerName.text = profileData['name'];
         controllerBio.text = profileData['bio'] ?? '';
-        controllerBirth.text = DateFormat('yyyy-MM-dd').format(DateTime.parse(profileData['birthday']).toLocal()) ?? '';
+        if (profileData.containsKey('birthday') && profileData['birthday'] != null) {
+          controllerBirth.text = DateFormat('yyyy-MM-dd').format(DateTime.parse(profileData['birthday']).toLocal());
+        } else {
+          controllerBirth.text = '';
+        }
         selectedGenderCode = profileData['gender'];
       });
     });

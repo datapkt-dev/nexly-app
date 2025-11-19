@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
@@ -131,6 +130,7 @@ class _ProfileState extends State<Profile> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         // iconTheme: const IconThemeData(color: Color(0xFF333333)),
         title: Text(
           '帳號設定',
@@ -497,8 +497,11 @@ class _ProfileState extends State<Profile> {
                             ),
                             Spacer(),
                             Text(
-
-                              '${DateFormat('yyyy-MM-dd').format(DateTime.parse(user?['birthday']).toLocal())??'未輸入'}',
+                              (() {
+                                final v = user?['birthday'];
+                                if (v is String && v.length >= 10) return v.substring(0, 10); // 取 YYYY-MM-DD
+                                return '未輸入';
+                              })(),
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,

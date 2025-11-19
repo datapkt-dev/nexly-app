@@ -85,7 +85,6 @@ class AuthService {
         .timeout(const Duration(seconds: 15));
 
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
-      print(jsonDecode(resp.body));
       await saveToken(jsonDecode(resp.body)['data']['access_token']);
       await saveProfile(jsonDecode(resp.body)['data']['user']);
       return jsonDecode(resp.body) as Map<String, dynamic>;

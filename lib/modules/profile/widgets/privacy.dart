@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
 import 'black_list.dart';
 
 class Privacy extends StatefulWidget {
-  const Privacy({super.key});
+  final dataPass;
+  const Privacy({super.key, this.dataPass});
 
   @override
   State<Privacy> createState() => _PrivacyState();
@@ -14,6 +13,12 @@ class _PrivacyState extends State<Privacy> {
   bool tales = false;
   bool cooperate = false;
   bool collection = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.dataPass);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,12 +142,11 @@ class _PrivacyState extends State<Privacy> {
             onTap: () async {
               Navigator.pop(context); // 關閉選單
               await Future.microtask(() {}); // 確保已關閉後再開下一層
-              // BlackList.show(context);
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (ctx) => const BlackList(),
+                builder: (ctx) => BlackList(blockList: widget.dataPass,),
               );
             },
           ),

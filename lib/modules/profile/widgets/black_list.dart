@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+
+import '../controller/profile_controller.dart';
 
 class BlackList extends StatefulWidget {
-  const BlackList({super.key});
+  final blockList;
+  const BlackList({super.key, this.blockList});
 
   @override
   State<BlackList> createState() => _BlackListState();
 }
 
 class _BlackListState extends State<BlackList> {
-  bool isPublic = false;
+  final ProfileController profileController = ProfileController();
+  List? blockList;
+
+  void unblock (int id) {
+    profileController.unBlock(id);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print('打開封鎖名單');
+    blockList = widget.blockList;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +78,7 @@ class _BlackListState extends State<BlackList> {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  children: List.generate(10, (index) {
+                  children: List.generate(blockList!.length, (index) {
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                       child: Row(
@@ -97,9 +111,9 @@ class _BlackListState extends State<BlackList> {
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
-                                'jane',
+                                '${blockList?[index]['name']}',
                                 style: TextStyle(
                                   color: Color(0xFF333333),
                                   fontSize: 14,
@@ -108,7 +122,7 @@ class _BlackListState extends State<BlackList> {
                                 ),
                               ),
                               Text(
-                                'jane05171921',
+                                '${blockList?[index]['name']}',
                                 style: TextStyle(
                                   color: Color(0xFF898989),
                                   fontSize: 12,
@@ -129,35 +143,15 @@ class _BlackListState extends State<BlackList> {
                             color: Colors.white,
                             elevation: 8,
                             constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
-                            onSelected: (v) async {
-                              // switch (v) {
-                              // case _PostMenu.edit:
-                              // // TODO: 編輯貼文
-                              //   break;
-                              // case _PostMenu.copyToCollab:
-                              // // TODO: 複製至協作
-                              //   break;
-                              // case _PostMenu.delete:
-                              //   final ok = await showDialog<bool>(
-                              //     context: context,
-                              //     builder: (_) => AlertDialog(
-                              //       title: const Text('刪除貼文'),
-                              //       content: const Text('確定要刪除此貼文嗎？'),
-                              //       actions: [
-                              //         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
-                              //         TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('確定')),
-                              //       ],
-                              //     ),
-                              //   );
-                              //   if (ok == true) {
-                              //     // TODO: 呼叫刪除 API
-                              //   }
-                              //     break;
-                              // }
+                            onSelected: (v) {
+                              print('解除');
+                              print(blockList?[index]['id']);
+                              unblock(blockList?[index]['id']);
+                              Navigator.pop(context);
                             },
                             itemBuilder: (context) => [
                               const PopupMenuItem(
-                                // value: _PostMenu.edit,
+                                value: 'unblock',
                                 child: Text('解除封鎖'),
                               ),
                             ],

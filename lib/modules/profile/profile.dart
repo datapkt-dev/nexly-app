@@ -24,6 +24,7 @@ class _ProfileState extends State<Profile> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   Map<String, dynamic>? user;
+  Map<String, dynamic>? profile;
   List? blockList;
   // Map<String, dynamic> userProfile = {};
 
@@ -36,16 +37,28 @@ class _ProfileState extends State<Profile> {
 
   String temp = '';
 
-  Future<void> _loadUser() async {
-    final profile = await authStorage.getProfile();
-    setState(() {
-      futureData = profileController.getUserBlackList();
-      futureData.then((result) {
-        blockList?.clear();
-        blockList = result['data']['items'];
-      });
-      user = profile;
-    });
+  Future<Map<String, dynamic>> _loadUser() async {
+    user = await authStorage.getProfile();
+    if (user == null) {
+      throw Exception('尚未登入或找不到使用者資料');
+    }
+
+    // 兩個請求併發，提高速度
+    final f1 = profileController.getUserProfile(user?['id']);
+    final f2 = profileController.getUserBlackList();
+    final results = await Future.wait([f1, f2]);
+
+    final userRes  = results[0];
+    profile = userRes['data']['user'];
+    print(profile);
+    final blackRes = results[1];
+    blockList = blackRes['data']['items'];
+    print(blockList);
+
+    return {
+      'user'     : userRes['data']?['user'],
+      'blacklist': List<Map<String, dynamic>>.from(blackRes['data']?['items'] ?? []),
+    };
   }
 
   // Future<Map<String, dynamic>> uploadImg(String filePath) async {
@@ -130,7 +143,7 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    futureData = _loadUser();
   }
 
   @override
@@ -671,7 +684,13 @@ class _ProfileState extends State<Profile> {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (ctx) => Privacy(dataPass: blockList,),
+                          builder: (ctx) => Privacy(
+                            dataPass: {
+                              "privacy_tales": profile?['privacy_tales'],
+                              "privacy_cotales": profile?['privacy_cotales'],
+                              "privacy_favorites": profile?['privacy_favorites'],
+                            },
+                          ),
                         );
 
                         if (step == 'open_blacklist') {
@@ -682,12 +701,9 @@ class _ProfileState extends State<Profile> {
                             builder: (ctx) => BlackList(blockList: blockList),
                           );
                           print(res);
-                          if (res == 'refresh') {
-                            _loadUser();
-                            // await _reloadData();
-                            // setState(() {});
-                          }
                         }
+
+                        _loadUser();
                       },
                     ),
                     Divider(height: 40,),

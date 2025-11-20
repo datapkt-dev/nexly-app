@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'black_list.dart';
+
+import '../controller/profile_controller.dart';
 
 class Privacy extends StatefulWidget {
   final dataPass;
@@ -10,14 +11,29 @@ class Privacy extends StatefulWidget {
 }
 
 class _PrivacyState extends State<Privacy> {
+  final ProfileController profileController = ProfileController();
+
   bool tales = false;
   bool cooperate = false;
   bool collection = false;
 
+  void changeSetting() {
+    var temp = {
+      "privacy_tales": tales,
+      "privacy_cotales": cooperate,
+      "privacy_favorites": collection,
+    };
+    profileController.editUser(temp);
+  }
+
   @override
   void initState() {
     super.initState();
-    print(widget.dataPass);
+    if (widget.dataPass != null) {
+      tales = widget.dataPass['privacy_tales'];
+      cooperate = widget.dataPass['privacy_cotales'];
+      collection = widget.dataPass['privacy_favorites'];
+    }
   }
 
   @override
@@ -80,7 +96,12 @@ class _PrivacyState extends State<Privacy> {
               Switch(
                 value: tales,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => tales = val),
+                onChanged: (val) async {
+                  setState(() {
+                    tales = val;        // 先樂觀更新
+                  });
+                  changeSetting();   // 後端更新
+                },
               ),
             ],
           ),
@@ -98,7 +119,12 @@ class _PrivacyState extends State<Privacy> {
               Switch(
                 value: cooperate,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => cooperate = val),
+                onChanged: (val) async {
+                  setState(() {
+                    cooperate = val;        // 先樂觀更新
+                  });
+                  changeSetting();   // 後端更新
+                },
               ),
             ],
           ),
@@ -116,7 +142,12 @@ class _PrivacyState extends State<Privacy> {
               Switch(
                 value: collection,
                 activeColor: const Color(0xFFE9416C),
-                onChanged: (val) => setState(() => collection = val),
+                onChanged: (val) async {
+                  setState(() {
+                    collection = val;        // 先樂觀更新
+                  });
+                  changeSetting();   // 後端更新
+                },
               ),
             ],
           ),

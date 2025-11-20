@@ -14,7 +14,7 @@ class _NotificationPageState extends State<NotificationPage> {
   final NotificationController notificationController = NotificationController();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
-  Map<String, dynamic>? notifications;
+  List? notifications;
 
   List<String> message = [
     'Sam 已經開始追蹤你',
@@ -26,18 +26,20 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> _loadData() async {
     futureData = notificationController.getNotifications();
     futureData.then((result) {
-      print(result);
-    });
-    setState(() {
-      // notifications = data;
+      setState(() {
+        notifications = result['data']['items'];
+      });
+      // print(result['data']['total']);
     });
   }
 
-  void _readAll() {
-    setState(() {
-      notificationController.postReadAll();
-      futureData = notificationController.getNotifications();
-    });
+  void _readAll() async {
+    await notificationController.postReadAll();
+    _loadData();
+  }
+
+  void _readOne(id) async {
+    await notificationController.postReadOne(id);
   }
 
   @override
@@ -53,6 +55,7 @@ class _NotificationPageState extends State<NotificationPage> {
         children: [
           AppBar(
             backgroundColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
             centerTitle: false,
             title: Text(
@@ -98,132 +101,142 @@ class _NotificationPageState extends State<NotificationPage> {
                     );
                   }
                   return Column(
-                    children: List.generate(message.length, (index) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20,),
-                        child: Row(
-                          children: [
-                            // Container(
-                            //   width: 48,
-                            //   height: 48,
-                            //   decoration: ShapeDecoration(
-                            //     image: DecorationImage(
-                            //       image: NetworkImage("https://placehold.co/48x48"),
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //     shape: OvalBorder(
-                            //       side: BorderSide(
-                            //         width: 2,
-                            //         color: const Color(0xFFE7E7E7),
-                            //       ),
-                            //     ),
-                            //   ),
-                            //   child: SvgPicture.asset('assets/images/avatar_2.svg'),
-                            // ),
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: ShapeDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage('assets/images/ChatGPTphoto.png'),
-                                  fit: BoxFit.cover,
-                                ),
-                                shape: OvalBorder(
-                                  side: BorderSide(
-                                    width: 2,
-                                    color: const Color(0xFFE7E7E7),
+                    children: List.generate(notifications!.length, (index) {
+                      return InkWell(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20,),
+                          child: Row(
+                            children: [
+                              // Container(
+                              //   width: 48,
+                              //   height: 48,
+                              //   decoration: ShapeDecoration(
+                              //     image: DecorationImage(
+                              //       image: NetworkImage("https://placehold.co/48x48"),
+                              //       fit: BoxFit.cover,
+                              //     ),
+                              //     shape: OvalBorder(
+                              //       side: BorderSide(
+                              //         width: 2,
+                              //         color: const Color(0xFFE7E7E7),
+                              //       ),
+                              //     ),
+                              //   ),
+                              //   child: SvgPicture.asset('assets/images/avatar_2.svg'),
+                              // ),
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: ShapeDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  shape: OvalBorder(
+                                    side: BorderSide(
+                                      width: 2,
+                                      color: const Color(0xFFE7E7E7),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: 8,),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    message[index],
-                                    style: TextStyle(
-                                      color: const Color(0xFF333333),
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
+                              SizedBox(width: 8,),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      notifications?[index]['title'],
+                                      style: TextStyle(
+                                        color: const Color(0xFF333333),
+                                        fontSize: 14,
+                                        fontFamily: 'PingFang TC',
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
-                                  ),
-                                  if (index == 2) ...[
+                                    // if (index == 2) ...[
+                                    //   SizedBox(height: 4,),
+                                    //   Row(
+                                    //     children: [
+                                    //       Container(
+                                    //         width: 60,
+                                    //         height: 24,
+                                    //         alignment: Alignment.center,
+                                    //         decoration: ShapeDecoration(
+                                    //           color: const Color(0xFF2C538A),
+                                    //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    //         ),
+                                    //         child: Text(
+                                    //           '同意',
+                                    //           style: TextStyle(
+                                    //             color: Colors.white,
+                                    //             fontSize: 14,
+                                    //             fontFamily: 'PingFang TC',
+                                    //             fontWeight: FontWeight.w400,
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //       SizedBox(width: 10,),
+                                    //       Container(
+                                    //         width: 60,
+                                    //         height: 24,
+                                    //         alignment: Alignment.center,
+                                    //         decoration: ShapeDecoration(
+                                    //           color: Colors.white,
+                                    //           shape: RoundedRectangleBorder(
+                                    //             side: BorderSide(
+                                    //               width: 1,
+                                    //               color: const Color(0xFFE7E7E7),
+                                    //             ),
+                                    //             borderRadius: BorderRadius.circular(4),
+                                    //           ),
+                                    //         ),
+                                    //         child: Text(
+                                    //           '婉拒',
+                                    //           style: TextStyle(
+                                    //             color: const Color(0xFF333333),
+                                    //             fontSize: 14,
+                                    //             fontFamily: 'PingFang TC',
+                                    //             fontWeight: FontWeight.w400,
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // ],
                                     SizedBox(height: 4,),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 60,
-                                          height: 24,
-                                          alignment: Alignment.center,
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF2C538A),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                          ),
-                                          child: Text(
-                                            '同意',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontFamily: 'PingFang TC',
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 10,),
-                                        Container(
-                                          width: 60,
-                                          height: 24,
-                                          alignment: Alignment.center,
-                                          decoration: ShapeDecoration(
-                                            color: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                              side: BorderSide(
-                                                width: 1,
-                                                color: const Color(0xFFE7E7E7),
-                                              ),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '婉拒',
-                                            style: TextStyle(
-                                              color: const Color(0xFF333333),
-                                              fontSize: 14,
-                                              fontFamily: 'PingFang TC',
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                    Text(
+                                      '5 小時',
+                                      style: TextStyle(
+                                        color: const Color(0xFF838383),
+                                        fontSize: 12,
+                                        fontFamily: 'PingFang TC',
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
                                   ],
-                                  SizedBox(height: 4,),
-                                  Text(
-                                    '5 小時',
-                                    style: TextStyle(
-                                      color: const Color(0xFF838383),
-                                      fontSize: 12,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 8,),
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: ShapeDecoration(
-                                color: const Color(0xFFE9416C),
-                                shape: OvalBorder(),
+                              SizedBox(width: 8,),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: notifications?[index]['is_read']
+                                    ? null
+                                    : ShapeDecoration(
+                                  color: const Color(0xFFE9416C),
+                                  shape: OvalBorder(),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        onTap: () {
+                          _readOne(notifications![index]['id']);
+                          setState(() {
+                            notifications?[index]['is_read'] = true;
+                          });
+                        },
                       );
                     }),
                   );

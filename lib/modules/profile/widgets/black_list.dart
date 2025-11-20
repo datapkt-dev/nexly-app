@@ -145,9 +145,8 @@ class _BlackListState extends State<BlackList> {
                             constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
                             onSelected: (v) {
                               print('解除');
-                              print(blockList?[index]['id']);
                               unblock(blockList?[index]['id']);
-                              Navigator.pop(context);
+                              Navigator.pop(context, 'refresh');
                             },
                             itemBuilder: (context) => [
                               const PopupMenuItem(

@@ -87,6 +87,7 @@ class AuthService {
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
       await saveToken(jsonDecode(resp.body)['data']['access_token']);
       await saveProfile(jsonDecode(resp.body)['data']['user']);
+      print(jsonDecode(resp.body)['data']['user']);
       return jsonDecode(resp.body) as Map<String, dynamic>;
     } else {
       throw Exception('HTTP ${resp.statusCode}: ${resp.body}');

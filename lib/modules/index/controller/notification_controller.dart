@@ -56,4 +56,26 @@ class NotificationController {
       return {'error': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> postReadOne(int id) async {
+    final url = Uri.parse('$baseUrl/projects/1/notifications/me/read');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({'notification_id': id});
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
 }

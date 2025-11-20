@@ -140,14 +140,15 @@ class _PrivacyState extends State<Privacy> {
               ],
             ),
             onTap: () async {
-              Navigator.pop(context); // 關閉選單
-              await Future.microtask(() {}); // 確保已關閉後再開下一層
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (ctx) => BlackList(blockList: widget.dataPass,),
-              );
+              Navigator.pop(context, 'open_blacklist');
+              // Navigator.pop(context); // 關閉選單
+              // await Future.microtask(() {}); // 確保已關閉後再開下一層
+              // showModalBottomSheet(
+              //   context: context,
+              //   isScrollControlled: true,
+              //   backgroundColor: Colors.transparent,
+              //   builder: (ctx) => BlackList(blockList: widget.dataPass,),
+              // );
             },
           ),
           const SizedBox(height: 30),

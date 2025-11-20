@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
+import 'package:nexly/modules/profile/widgets/black_list.dart';
 import 'package:nexly/modules/profile/widgets/privacy.dart';
 import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
@@ -40,6 +41,7 @@ class _ProfileState extends State<Profile> {
     setState(() {
       futureData = profileController.getUserBlackList();
       futureData.then((result) {
+        blockList?.clear();
         blockList = result['data']['items'];
       });
       user = profile;
@@ -664,13 +666,28 @@ class _ProfileState extends State<Profile> {
                           ),
                         ],
                       ),
-                      onTap: () {
-                        showModalBottomSheet(
+                      onTap: () async {
+                        final step = await showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (ctx) => Privacy(dataPass: blockList,),
                         );
+
+                        if (step == 'open_blacklist') {
+                          final res = await showModalBottomSheet<String>(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (ctx) => BlackList(blockList: blockList),
+                          );
+                          print(res);
+                          if (res == 'refresh') {
+                            _loadUser();
+                            // await _reloadData();
+                            // setState(() {});
+                          }
+                        }
                       },
                     ),
                     Divider(height: 40,),

@@ -1,18 +1,74 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/app_localizations.dart';
+import '../../unit/auth_service.dart';
+import 'controller/followed_controller.dart';
 
 class Followed extends StatefulWidget {
-  const Followed({super.key});
+  final int act;
+  const Followed({super.key, this.act = 0});
 
   @override
   State<Followed> createState() => _FollowedState();
 }
 
 class _FollowedState extends State<Followed> {
+  final AuthService authStorage = AuthService();
+  final FollowedController followedController = FollowedController();
+  Future<Map<String, dynamic>> futureData = Future.value({});
+
   int selectedIndex = 0;
-  final List<String> category = ['100 粉絲', '100 追蹤',];
+  final List<String> category = [' 粉絲', ' 追蹤',];
   bool followed = true;
+
+  Map<String, dynamic>? user;
+  late final List<List> lists;
+  List<dynamic> followingList = [];
+  List<dynamic> followerList = [];
+
+  Future<Map<String, dynamic>> _loadData() async {
+    user = await authStorage.getProfile();
+    // print('loadUser');
+    // print(user);
+    if (user == null) {
+      throw Exception('尚未登入或找不到使用者資料');
+    }
+
+    // 兩個請求併發，提高速度
+    final f1 = followedController.getFollowingList(user?['id']);
+    final f2 = followedController.getFollowerList(user?['id']);
+    final results = await Future.wait([f1, f2]);
+
+    final followings  = results[0];
+    // followingList = following['data']['items'];
+    print(followings);
+
+    final followers = results[1];
+    // followerList = follower['data']['items'];
+    print(followers);
+
+    setState(() {
+      followerList
+        ..clear()
+        ..addAll(followers['data']['items']);
+      followingList
+        ..clear()
+        ..addAll(followings['data']['items']);
+      // lists 會自動反映兩個來源的最新內容
+    });
+
+    return {
+      'followings' : followings['data']?['user'],
+      'followers' : followers['data']?['user'],
+      // 'blacklist': List<Map<String, dynamic>>.from(blackRes['data']?['items'] ?? []),
+    };
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    lists = [followerList, followingList];
+    futureData = _loadData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +127,7 @@ class _FollowedState extends State<Followed> {
                             ),
                           ),
                           child: Text(
-                            category[index],
+                            '${lists[index].length}${category[index]}',
                             style: TextStyle(
                               color: selectedIndex == index ? Colors.white : const Color(0xFF333333),
                               fontSize: 14,
@@ -96,9 +152,9 @@ class _FollowedState extends State<Followed> {
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                itemCount: 10,
+                itemCount: lists[selectedIndex].length,
                 separatorBuilder: (_, __) => SizedBox.shrink(),
-                itemBuilder: (_, __) {
+                itemBuilder: (_, i) {
                   return Row(
                     children: [
                       Padding(
@@ -134,9 +190,9 @@ class _FollowedState extends State<Followed> {
                             const SizedBox(width: 8),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
-                                  'jane',
+                                  '${lists[selectedIndex][i]['name']}',
                                   style: TextStyle(
                                     color: Color(0xFF333333),
                                     fontSize: 14,
@@ -146,7 +202,7 @@ class _FollowedState extends State<Followed> {
                                 ),
                                 SizedBox(height: 4,),
                                 Text(
-                                  'jane05171921',
+                                  '${lists[selectedIndex][i]['email']}',
                                   style: TextStyle(
                                     color: Color(0xFF898989),
                                     fontSize: 12,

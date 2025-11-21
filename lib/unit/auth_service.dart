@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gsi;
 
+import '../app/config/app_config.dart';
+
 class AuthService {
+  final String baseUrl = AppConfig.baseURL;
   final _storage = const FlutterSecureStorage();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _gsiInitialized = false; // 只初始化一次
@@ -21,6 +24,33 @@ class AuthService {
   void _printLong(String text, {int chunkSize = 800}) {
     for (var i = 0; i < text.length; i += chunkSize) {
       debugPrint(text.substring(i, i + chunkSize > text.length ? text.length : i + chunkSize));
+    }
+  }
+
+  Future<Map<String, dynamic>> login(String account, String password) async {
+    final url = Uri.parse('$baseUrl/auth/login');
+
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+
+    final body = jsonEncode({
+      'credential': account,
+      'password': password,
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        await saveToken(responseData['data']['access_token']);
+        await saveProfile(responseData['data']['user']);
+      }
+      print(responseData);
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
     }
   }
 
@@ -72,7 +102,7 @@ class AuthService {
     // 取得最新的 Firebase ID Token（true 會強制刷新）
     final idToken = await FirebaseAuth.instance.currentUser!.getIdToken(true);
 
-    final uri = Uri.parse('http://18.183.138.134/api/v1/auth/third-party');
+    final uri = Uri.parse('$baseUrl/auth/third-party');
     final resp = await http
         .post(
       uri,
@@ -199,5 +229,28 @@ class AuthService {
     final payload = base64Url.normalize(parts[1]);
     final decoded = utf8.decode(base64Url.decode(payload));
     return jsonDecode(decoded);
+  }
+
+  Future<Map<String, dynamic>> delUser() async {
+    final uri = Uri.parse('$baseUrl/projects/1/users/me');
+    String? token = await getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    // final body = jsonEncode(temp);
+
+    try {
+      final response = await http.delete(uri, headers: headers,/* body: body*/);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
   }
 }

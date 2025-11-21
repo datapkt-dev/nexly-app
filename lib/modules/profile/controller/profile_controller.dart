@@ -17,7 +17,7 @@ class ProfileController {
     };
 
     try {
-      final response = await http.get(url, headers: headers); // GET, 不是 POST
+      final response = await http.get(url, headers: headers);
       final responseData = jsonDecode(response.body);
       // userProfile = responseData['data'];
       //
@@ -68,7 +68,7 @@ class ProfileController {
     };
 
     try {
-      final response = await http.get(url, headers: headers); // GET, 不是 POST
+      final response = await http.get(url, headers: headers);
       final responseData = jsonDecode(response.body);
       // userProfile = responseData['data'];
       //
@@ -123,6 +123,33 @@ class ProfileController {
 
     try {
       final response = await http.delete(url, headers: headers/*, body: body*/);
+      final responseData = jsonDecode(response.body);
+
+      print(responseData);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> changePassword(int id, String password) async {
+    final url = Uri.parse('$baseUrl/auth/set-password');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({
+      "id": id,
+      "password": password
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
 
       print(responseData);

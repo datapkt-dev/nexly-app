@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/payment/payment.dart';
+import 'package:nexly/modules/profile/pages/changePWD.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
 import 'package:nexly/modules/profile/widgets/black_list.dart';
 import 'package:nexly/modules/profile/widgets/privacy.dart';
@@ -39,6 +40,8 @@ class _ProfileState extends State<Profile> {
 
   Future<Map<String, dynamic>> _loadUser() async {
     user = await authStorage.getProfile();
+    print('loadUser');
+    print(user);
     if (user == null) {
       throw Exception('尚未登入或找不到使用者資料');
     }
@@ -266,81 +269,85 @@ class _ProfileState extends State<Profile> {
                               },
                             ),
                             SizedBox(width: 16,),
-                            Text(
-                              '${user?['name'] ?? '-'}',
-                              // 'Sam',
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 16,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(width: 4,),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: ShapeDecoration(
-                                color: const Color(0xFF2C538A),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                              ),
+                            Expanded(
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SvgPicture.asset('assets/icons/logo_main.svg'),
-                                  SizedBox(width: 2,),
-                                  SvgPicture.asset('assets/icons/logo_words.svg'),
-                                  SizedBox(width: 2,),
-                                  SvgPicture.asset('assets/icons/logo_+.svg'),
-                                ],
-                              ),
-                            ),
-                            Spacer(),
-                            GestureDetector(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '編輯個人資料',
-                                    style: TextStyle(
-                                      color: const Color(0xFF333333),
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                      height: 1.25,
+                                  // 可換行的「名字 + 徽章」
+                                  Expanded(
+                                    child: Wrap(
+                                      spacing: 4,
+                                      children: [
+                                        // 名字：可多行
+                                        Text(
+                                          '${user?['name'] ?? '-'}',
+                                          softWrap: true,
+                                          overflow: TextOverflow.visible, // 讓長字串可往下換行顯示
+                                          style: const TextStyle(
+                                            color: Color(0xFF333333),
+                                            fontSize: 16,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        // 徽章
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: ShapeDecoration(
+                                            color: const Color(0xFF2C538A),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              SvgPicture.asset('assets/icons/logo_main.svg'),
+                                              const SizedBox(width: 2),
+                                              SvgPicture.asset('assets/icons/logo_words.svg'),
+                                              const SizedBox(width: 2),
+                                              SvgPicture.asset('assets/icons/logo_+.svg'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.border_color_outlined,
-                                    size: 13,
-                                    // color: const Color(0xFFF9D400),
+
+                                  const SizedBox(width: 8),
+
+                                  // 右側固定的「編輯個人資料」
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => ProfileEdit(userProfile: user)),
+                                      ).then((result) {
+                                        if (result == 'refresh') {
+                                          setState(() {
+                                            futureData = _loadUser();
+                                          });
+                                        }
+                                      });
+                                    },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Text(
+                                          '編輯個人資料',
+                                          style: TextStyle(
+                                            color: Color(0xFF333333),
+                                            fontSize: 14,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.25,
+                                          ),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.border_color_outlined, size: 13),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ProfileEdit(userProfile: user,)),
-                                ).then((result) {
-                                  if (result == 'refresh') {
-                                    _loadUser();
-                                  }
-                                });
-                                // userProfile['displayPhone'] = displayPhone;
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(builder: (context) => ProfileEdit(userProfile: userProfile,)),
-                                // ).then((result) {
-                                //   if (result == 'refresh') {
-                                //     setState(() {
-                                //       futureData = getUserProfile(user?['id']);
-                                //       futureData.then((result) async {
-                                //         print(result);
-                                //         await authStorage.saveProfile(result['data']);
-                                //       });
-                                //     });
-                                //   }
-                                // });
-                              },
                             ),
                           ],
                         ),
@@ -729,7 +736,7 @@ class _ProfileState extends State<Profile> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ResetPWD()),
+                          MaterialPageRoute(builder: (context) => ChangePWD(id: user?['id'],)),
                         );
                       },
                     ),
@@ -859,7 +866,7 @@ class _ProfileState extends State<Profile> {
                                               child: const Text(
                                                 '取消',
                                                 style: TextStyle(
-                                                  color: const Color(0xFF333333),
+                                                  color: Color(0xFF333333),
                                                   fontSize: 14,
                                                   fontFamily: 'PingFang TC',
                                                   fontWeight: FontWeight.w500,
@@ -951,19 +958,15 @@ class _ProfileState extends State<Profile> {
                                                 ),
                                               ),
                                             ),
-                                            onTap: () {
-                                              // futureData = delUser();
-                                              // futureData.then((result) async {
-                                              //   print(result);
-                                              //   if (result['message'] == '訪客刪除成功') {
-                                              //     await authStorage.logout();
-                                              //     Navigator.pushAndRemoveUntil(
-                                              //       context,
-                                              //       MaterialPageRoute(builder: (context) => const Login()),
-                                              //           (Route<dynamic> route) => false, // 移除所有先前頁面
-                                              //     );
-                                              //   }
-                                              // });
+                                            onTap: () async {
+                                              final res = await authStorage.delUser();
+                                              if (res['message'] == 'User deleted successfully') {
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => const Login()),
+                                                      (Route<dynamic> route) => false, // 移除所有先前頁面
+                                                );
+                                              }
                                             },
                                           ),
                                         ),

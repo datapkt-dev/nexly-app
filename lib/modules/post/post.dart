@@ -280,7 +280,9 @@ class _PostState extends State<Post> {
                             context: context,
                             isScrollControlled: true,           // 解除預設高度限制
                             backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                            builder: (ctx) => const CommentBoard(),
+                            builder: (ctx) {
+                              return CommentBoard();
+                            },
                           );
                         },
                       ),

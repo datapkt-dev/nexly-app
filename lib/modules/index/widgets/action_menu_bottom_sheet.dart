@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../post/widgets/report.dart';
+import '../../../features/tales/presentation/widgets/report.dart';
 import 'share_bottom_sheet.dart';
 
 class ActionMenuBottomSheet extends StatelessWidget {

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nexly/modules/comment_board/comment_board.dart';
-import 'package:nexly/modules/post/widgets/like_list.dart';
-import 'package:nexly/modules/post/widgets/report.dart';
+import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
+import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
+import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import 'package:nexly/modules/user/user.dart';
 
-import '../index/widgets/share_bottom_sheet.dart';
+import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 
 class Post extends StatefulWidget {
   final bool myself;

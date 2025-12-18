@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../index/widgets/share_bottom_sheet.dart';
-import '../post/post.dart';
+import '../../features/tales/presentation/pages/tale_detail_page.dart';
 
 class Cooperation extends StatefulWidget {
   final bool myself;

@@ -8,8 +8,8 @@ import 'package:nexly/modules/progress/progress.dart';
 import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
-import '../post/post.dart';
-import '../post/widgets/report.dart';
+import '../../features/tales/presentation/pages/tale_detail_page.dart';
+import '../../features/tales/presentation/widgets/report.dart';
 
 class User extends StatefulWidget {
   const User({super.key});

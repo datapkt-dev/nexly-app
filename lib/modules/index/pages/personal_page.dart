@@ -7,7 +7,7 @@ import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../followed/followed.dart';
-import '../../post/post.dart';
+import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../widgets/collaboration_settings_sheet.dart';
 
 class PersonalPage extends StatefulWidget {

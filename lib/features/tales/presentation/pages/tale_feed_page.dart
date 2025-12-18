@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nexly/modules/payment/payment.dart';
-import 'package:nexly/modules/post/post.dart';
+import 'package:nexly/features/tales/presentation/pages/tale_detail_page.dart';
 
-import '../widgets/action_menu_bottom_sheet.dart';
+import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});

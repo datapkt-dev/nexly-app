@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nexly/modules/new_post/pages/post_content_edit.dart';
+import 'package:nexly/features/tales/presentation/pages/create_tale_page.dart';
 
 class NewPost extends StatefulWidget {
   const NewPost({super.key});

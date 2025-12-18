@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../post/post.dart';
+import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 
 class SearchPageRebuild extends StatefulWidget {
   const SearchPageRebuild({super.key});

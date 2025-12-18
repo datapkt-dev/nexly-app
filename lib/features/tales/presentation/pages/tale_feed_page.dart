@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/features/tales/presentation/pages/tale_detail_page.dart';
-
 import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
+import '../widgets/filter_overlay.dart';
+import '../widgets/tag_selector.dart';
+import '../widgets/tale_card.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
@@ -39,52 +40,23 @@ class _IndexState extends State<IndexPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: List.generate(tags.length, (index) {
-                              return GestureDetector(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  margin: EdgeInsets.only(right: 10,),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
-                                  decoration: ShapeDecoration(
-                                    color: tagsActive[index] ? Color(0xFF2C538A) : Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      side: BorderSide(
-                                        width: 1,
-                                        color: tagsActive[index] ? Color(0xFF2C538A) : Color(0xFF2C538A),
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    tags[index],
-                                    style: TextStyle(
-                                      color: tagsActive[index] ? Colors.white : Color(0xFF2C538A),
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    if (index == 0) {
-                                      // ✅ 點擊「全部」
-                                      for (int i = 0; i < tagsActive.length; i++) {
-                                        tagsActive[i] = (i == 0); // 只有全部為 true
-                                      }
-                                    } else {
-                                      // ✅ 點擊其他：多選 + 關閉「全部」
-                                      tagsActive[0] = false;
-                                      tagsActive[index] = !tagsActive[index];
-                                    }
-                                  });
-                                },
-                              );
-                            }),
-                          ),
+                        child: TagSelector(
+                          tags: tags,
+                          active: tagsActive,
+                          scrollable: true,
+                          onTap: (index) {
+                            setState(() {
+                              if (index == 0) {
+                                // 點擊「全部」
+                                for (int i = 0; i < tagsActive.length; i++) {
+                                  tagsActive[i] = (i == 0);
+                                }
+                              } else {
+                                tagsActive[0] = false;
+                                tagsActive[index] = !tagsActive[index];
+                              }
+                            });
+                          },
                         ),
                       ),
                       GestureDetector(
@@ -112,188 +84,27 @@ class _IndexState extends State<IndexPage> {
                       ),
                       itemCount: 6, // 資料數量
                       itemBuilder: (context, index) {
-                        // final post = posts[index]; // 換成你的資料
-                        return GestureDetector(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Stack(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height: 250,
-                                    decoration: ShapeDecoration(
-                                      image: DecorationImage(
-                                        image: AssetImage(img[index%4]), // ✅ 用 AssetImage
-                                        fit: BoxFit.cover,
-                                      ),
-                                      color: Color(0xFFE7E7E7),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(4),
-                                          topRight: Radius.circular(4),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    left: 4,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                      decoration: ShapeDecoration(
-                                        color: Colors.black.withValues(alpha: 0.30),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '旅遊',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontFamily: 'PingFang TC',
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      child: Icon(
-                                        collected[index] ? Icons.bookmark : Icons.bookmark_border,
-                                        color: collected[index] ? Color(0xFFD63C95) : Colors.white,
-                                      ),
-                                      onTap: () {
-                                        setState(() {
-                                          // showModalBottomSheet(
-                                          //   context: context,
-                                          //   backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                                          //   builder: (ctx) {
-                                          //     return Container(
-                                          //       padding: EdgeInsets.symmetric(horizontal: 16,),
-                                          //       decoration: BoxDecoration(
-                                          //         color: Colors.white,
-                                          //         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                          //         boxShadow: [
-                                          //           BoxShadow(
-                                          //             color: Colors.black.withOpacity(0.1),
-                                          //             blurRadius: 12,
-                                          //             offset: const Offset(0, -4),
-                                          //           ),
-                                          //         ],
-                                          //       ),
-                                          //       child: Column(
-                                          //         mainAxisSize: MainAxisSize.min,
-                                          //         crossAxisAlignment: CrossAxisAlignment.start,
-                                          //         children: [
-                                          //           const SizedBox(height: 10),
-                                          //           // 小手把
-                                          //           Center(
-                                          //             child: Container(
-                                          //               width: 36,
-                                          //               height: 4,
-                                          //               decoration: BoxDecoration(
-                                          //                 color: const Color(0xFFDADADA),
-                                          //                 borderRadius: BorderRadius.circular(2),
-                                          //               ),
-                                          //             ),
-                                          //           ),
-                                          //           const SizedBox(height: 22),
-                                          //
-                                          //           // 標題列 + 關閉
-                                          //           Align(
-                                          //             alignment: AlignmentGeometry.centerRight,
-                                          //             child: IconButton(
-                                          //               icon: Icon(Icons.close),
-                                          //               onPressed: () => Navigator.pop(context),
-                                          //             ),
-                                          //           ),
-                                          //           Text(
-                                          //             '你的Tales已達上限。\n「升級至 nexly+，解鎖無限 Tales 與 Co-Tales，讓你的故事沒有界限。」',
-                                          //             style: TextStyle(
-                                          //               color: const Color(0xFF333333),
-                                          //               fontSize: 14,
-                                          //               fontFamily: 'PingFang TC',
-                                          //               fontWeight: FontWeight.w400,
-                                          //             ),
-                                          //           ),
-                                          //           SizedBox(height: 20,),
-                                          //           GestureDetector(
-                                          //             child: Container(
-                                          //               width: double.infinity,
-                                          //               height: 40,
-                                          //               padding: const EdgeInsets.all(10),
-                                          //               alignment: Alignment.center,
-                                          //               decoration: ShapeDecoration(
-                                          //                 color: const Color(0xFF2C538A),
-                                          //                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                          //               ),
-                                          //               child: Text(
-                                          //                 '去了解',
-                                          //                 textAlign: TextAlign.center,
-                                          //                 style: TextStyle(
-                                          //                   color: Colors.white,
-                                          //                   fontSize: 14,
-                                          //                   fontFamily: 'PingFang TC',
-                                          //                   fontWeight: FontWeight.w400,
-                                          //                 ),
-                                          //               ),
-                                          //             ),
-                                          //             onTap: () {
-                                          //               Navigator.pop(context);
-                                          //               Navigator.push(
-                                          //                 context,
-                                          //                 MaterialPageRoute(builder: (context) => Payment()),
-                                          //               );
-                                          //             },
-                                          //           ),
-                                          //           SizedBox(height: 30,),
-                                          //         ],
-                                          //       ),
-                                          //     );// 自訂內容（見下）;
-                                          //   },
-                                          // );
-                                          collected[index] = !collected[index];
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    '標題文字',
-                                    style: TextStyle(
-                                      color: const Color(0xFF333333),
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Spacer(),
-                                  GestureDetector(
-                                    child: Icon(Icons.more_vert),
-                                    onTap: () {
-                                      ActionMenuBottomSheet.show(
-                                        context,
-                                        rootContext: context, // 用來顯示下一層 & SnackBar
-                                        targetId: 'post_123',
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        return TaleCard(
+                          imageAsset: img[index % 4],
+                          tag: '旅遊',
+                          title: '標題文字',
+                          isCollected: collected[index],
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => Post()),
+                              MaterialPageRoute(builder: (_) => Post()),
+                            );
+                          },
+                          onCollectTap: () {
+                            setState(() {
+                              collected[index] = !collected[index];
+                            });
+                          },
+                          onMoreTap: () {
+                            ActionMenuBottomSheet.show(
+                              context,
+                              rootContext: context,
+                              targetId: 'post_123',
                             );
                           },
                         );
@@ -304,122 +115,30 @@ class _IndexState extends State<IndexPage> {
               ],
             ),
           ),
-          if (_showOverlay) ...[
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _showOverlay = false;
-                });
-              },
-              child: AnimatedOpacity(
-                opacity: _showOverlay ? 1.0 : 0.0,
-                duration: Duration(milliseconds: 300),
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20,),
-              decoration: ShapeDecoration(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: Color(0x19333333),
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                    spreadRadius: 0,
-                  )
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '類型',
-                        style: TextStyle(
-                          color: const Color(0xFF333333),
-                          fontSize: 14,
-                          fontFamily: 'PingFang TC',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showOverlay = false;
-                          });
-                        },
-                        child: Icon(Icons.expand_more),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15,),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: List.generate(tags.length, (index) {
-                      return GestureDetector(
-                        child: IntrinsicWidth(
-                          child: Container(
-                            alignment: Alignment.center,
-                            margin: EdgeInsets.only(right: 10,),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6,),
-                            decoration: ShapeDecoration(
-                              color: tagsActive[index] ? Color(0xFF2C538A) : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 1,
-                                  color: tagsActive[index] ? Color(0xFF2C538A) : Color(0xFF2C538A),
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: Text(
-                              tags[index],
-                              style: TextStyle(
-                                color: tagsActive[index] ? Colors.white : Color(0xFF2C538A),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                        onTap: () {
-                          setState(() {
-                            if (index == 0) {
-                              // ✅ 點擊「全部」
-                              for (int i = 0; i < tagsActive.length; i++) {
-                                tagsActive[i] = (i == 0); // 只有全部為 true
-                              }
-                            } else {
-                              // ✅ 點擊其他：多選 + 關閉「全部」
-                              tagsActive[0] = false;
-                              tagsActive[index] = !tagsActive[index];
-                            }
-                          });
-                        },
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          FilterOverlay(
+            show: _showOverlay,
+            tags: tags,
+            active: tagsActive,
+            onClose: () {
+              setState(() {
+                _showOverlay = false;
+              });
+            },
+            onTagTap: (index) {
+              setState(() {
+                if (index == 0) {
+                  // 點擊「全部」
+                  for (int i = 0; i < tagsActive.length; i++) {
+                    tagsActive[i] = (i == 0);
+                  }
+                } else {
+                  tagsActive[0] = false;
+                  tagsActive[index] = !tagsActive[index];
+                }
+              });
+            },
+          ),
+
         ],
       ),
     );

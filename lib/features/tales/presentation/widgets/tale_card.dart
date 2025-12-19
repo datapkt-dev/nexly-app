@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TaleCard extends StatelessWidget {
-  final String imageAsset;
+  final String networkImage;
   final String tag;
   final String title;
   final bool isCollected;
@@ -12,7 +12,7 @@ class TaleCard extends StatelessWidget {
 
   const TaleCard({
     super.key,
-    required this.imageAsset,
+    required this.networkImage,
     required this.tag,
     required this.title,
     required this.isCollected,
@@ -20,6 +20,22 @@ class TaleCard extends StatelessWidget {
     required this.onCollectTap,
     required this.onMoreTap,
   });
+
+  DecorationImage? _buildDecorationImage() {
+    if (networkImage.isEmpty) return null;
+
+    final uri = Uri.tryParse(networkImage);
+
+    // ⭐ 關鍵：一定要檢查 scheme + host
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return null;
+    }
+
+    return DecorationImage(
+      image: NetworkImage(networkImage),
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +51,7 @@ class TaleCard extends StatelessWidget {
                 width: double.infinity,
                 height: 250,
                 decoration: ShapeDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(imageAsset),
-                    fit: BoxFit.cover,
-                  ),
+                  image: _buildDecorationImage(),
                   color: const Color(0xFFE7E7E7),
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(

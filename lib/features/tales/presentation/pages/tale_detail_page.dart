@@ -1,14 +1,19 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
 import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import 'package:nexly/modules/user/user.dart';
 
+import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
+import '../../../../unit/auth_service.dart';
 
 class Post extends StatefulWidget {
   final bool myself;
-  const Post({super.key, this.myself = false});
+  final int id;
+  const Post({super.key, this.myself = false, this.id = 0});
 
   @override
   State<Post> createState() => _PostState();
@@ -17,14 +22,58 @@ class Post extends StatefulWidget {
 enum _PostMenu {edit, copyToCollab, delete, report,}
 
 class _PostState extends State<Post> {
+  Future<Map<String, dynamic>> futureData = Future.value({});
+
   bool collected = true;
   bool liked = true;
-  late bool myself;
+  bool myself = false;
+
+  Future<Map<String, dynamic>> getTaleContent(int id) async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+    final url = Uri.parse('$baseUrl/projects/1/tales/$id');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  DecorationImage? _buildDecorationImage(networkImage) {
+    if (networkImage.isEmpty) return null;
+
+    final uri = Uri.tryParse(networkImage);
+
+    // ⭐ 關鍵：一定要檢查 scheme + host
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return null;
+    }
+
+    return DecorationImage(
+      image: NetworkImage(networkImage),
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    myself = widget.myself;
+    if (widget.myself) {
+      myself = widget.myself;
+    } else {
+      futureData = getTaleContent(widget.id);
+    }
   }
 
   @override
@@ -123,206 +172,411 @@ class _PostState extends State<Post> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              height: 513,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFEFEF),
-                borderRadius: BorderRadius.circular(20),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/postImg.png'),
-                  fit: BoxFit.cover,
-                ),
+      body: FutureBuilder(
+        future: futureData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                '發生錯誤: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red, fontSize: 16),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16,),
+            );
+          }
+          if (snapshot.data!.isEmpty) {
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 8,),
-                    child: Row(
-                      children: [
-                        // Container(
-                        //   width: 32,
-                        //   height: 32,
-                        //   // decoration: ShapeDecoration(
-                        //   //   image: DecorationImage(
-                        //   //     image: AssetImage('assets/images/postImg.png'),
-                        //   //     fit: BoxFit.cover,
-                        //   //   ),
-                        //   //   shape: RoundedRectangleBorder(
-                        //   //     side: BorderSide(
-                        //   //       width: 1,
-                        //   //       color: const Color(0xFFE7E7E7),
-                        //   //     ),
-                        //   //     borderRadius: BorderRadius.circular(100),
-                        //   //   ),
-                        //   // ),
-                        //   // clipBehavior: Clip.antiAlias,
-                        //   child: SvgPicture.asset(
-                        //     'assets/images/avatar.svg',
-                        //     // fit: BoxFit.cover,
-                        //   ),
-                        // ),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: ShapeDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/ChatGPTphoto.png'),
-                              fit: BoxFit.cover,
-                            ),
-                            shape: OvalBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFE7E7E7),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 7,),
-                        GestureDetector(
-                          child: Text(
-                            'sam9527',
-                            style: TextStyle(
-                              color: const Color(0xFF333333),
-                              fontSize: 14,
-                              fontFamily: 'PingFang TC',
-                              fontWeight: FontWeight.w500,
-                              height: 1.50,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const User()),
-                            );
-                          },
-                        ),
-                        Spacer(),
-                        GestureDetector(
-                          child: Icon(
-                            Icons.bookmark,
-                            color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
-                          ),
-                          onTap: () {
-                            setState(() {
-                              collected = !collected;
-                            });
-                          },
-                        ),
-                      ],
+                    height: 513,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFEFEF),
+                      borderRadius: BorderRadius.circular(20),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/postImg.png'),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 12,),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        child: Icon(
-                          Icons.favorite,
-                          color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16,),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 8,),
+                          child: Row(
+                            children: [
+                              // Container(
+                              //   width: 32,
+                              //   height: 32,
+                              //   // decoration: ShapeDecoration(
+                              //   //   image: DecorationImage(
+                              //   //     image: AssetImage('assets/images/postImg.png'),
+                              //   //     fit: BoxFit.cover,
+                              //   //   ),
+                              //   //   shape: RoundedRectangleBorder(
+                              //   //     side: BorderSide(
+                              //   //       width: 1,
+                              //   //       color: const Color(0xFFE7E7E7),
+                              //   //     ),
+                              //   //     borderRadius: BorderRadius.circular(100),
+                              //   //   ),
+                              //   // ),
+                              //   // clipBehavior: Clip.antiAlias,
+                              //   child: SvgPicture.asset(
+                              //     'assets/images/avatar.svg',
+                              //     // fit: BoxFit.cover,
+                              //   ),
+                              // ),
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: ShapeDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  shape: OvalBorder(
+                                    side: BorderSide(
+                                      width: 2,
+                                      color: const Color(0xFFE7E7E7),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 7,),
+                              GestureDetector(
+                                child: Text(
+                                  'sam9527',
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.50,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const User()),
+                                  );
+                                },
+                              ),
+                              Spacer(),
+                              GestureDetector(
+                                child: Icon(
+                                  Icons.bookmark,
+                                  color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    collected = !collected;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        onTap: () {
-                          setState(() {
-                            liked = !liked;
-                          });
-                        },
-                      ),
-                      SizedBox(width: 4,),
-                      InkWell(
-                        child: Text(
-                          '123',
+                        SizedBox(height: 12,),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              child: Icon(
+                                Icons.favorite,
+                                color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  liked = !liked;
+                                });
+                              },
+                            ),
+                            SizedBox(width: 4,),
+                            InkWell(
+                              child: Text(
+                                '123',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (ctx) => const LikeList(),
+                                );
+                              },
+                            ),
+                            SizedBox(width: 10,),
+                            InkWell(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.chat_bubble,
+                                    color: Color(0xFFD9D9D9),
+                                  ),
+                                  SizedBox(width: 4,),
+                                  Text(
+                                    '10',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,           // 解除預設高度限制
+                                  backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+                                  builder: (ctx) {
+                                    return CommentBoard();
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10,),
+                        Text(
+                          '扶老奶奶過馬路',
                           style: TextStyle(
-                            color: Colors.black,
+                            color: const Color(0xFF333333),
+                            fontSize: 16,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 4,),
+                        Text(
+                          '首先你要先找到老奶奶\n找到老奶奶之後，你要趁拐杖不注意扶老奶奶過馬路，秘訣就是你要比他的拐杖更有用、更出色、更可靠\n記得注意安全',
+                          style: TextStyle(
+                            color: const Color(0xFF333333),
                             fontSize: 14,
                             fontFamily: 'PingFang TC',
                             fontWeight: FontWeight.w400,
                           ),
                         ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (ctx) => const LikeList(),
-                          );
-                        },
-                      ),
-                      SizedBox(width: 10,),
-                      InkWell(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        SizedBox(height: 4,),
+                        Text(
+                          '2025/04/12',
+                          style: TextStyle(
+                            color: const Color(0xFF838383),
+                            fontSize: 14,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        SizedBox(height: 8,),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            final Map<String, dynamic> content = snapshot.data!['data'];
+            final formatted = DateTime
+                .parse(content['time_added'])
+                .toLocal()
+                .toString()
+                .substring(0, 16)
+                .replaceAll('T', ' ');
+            print(content);
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    height: 513,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE7E7E7),
+                      borderRadius: BorderRadius.circular(20),
+                      image: _buildDecorationImage(content['image_url']??''),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16,),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 8,),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: ShapeDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  shape: OvalBorder(
+                                    side: BorderSide(
+                                      width: 2,
+                                      color: const Color(0xFFE7E7E7),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 7,),
+                              GestureDetector(
+                                child: Text(
+                                  '${content['user']['name']}',
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.50,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const User()),
+                                  );
+                                },
+                              ),
+                              Spacer(),
+                              GestureDetector(
+                                child: Icon(
+                                  Icons.bookmark,
+                                  color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    collected = !collected;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 12,),
+                        Row(
                           children: [
-                            Icon(
-                              Icons.chat_bubble,
-                              color: Color(0xFFD9D9D9),
+                            GestureDetector(
+                              child: Icon(
+                                Icons.favorite,
+                                color: content['is_liked'] ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  content['is_liked'] = !content['is_liked'];
+                                });
+                              },
                             ),
                             SizedBox(width: 4,),
-                            Text(
-                              '10',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w400,
+                            InkWell(
+                              child: Text(
+                                '${content['like_count']}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  fontFamily: 'PingFang TC',
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (ctx) => const LikeList(),
+                                );
+                              },
+                            ),
+                            SizedBox(width: 10,),
+                            InkWell(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.chat_bubble,
+                                    color: Color(0xFFD9D9D9),
+                                  ),
+                                  SizedBox(width: 4,),
+                                  Text(
+                                    '${content['comment_count']}',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,           // 解除預設高度限制
+                                  backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+                                  builder: (ctx) {
+                                    return CommentBoard();
+                                  },
+                                );
+                              },
                             ),
                           ],
                         ),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,           // 解除預設高度限制
-                            backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                            builder: (ctx) {
-                              return CommentBoard();
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10,),
-                  Text(
-                    '扶老奶奶過馬路',
-                    style: TextStyle(
-                      color: const Color(0xFF333333),
-                      fontSize: 16,
-                      fontFamily: 'PingFang TC',
-                      fontWeight: FontWeight.w500,
+                        SizedBox(height: 10,),
+                        Text(
+                          '${content['title']}',
+                          style: TextStyle(
+                            color: const Color(0xFF333333),
+                            fontSize: 16,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 4,),
+                        Text(
+                          '${content['content']}',
+                          style: TextStyle(
+                            color: const Color(0xFF333333),
+                            fontSize: 14,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        SizedBox(height: 4,),
+                        Text(
+                          '$formatted',
+                          style: TextStyle(
+                            color: const Color(0xFF838383),
+                            fontSize: 14,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        SizedBox(height: 8,),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 4,),
-                  Text(
-                    '首先你要先找到老奶奶\n找到老奶奶之後，你要趁拐杖不注意扶老奶奶過馬路，秘訣就是你要比他的拐杖更有用、更出色、更可靠\n記得注意安全',
-                    style: TextStyle(
-                      color: const Color(0xFF333333),
-                      fontSize: 14,
-                      fontFamily: 'PingFang TC',
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(height: 4,),
-                  Text(
-                    '2025/04/12',
-                    style: TextStyle(
-                      color: const Color(0xFF838383),
-                      fontSize: 14,
-                      fontFamily: 'PingFang TC',
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(height: 8,),
                 ],
               ),
-            ),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
   }

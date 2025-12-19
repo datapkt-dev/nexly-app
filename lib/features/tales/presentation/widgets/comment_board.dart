@@ -3,7 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 
 class CommentBoard extends StatefulWidget {
-  const CommentBoard({super.key});
+  final List? comments;
+  const CommentBoard({super.key, this.comments});
 
   @override
   State<CommentBoard> createState() => _CommentBoardState();

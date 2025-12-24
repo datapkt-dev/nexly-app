@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import '../../../config/app_config.dart';
-// import '../../../units/auth_service.dart';
+import '../../../app/config/app_config.dart';
+import '../../../components/widgets/DateInputFormatter.dart';
 import '../login.dart';
-// import '../widgets/DateInputFormatter.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -15,15 +14,12 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  // final String baseUrl = AppConfig.baseURL;
-  // final LoginService loginService = LoginService(baseUrl: AppConfig.baseURL);
-  // final AuthService authStorage = AuthService();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   int layer = 0;
 
-  TextEditingController controllerNumber = TextEditingController();
-  String number = '';
+  TextEditingController controllerMail = TextEditingController();
+  String mail = '';
   TextEditingController controllerCode = TextEditingController();
 
   TextEditingController controllerAccount = TextEditingController();
@@ -31,7 +27,6 @@ class _RegisterState extends State<Register> {
   List<String> gender = ['男性', '女性', '不透露',];
   int selectedGender = 0;
   TextEditingController controllerBirth = TextEditingController();
-  TextEditingController controllerMail = TextEditingController();
   TextEditingController controllerPassword = TextEditingController();
   TextEditingController controllerPasswordCheck = TextEditingController();
   Color _number = Color(0xFFEEEEEE);
@@ -39,105 +34,109 @@ class _RegisterState extends State<Register> {
   Color _tooltip = Color(0xFF656565);
   Color _password = Color(0xFFE7E7E7);
   Color _passwordCheck = Color(0xFFE7E7E7);
-  bool errCheck = false;
+  // bool errCheck = false;
 
   final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
 
-  // Future<Map<String, dynamic>> sendCode(String tempNumber) async {
-  //   print('sendCode');
-  //   print(tempNumber);
-  //   final url = Uri.parse('$baseUrl/auth/send-code');
-  //   if (tempNumber.startsWith("0")) {
-  //     tempNumber = tempNumber.substring(1);
-  //     number = '+886$tempNumber';
-  //   }
-  //   print(number);
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //   };
-  //
-  //   final body = jsonEncode({
-  //     "action": "register",
-  //     'credential': number,
-  //   });
-  //
-  //   try {
-  //     final response = await http.post(url, headers: headers, body: body);
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
+  Future<Map<String, dynamic>> postSendCode(String email) async {
+    String baseUrl = AppConfig.baseURL;
+    print('sendCode');
+    print(email);
+    final url = Uri.parse('$baseUrl/auth/send-code');
 
-  // Future<Map<String, dynamic>> verifyCode(String code) async {
-  //   final url = Uri.parse('$baseUrl/auth/verify-code');
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //   };
-  //
-  //   final body = jsonEncode({
-  //     "credential" : number,
-  //     "code" : code
-  //   });
-  //
-  //   try {
-  //     final response = await http.post(url, headers: headers, body: body);
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
+    final headers = {
+      'Content-Type': 'application/json',
+    };
 
-  // Future<Map<String, dynamic>> newUser() async {
-  //   final url = Uri.parse('$baseUrl/auth/register');
-  //
-  //   final genderMap = {0: "M", 1: "F", 2: "Other"};
-  //   final genderValue = genderMap[selectedGender] ?? "Other";
-  //
-  //   // 先把 vehicle 轉成 cars
-  //   final cars = vehicle.map((v) {
-  //     return {
-  //       "car_type": v[0].text,
-  //       "car_number": v[1].text,
-  //     };
-  //   }).toList();
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //   };
-  //
-  //   final body = jsonEncode({
-  //     "staff_no" : controllerAccount.text, //帳號
-  //     "name" : controllerName.text,
-  //     "email" : controllerMail.text,
-  //     "phone" : number,
-  //     "birthday": controllerBirth.text,
-  //     "gender": genderValue, // M, F, Other
-  //     "country": "TW", // 寫死TW
-  //     "project_id": 1, // Must Provided
-  //     "cars": cars,
-  //     "password": controllerPassword.text
-  //   });
-  //   print(body);
-  //
-  //   try {
-  //     final response = await http.post(url, headers: headers, body: body);
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
+    final body = jsonEncode({
+      "action": "register",
+      'credential': email,
+      "source": "email_verification"
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> postVerifyCode(String email, String code) async {
+    String baseUrl = AppConfig.baseURL;
+    final url = Uri.parse('$baseUrl/auth/verify-code');
+
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+
+    final body = jsonEncode({
+      "credential" : email,
+      "code" : code,
+      "source": "email_verification"
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  bool isValidPassword(String password) {
+    final regex = RegExp(r'^[a-zA-Z0-9]{8,}$');
+    return regex.hasMatch(password);
+  }
+
+  Future<Map<String, dynamic>> postRegister() async {
+    String baseUrl = AppConfig.baseURL;
+    final url = Uri.parse('$baseUrl/auth/register');
+
+    final genderMap = {0: "M", 1: "F", 2: "Other"};
+    final genderValue = genderMap[selectedGender] ?? "Other";
+
+    // 先把 vehicle 轉成 cars
+    // final cars = vehicle.map((v) {
+    //   return {
+    //     "car_type": v[0].text,
+    //     "car_number": v[1].text,
+    //   };
+    // }).toList();
+
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+
+    final body = jsonEncode({
+      "name" : controllerName.text,
+      "email" : mail,
+      // "phone" : number,
+      "birthday": controllerBirth.text,
+      "gender": genderValue, // M, F, Other
+      "country": "TW", // 寫死TW
+      "project_id": 1, // Must Provided
+      // "cars": cars,
+      "password": controllerPassword.text
+    });
+    print(body);
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
 
   @override
   void initState() {
@@ -254,7 +253,7 @@ class _RegisterState extends State<Register> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: TextField(
-              controller: controllerNumber,
+              controller: controllerMail,
               maxLines: 1,
               decoration: InputDecoration(
                 hintText: '請輸入信箱',
@@ -291,7 +290,7 @@ class _RegisterState extends State<Register> {
           const SizedBox(height: 32,),
           GestureDetector(
             onTap: () {
-              final input = controllerNumber.text.trim();
+              final input = controllerMail.text.trim();
 
               // 不接受任何空白
               if (RegExp(r'\s').hasMatch(input)) {
@@ -317,22 +316,21 @@ class _RegisterState extends State<Register> {
               setState(() {
                 err = '';
                 _number = Color(0xFF333333);
-                number = '';
-                // futureData = sendCode(controllerNumber.text);
-                // futureData.then((result) {
-                //   print(result);
-                //   if (result['data']?['exists'] == false/* && result['data']['need_verification'] == true*/) {
-                //     layer++;
-                //   } else {
-                //     err = result['message'];
-                //     _number = Color(0xFFFF3F23);
-                //     if (result['data']?['exists'] == true) {
-                //       err = '該手機號碼已註冊過';
-                //     }
-                //   }
-                // });
-                number = controllerNumber.text;
-                layer++;
+                mail = '';
+                futureData = postSendCode(controllerMail.text);
+                futureData.then((result) {
+                  print(result);
+                  if (result['message'] == 'OTP sent, please check your email') {
+                    mail = controllerMail.text;
+                    layer++;
+                  } else {
+                    err = result['message'];
+                    _number = Color(0xFFFF3F23);
+                    if (result['data']?['exists'] == true) {
+                      err = '該信箱已註冊過';
+                    }
+                  }
+                });
               });
             },
             child: Container(
@@ -409,7 +407,7 @@ class _RegisterState extends State<Register> {
             ),
           ),
           Text(
-            number,
+            mail,
             style: TextStyle(
               color: const Color(0xFF333333),
               fontSize: 16,
@@ -469,18 +467,32 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
+          if (err != '') ...[
+            SizedBox(height: 6,),
+            Text(
+              err,
+              style: TextStyle(
+                color: const Color(0xFFFF3F23),
+                fontSize: 12,
+                fontFamily: 'PingFang TC',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
           const SizedBox(height: 32,),
           GestureDetector(
             onTap: () {
               setState(() {
-                // futureData = verifyCode(controllerCode.text);
-                // futureData.then((result) {
-                //   print(result);
-                //   if (result['data']?['valid'] == true) {
-                //     layer++;
-                //   }
-                // });
-                layer++;
+                err = '';
+                futureData = postVerifyCode(mail, controllerCode.text);
+                futureData.then((result) {
+                  print(result);
+                  if (result['message'] == 'Verification successful') {
+                    layer++;
+                  } else {
+                    err = result['message'];
+                  }
+                });
               });
             },
             child: Container(
@@ -514,8 +526,8 @@ class _RegisterState extends State<Register> {
         children: [
           const SizedBox(height: 120,),
           IconButton(
-            padding: EdgeInsets.zero, // 移除內建 padding
-            constraints: const BoxConstraints(), // 移除最小點擊範圍限制（視需要）
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             icon: Container(
               width: 40,
               height: 40,
@@ -527,7 +539,6 @@ class _RegisterState extends State<Register> {
               ),
               child: Icon(
                 Icons.arrow_back_ios_rounded,
-                // color: const Color(0xFFEFEFEF),
               ),
             ),
             onPressed: () {
@@ -556,9 +567,20 @@ class _RegisterState extends State<Register> {
               fontWeight: FontWeight.w400,
             ),
           ),
+          if (err != '') ...[
+            SizedBox(height: 6,),
+            Text(
+              err,
+              style: TextStyle(
+                color: const Color(0xFFFF3F23),
+                fontSize: 12,
+                fontFamily: 'PingFang TC',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
           const SizedBox(height: 32,),
           Container(
-            // height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
@@ -596,7 +618,6 @@ class _RegisterState extends State<Register> {
           ),
           SizedBox(height: 10,),
           Container(
-            // height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             alignment: Alignment.center,
             clipBehavior: Clip.antiAlias,
@@ -691,7 +712,7 @@ class _RegisterState extends State<Register> {
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly, // 只允許數字
-                // DateInputFormatter(), // 自訂格式化
+                DateInputFormatter(), // 自訂格式化
               ],
               maxLines: 1,
               decoration: const InputDecoration(
@@ -714,49 +735,16 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          SizedBox(height: 10,),
-          Container(
-            // height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            clipBehavior: Clip.antiAlias,
-            decoration: ShapeDecoration(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  width: 1,
-                  color: const Color(0xFFE7E7E7),
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: TextField(
-              controller: controllerMail,
-              maxLines: 1,
-              decoration: const InputDecoration(
-                hintText: '信箱',
-                hintStyle: TextStyle(
-                  color: Color(0xFFB0B0B0),
-                  fontSize: 16,
-                  fontFamily: 'PingFang TC',
-                  fontWeight: FontWeight.w400,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: const TextStyle(
-                color: Color(0xFFB0B0B0),
-                fontSize: 16,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
           const SizedBox(height: 32,),
           GestureDetector(
             onTap: () {
               setState(() {
-                layer++;
+                if (controllerAccount.text != '' && controllerName.text != '' && controllerBirth.text != '') {
+                  err ='';
+                  layer++;
+                } else {
+                  err = '請填寫完整資料';
+                }
               });
             },
             child: Container(
@@ -841,7 +829,7 @@ class _RegisterState extends State<Register> {
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                   width: 1,
-                  color: const Color(0xFFE7E7E7),
+                  color: _password,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -871,15 +859,6 @@ class _RegisterState extends State<Register> {
           ),
           Row(
             children: [
-              Text(
-                err,
-                style: TextStyle(
-                  color: const Color(0xFFFF3F23),
-                  fontSize: 12,
-                  fontFamily: 'PingFang TC',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
               Spacer(),
               Tooltip(
                 key: _tooltipKey,
@@ -896,7 +875,7 @@ class _RegisterState extends State<Register> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.info_outline, color: Colors.grey),
+                  icon: Icon(Icons.info_outline, color: _tooltip),
                   onPressed: () {
                     // ✅ 點擊時顯示 Tooltip
                     final tooltip = _tooltipKey.currentState;
@@ -916,7 +895,7 @@ class _RegisterState extends State<Register> {
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                   width: 1,
-                  color: const Color(0xFFE7E7E7),
+                  color: _passwordCheck,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -944,10 +923,10 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          if (errCheck) ...[
+          if (err != '') ...[
             SizedBox(height: 6,),
             Text(
-              '密碼不ㄧ致，請確認',
+              err,
               style: TextStyle(
                 color: const Color(0xFFFF3F23),
                 fontSize: 12,
@@ -961,156 +940,95 @@ class _RegisterState extends State<Register> {
           GestureDetector(
             onTap: () {
               setState(() {
-                _password = Color(0xFF333333);
-                _passwordCheck = Color(0xFF333333);
+                _password = Color(0xFFE7E7E7);
+                _passwordCheck = Color(0xFFE7E7E7);
                 _tooltip = Color(0xFF656565);
                 err = '';
-                errCheck = false;
-                if (controllerPassword.text == controllerPasswordCheck.text) {
-                  // futureData = newUser();
-                  // futureData.then((result) {
-                  //   print(result);
-                  //   showDialog(
-                  //     context: context,
-                  //     barrierDismissible: false, // 一定要按按鈕
-                  //     builder: (context) {
-                  //       return Dialog(
-                  //         backgroundColor: const Color(0xFF2E2E2E),
-                  //         shape: RoundedRectangleBorder(
-                  //           borderRadius: BorderRadius.circular(12),
-                  //           side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
-                  //         ),
-                  //         child: Padding(
-                  //           padding: const EdgeInsets.all(20), // 四邊 20
-                  //           child: Column(
-                  //             mainAxisSize: MainAxisSize.min,
-                  //             crossAxisAlignment: CrossAxisAlignment.center,
-                  //             children: [
-                  //               const SizedBox(height: 40),
-                  //               Text(
-                  //                 '${result['message']}',
-                  //                 textAlign: TextAlign.center,
-                  //                 style: TextStyle(
-                  //                   color: const Color(0xFFEFEFEF),
-                  //                   fontSize: 16,
-                  //                   fontFamily: 'PingFang TC',
-                  //                   fontWeight: FontWeight.w500,
-                  //                 ),
-                  //               ),
-                  //               const SizedBox(height: 60),
-                  //               GestureDetector(
-                  //                 child: Container(
-                  //                   width: 100,
-                  //                   height: 40,
-                  //                   alignment: Alignment.center,
-                  //                   decoration: ShapeDecoration(
-                  //                     color: const Color(0xFFF9D400),
-                  //                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  //                   ),
-                  //                   child: const Text(
-                  //                     '確定',
-                  //                     style: TextStyle(
-                  //                       color: const Color(0xFF333333),
-                  //                       fontSize: 14,
-                  //                       fontFamily: 'PingFang TC',
-                  //                       fontWeight: FontWeight.w500,
-                  //                     ),
-                  //                   ),
-                  //                 ),
-                  //                 onTap: () {
-                  //                   if (result['message'] == '訪客建立成功') {
-                  //                     Navigator.pushAndRemoveUntil(
-                  //                       context,
-                  //                       MaterialPageRoute(builder: (context) => const Login()),
-                  //                           (Route<dynamic> route) => false, // 移除所有舊頁面
-                  //                     );
-                  //                   } else {
-                  //                     Navigator.pop(context);
-                  //                   }
-                  //                 },
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       );
-                  //     },
-                  //   );
-                  // });
-                  showDialog(
-                    context: context,
-                    // barrierDismissible: false, // 一定要按按鈕
-                    builder: (context) {
-                      return Dialog(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20), // 四邊 20
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 40),
-                              Text(
-                                /*'${result['message']}',*/
-                                '註冊成功，請重新登入',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: const Color(0xFF333333),
-                                  fontSize: 16,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 60),
-                              GestureDetector(
-                                child: Container(
-                                  width: 100,
-                                  height: 40,
-                                  alignment: Alignment.center,
-                                  decoration: ShapeDecoration(
-                                    color: Color(0xFF2C538A),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                final password = controllerPassword.text;
+                final passwordCheck = controllerPasswordCheck.text;
+
+                if (password != passwordCheck) {
+                  _passwordCheck = Color(0xFFFF3F23);
+                  err = '兩次輸入的密碼不一致';
+                  return;
+                }
+
+                if (!isValidPassword(password)) {
+                  _password = Color(0xFFFF3F23);
+                  _passwordCheck = Color(0xFFFF3F23);
+                  _tooltip = Color(0xFFFF3F23);
+                  err = '密碼需至少 8 碼，可使用大寫字母、小寫字母與數字';
+                  return;
+                }
+
+                futureData = postRegister();
+                futureData.then((result) {
+                  if (result['message'] == 'Registration successful') {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false, // 一定要按按鈕
+                      builder: (context) {
+                        return Dialog(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Color(0xFF4A4A4A), width: 1),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20), // 四邊 20
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 40),
+                                Text(
+                                  '註冊成功，請重新登入',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 16,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  child: const Text(
-                                    '確定',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w500,
+                                ),
+                                const SizedBox(height: 60),
+                                GestureDetector(
+                                  child: Container(
+                                    width: 100,
+                                    height: 40,
+                                    alignment: Alignment.center,
+                                    decoration: ShapeDecoration(
+                                      color: Color(0xFF2C538A),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                    ),
+                                    child: const Text(
+                                      '確定',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontFamily: 'PingFang TC',
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
+                                  onTap: () {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const Login()),
+                                          (Route<dynamic> route) => false,
+                                    );
+                                  },
                                 ),
-                                onTap: () {
-                                  // if (result['message'] == '訪客建立成功') {
-                                  //   Navigator.pushAndRemoveUntil(
-                                  //     context,
-                                  //     MaterialPageRoute(builder: (context) => const Login()),
-                                  //         (Route<dynamic> route) => false, // 移除所有舊頁面
-                                  //   );
-                                  // } else {
-                                  //   Navigator.pop(context);
-                                  // }
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const Login()),
-                                        (Route<dynamic> route) => false,
-                                  );
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                } else {
-                  _passwordCheck = Color(0xFFFF3F23);
-                  errCheck = true;
-                }
+                        );
+                      },
+                    );
+                  } else {
+                    err = '註冊失敗';
+                  }
+                });
               });
             },
             child: Container(

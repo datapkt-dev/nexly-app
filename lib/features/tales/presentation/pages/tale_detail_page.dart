@@ -24,8 +24,9 @@ enum _PostMenu {edit, copyToCollab, delete, report,}
 class _PostState extends State<Post> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
-  bool collected = true;
-  bool liked = true;
+  int? id;
+  bool collected = false;
+  bool liked = false;
   bool myself = false;
 
   Future<Map<String, dynamic>> getTaleContent(int id) async {
@@ -66,12 +67,67 @@ class _PostState extends State<Post> {
     );
   }
 
+  Future<void> postLikeTale(int id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/$id/like/toggle');
+    print(url);
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    // final body = jsonEncode(temp);
+
+    try {
+      final response = await http.post(url, headers: headers,);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      // return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      // return {'error': e.toString()};
+    }
+  }
+
+  Future<void> postFavoriteTale(int id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/$id/favorite/toggle');
+    print(url);
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    // final body = jsonEncode(temp);
+
+    try {
+      final response = await http.post(url, headers: headers,);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      // return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      // return {'error': e.toString()};
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     if (widget.myself) {
       myself = widget.myself;
     } else {
+      id = widget.id;
       futureData = getTaleContent(widget.id);
     }
   }
@@ -188,209 +244,7 @@ class _PostState extends State<Post> {
               ),
             );
           }
-          if (snapshot.data!.isEmpty) {
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    height: 513,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFEFEF),
-                      borderRadius: BorderRadius.circular(20),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/postImg.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16,),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 8,),
-                          child: Row(
-                            children: [
-                              // Container(
-                              //   width: 32,
-                              //   height: 32,
-                              //   // decoration: ShapeDecoration(
-                              //   //   image: DecorationImage(
-                              //   //     image: AssetImage('assets/images/postImg.png'),
-                              //   //     fit: BoxFit.cover,
-                              //   //   ),
-                              //   //   shape: RoundedRectangleBorder(
-                              //   //     side: BorderSide(
-                              //   //       width: 1,
-                              //   //       color: const Color(0xFFE7E7E7),
-                              //   //     ),
-                              //   //     borderRadius: BorderRadius.circular(100),
-                              //   //   ),
-                              //   // ),
-                              //   // clipBehavior: Clip.antiAlias,
-                              //   child: SvgPicture.asset(
-                              //     'assets/images/avatar.svg',
-                              //     // fit: BoxFit.cover,
-                              //   ),
-                              // ),
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: ShapeDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage('assets/images/ChatGPTphoto.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFFE7E7E7),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 7,),
-                              GestureDetector(
-                                child: Text(
-                                  'sam9527',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.50,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const User()),
-                                  );
-                                },
-                              ),
-                              Spacer(),
-                              GestureDetector(
-                                child: Icon(
-                                  Icons.bookmark,
-                                  color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    collected = !collected;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 12,),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              child: Icon(
-                                Icons.favorite,
-                                color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  liked = !liked;
-                                });
-                              },
-                            ),
-                            SizedBox(width: 4,),
-                            InkWell(
-                              child: Text(
-                                '123',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (ctx) => const LikeList(),
-                                );
-                              },
-                            ),
-                            SizedBox(width: 10,),
-                            InkWell(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble,
-                                    color: Color(0xFFD9D9D9),
-                                  ),
-                                  SizedBox(width: 4,),
-                                  Text(
-                                    '10',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,           // 解除預設高度限制
-                                  backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                                  builder: (ctx) {
-                                    return CommentBoard();
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Text(
-                          '扶老奶奶過馬路',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 16,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 4,),
-                        Text(
-                          '首先你要先找到老奶奶\n找到老奶奶之後，你要趁拐杖不注意扶老奶奶過馬路，秘訣就是你要比他的拐杖更有用、更出色、更可靠\n記得注意安全',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        SizedBox(height: 4,),
-                        Text(
-                          '2025/04/12',
-                          style: TextStyle(
-                            color: const Color(0xFF838383),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        SizedBox(height: 8,),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else {
+          if (snapshot.data!.isNotEmpty) {
             final Map<String, dynamic> content = snapshot.data!['data'];
             final formatted = DateTime
                 .parse(content['time_added'])
@@ -459,11 +313,12 @@ class _PostState extends State<Post> {
                               GestureDetector(
                                 child: Icon(
                                   Icons.bookmark,
-                                  color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
+                                  color: content['is_favorited'] ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
                                 ),
                                 onTap: () {
                                   setState(() {
-                                    collected = !collected;
+                                    content['is_favorited'] = !content['is_favorited'];
+                                    postFavoriteTale(id!);
                                   });
                                 },
                               ),
@@ -480,7 +335,9 @@ class _PostState extends State<Post> {
                               ),
                               onTap: () {
                                 setState(() {
+                                  postLikeTale(id!);
                                   content['is_liked'] = !content['is_liked'];
+                                  content['is_liked'] ? content['like_count']++ : content['like_count']--;
                                 });
                               },
                             ),
@@ -531,7 +388,7 @@ class _PostState extends State<Post> {
                                   isScrollControlled: true,           // 解除預設高度限制
                                   backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
                                   builder: (ctx) {
-                                    return CommentBoard();
+                                    return CommentBoard(id: content['id'], comments: content['recent_comments'],);
                                   },
                                 );
                               },
@@ -575,6 +432,211 @@ class _PostState extends State<Post> {
                 ],
               ),
             );
+          } else {
+            return Center(
+              child: Text('讀取文章錯誤'),
+            );
+            // return SingleChildScrollView(
+            //   child: Column(
+            //     children: [
+            //       Container(
+            //         height: 513,
+            //         width: double.infinity,
+            //         decoration: BoxDecoration(
+            //           color: const Color(0xFFEFEFEF),
+            //           borderRadius: BorderRadius.circular(20),
+            //           image: const DecorationImage(
+            //             image: AssetImage('assets/images/postImg.png'),
+            //             fit: BoxFit.cover,
+            //           ),
+            //         ),
+            //       ),
+            //       Padding(
+            //         padding: EdgeInsets.symmetric(horizontal: 16,),
+            //         child: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             Container(
+            //               padding: EdgeInsets.symmetric(vertical: 8,),
+            //               child: Row(
+            //                 children: [
+            //                   // Container(
+            //                   //   width: 32,
+            //                   //   height: 32,
+            //                   //   // decoration: ShapeDecoration(
+            //                   //   //   image: DecorationImage(
+            //                   //   //     image: AssetImage('assets/images/postImg.png'),
+            //                   //   //     fit: BoxFit.cover,
+            //                   //   //   ),
+            //                   //   //   shape: RoundedRectangleBorder(
+            //                   //   //     side: BorderSide(
+            //                   //   //       width: 1,
+            //                   //   //       color: const Color(0xFFE7E7E7),
+            //                   //   //     ),
+            //                   //   //     borderRadius: BorderRadius.circular(100),
+            //                   //   //   ),
+            //                   //   // ),
+            //                   //   // clipBehavior: Clip.antiAlias,
+            //                   //   child: SvgPicture.asset(
+            //                   //     'assets/images/avatar.svg',
+            //                   //     // fit: BoxFit.cover,
+            //                   //   ),
+            //                   // ),
+            //                   Container(
+            //                     width: 32,
+            //                     height: 32,
+            //                     decoration: ShapeDecoration(
+            //                       image: DecorationImage(
+            //                         image: AssetImage('assets/images/ChatGPTphoto.png'),
+            //                         fit: BoxFit.cover,
+            //                       ),
+            //                       shape: OvalBorder(
+            //                         side: BorderSide(
+            //                           width: 2,
+            //                           color: const Color(0xFFE7E7E7),
+            //                         ),
+            //                       ),
+            //                     ),
+            //                   ),
+            //                   SizedBox(width: 7,),
+            //                   GestureDetector(
+            //                     child: Text(
+            //                       'sam9527',
+            //                       style: TextStyle(
+            //                         color: const Color(0xFF333333),
+            //                         fontSize: 14,
+            //                         fontFamily: 'PingFang TC',
+            //                         fontWeight: FontWeight.w500,
+            //                         height: 1.50,
+            //                       ),
+            //                     ),
+            //                     onTap: () {
+            //                       Navigator.push(
+            //                         context,
+            //                         MaterialPageRoute(builder: (context) => const User()),
+            //                       );
+            //                     },
+            //                   ),
+            //                   Spacer(),
+            //                   GestureDetector(
+            //                     child: Icon(
+            //                       Icons.bookmark,
+            //                       color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
+            //                     ),
+            //                     onTap: () {
+            //                       setState(() {
+            //                         collected = !collected;
+            //                       });
+            //                     },
+            //                   ),
+            //                 ],
+            //               ),
+            //             ),
+            //             SizedBox(height: 12,),
+            //             Row(
+            //               children: [
+            //                 GestureDetector(
+            //                   child: Icon(
+            //                     Icons.favorite,
+            //                     color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
+            //                   ),
+            //                   onTap: () {
+            //                     setState(() {
+            //                       liked = !liked;
+            //                     });
+            //                   },
+            //                 ),
+            //                 SizedBox(width: 4,),
+            //                 InkWell(
+            //                   child: Text(
+            //                     '123',
+            //                     style: TextStyle(
+            //                       color: Colors.black,
+            //                       fontSize: 14,
+            //                       fontFamily: 'PingFang TC',
+            //                       fontWeight: FontWeight.w400,
+            //                     ),
+            //                   ),
+            //                   onTap: () {
+            //                     showModalBottomSheet(
+            //                       context: context,
+            //                       isScrollControlled: true,
+            //                       backgroundColor: Colors.transparent,
+            //                       builder: (ctx) => const LikeList(),
+            //                     );
+            //                   },
+            //                 ),
+            //                 SizedBox(width: 10,),
+            //                 InkWell(
+            //                   child: Row(
+            //                     mainAxisSize: MainAxisSize.min,
+            //                     children: [
+            //                       Icon(
+            //                         Icons.chat_bubble,
+            //                         color: Color(0xFFD9D9D9),
+            //                       ),
+            //                       SizedBox(width: 4,),
+            //                       Text(
+            //                         '10',
+            //                         style: TextStyle(
+            //                           color: Colors.black,
+            //                           fontSize: 14,
+            //                           fontFamily: 'PingFang TC',
+            //                           fontWeight: FontWeight.w400,
+            //                         ),
+            //                       ),
+            //                     ],
+            //                   ),
+            //                   onTap: () {
+            //                     showModalBottomSheet(
+            //                       context: context,
+            //                       isScrollControlled: true,           // 解除預設高度限制
+            //                       backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+            //                       builder: (ctx) {
+            //                         return CommentBoard();
+            //                       },
+            //                     );
+            //                   },
+            //                 ),
+            //               ],
+            //             ),
+            //             SizedBox(height: 10,),
+            //             Text(
+            //               '扶老奶奶過馬路',
+            //               style: TextStyle(
+            //                 color: const Color(0xFF333333),
+            //                 fontSize: 16,
+            //                 fontFamily: 'PingFang TC',
+            //                 fontWeight: FontWeight.w500,
+            //               ),
+            //             ),
+            //             SizedBox(height: 4,),
+            //             Text(
+            //               '首先你要先找到老奶奶\n找到老奶奶之後，你要趁拐杖不注意扶老奶奶過馬路，秘訣就是你要比他的拐杖更有用、更出色、更可靠\n記得注意安全',
+            //               style: TextStyle(
+            //                 color: const Color(0xFF333333),
+            //                 fontSize: 14,
+            //                 fontFamily: 'PingFang TC',
+            //                 fontWeight: FontWeight.w400,
+            //               ),
+            //             ),
+            //             SizedBox(height: 4,),
+            //             Text(
+            //               '2025/04/12',
+            //               style: TextStyle(
+            //                 color: const Color(0xFF838383),
+            //                 fontSize: 14,
+            //                 fontFamily: 'PingFang TC',
+            //                 fontWeight: FontWeight.w400,
+            //               ),
+            //             ),
+            //             SizedBox(height: 8,),
+            //           ],
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // );
           }
         },
       ),

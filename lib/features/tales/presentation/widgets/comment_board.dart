@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
+import '../../../../app/config/app_config.dart';
+import '../../../../unit/auth_service.dart';
 
 class CommentBoard extends StatefulWidget {
+  final int id;
   final List? comments;
-  const CommentBoard({super.key, this.comments});
+  const CommentBoard({super.key, required this.id, this.comments});
 
   @override
   State<CommentBoard> createState() => _CommentBoardState();
@@ -15,7 +20,44 @@ class _CommentBoardState extends State<CommentBoard> {
   final TextEditingController _controller = TextEditingController();
   bool _isFocused = false;
   bool _replyMode = false;
-  List<bool> like = [false, false];
+  // List<bool> like = [false, false];
+
+  Future<Map<String, dynamic>> futureData = Future.value({});
+  Map<String, dynamic>? user;
+  late int id;
+  List? comments;
+
+  Future<void> _loadUser() async {
+    final AuthService authStorage = AuthService();
+    user = await authStorage.getProfile();
+  }
+
+  Future<Map<String, dynamic>> postComment(int id, String comment) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/$id/comments');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({
+      "content": comment
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
 
   @override
   void initState() {
@@ -26,6 +68,9 @@ class _CommentBoardState extends State<CommentBoard> {
         if (!_isFocused) _replyMode = false;
       });
     });
+    _loadUser();
+    id = widget.id;
+    if (widget.comments != null) comments = widget.comments;
   }
 
   @override
@@ -90,9 +135,16 @@ class _CommentBoardState extends State<CommentBoard> {
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    itemCount: 1, // 你的資料長度
+                    itemCount: comments?.length??0, // 你的資料長度
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
+                      final content = comments![index];
+                      final formatted = DateTime
+                          .parse(content['time_added'])
+                          .toLocal()
+                          .toString()
+                          .substring(0, 16)
+                          .replaceAll('T', ' ');
                       return Column(
                         children: [
                           GestureDetector(
@@ -126,7 +178,7 @@ class _CommentBoardState extends State<CommentBoard> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Ella_1019',
+                                            '${content['user']['name']}',
                                             style: TextStyle(
                                               color: const Color(0xFF333333),
                                               fontSize: 14,
@@ -138,46 +190,32 @@ class _CommentBoardState extends State<CommentBoard> {
                                             child: Icon(
                                               Icons.favorite,
                                               size: 20,
-                                              color: like[0] ? Colors.red : Color(0xFFD9D9D9),
+                                              color: content['is_liked'] ? Colors.red : Color(0xFFD9D9D9),
                                             ),
                                             onTap: () {
                                               setState(() {
-                                                like[0] = !like[0];
+                                                // like[0] = !like[0];
+                                                content['is_liked'] = !content['is_liked'];
                                               });
                                             },
                                           ),
                                         ],
                                       ),
                                       SizedBox(height: 4),
-                                      Text.rich(
-                                        TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: '＠chris1123 ',
-                                              style: TextStyle(
-                                                color: Color(0xFF3B5AF8),
-                                                fontSize: 14,
-                                                fontFamily: 'PingFang TC',
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '來看看這個',
-                                              style: TextStyle(
-                                                color: const Color(0xFF333333),
-                                                fontSize: 14,
-                                                fontFamily: 'PingFang TC',
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ],
+                                      Text(
+                                        '${content['content']}',
+                                        style: TextStyle(
+                                          color: const Color(0xFF333333),
+                                          fontSize: 14,
+                                          fontFamily: 'PingFang TC',
+                                          fontWeight: FontWeight.w400,
                                         ),
                                       ),
                                       SizedBox(height: 4),
                                       Row(
                                         children: [
                                           Text(
-                                            '今天 12:00',
+                                            '$formatted',
                                             style: TextStyle(
                                               color: Color(0xFF888888),
                                               fontSize: 12,
@@ -186,25 +224,25 @@ class _CommentBoardState extends State<CommentBoard> {
                                             ),
                                           ),
                                           SizedBox(width: 10,),
-                                          GestureDetector(
-                                            child: Text(
-                                              '回覆 1',
-                                              style: TextStyle(
-                                                color: Color(0xFF888888),
-                                                fontSize: 12,
-                                                fontFamily: 'PingFang TC',
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              setState(() {
-                                                _replyMode = true;
-                                                Future.delayed(Duration(milliseconds: 50), () {
-                                                  FocusScope.of(context).requestFocus(_focusNode);
-                                                });
-                                              });
-                                            },
-                                          ),
+                                          // GestureDetector(
+                                          //   child: Text(
+                                          //     '回覆 ',
+                                          //     style: TextStyle(
+                                          //       color: Color(0xFF888888),
+                                          //       fontSize: 12,
+                                          //       fontFamily: 'PingFang TC',
+                                          //       fontWeight: FontWeight.w400,
+                                          //     ),
+                                          //   ),
+                                          //   onTap: () {
+                                          //     setState(() {
+                                          //       _replyMode = true;
+                                          //       Future.delayed(Duration(milliseconds: 50), () {
+                                          //         FocusScope.of(context).requestFocus(_focusNode);
+                                          //       });
+                                          //     });
+                                          //   },
+                                          // ),
                                         ],
                                       ),
                                     ],
@@ -249,87 +287,87 @@ class _CommentBoardState extends State<CommentBoard> {
                               }
                             },
                           ),
-                          if (true) ...[
-                            SizedBox(height: 20,),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 48,),
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: ShapeDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage('assets/images/ChatGPTphoto.png'),
-                                      fit: BoxFit.cover,
-                                    ),
-                                    shape: OvalBorder(
-                                      side: BorderSide(
-                                        width: 2,
-                                        color: const Color(0xFFE7E7E7),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                // 右側文字塊
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Chris1122',
-                                            style: TextStyle(
-                                              color: const Color(0xFF333333),
-                                              fontSize: 14,
-                                              fontFamily: 'PingFang TC',
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            child: Icon(
-                                              Icons.favorite,
-                                              size: 20,
-                                              color: like[1] ? Colors.red : Color(0xFFD9D9D9),
-                                            ),
-                                            onTap: () {
-                                              setState(() {
-                                                like[1] = !like[1];
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        '看起來很讚欸',
-                                        style: TextStyle(
-                                          color: const Color(0xFF333333),
-                                          fontSize: 14,
-                                          fontFamily: 'PingFang TC',
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        '今天 12:00',
-                                        style: TextStyle(
-                                          color: Color(0xFF888888),
-                                          fontSize: 12,
-                                          fontFamily: 'PingFang TC',
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                          // if (true) ...[
+                          //   SizedBox(height: 20,),
+                          //   Row(
+                          //     crossAxisAlignment: CrossAxisAlignment.start,
+                          //     children: [
+                          //       SizedBox(width: 48,),
+                          //       Container(
+                          //         width: 40,
+                          //         height: 40,
+                          //         decoration: ShapeDecoration(
+                          //           image: DecorationImage(
+                          //             image: AssetImage('assets/images/ChatGPTphoto.png'),
+                          //             fit: BoxFit.cover,
+                          //           ),
+                          //           shape: OvalBorder(
+                          //             side: BorderSide(
+                          //               width: 2,
+                          //               color: const Color(0xFFE7E7E7),
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       ),
+                          //       const SizedBox(width: 8),
+                          //       // 右側文字塊
+                          //       Expanded(
+                          //         child: Column(
+                          //           mainAxisAlignment: MainAxisAlignment.center,
+                          //           crossAxisAlignment: CrossAxisAlignment.start,
+                          //           children: [
+                          //             Row(
+                          //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //               children: [
+                          //                 Text(
+                          //                   'Chris1122',
+                          //                   style: TextStyle(
+                          //                     color: const Color(0xFF333333),
+                          //                     fontSize: 14,
+                          //                     fontFamily: 'PingFang TC',
+                          //                     fontWeight: FontWeight.w500,
+                          //                   ),
+                          //                 ),
+                          //                 GestureDetector(
+                          //                   child: Icon(
+                          //                     Icons.favorite,
+                          //                     size: 20,
+                          //                     color: like[1] ? Colors.red : Color(0xFFD9D9D9),
+                          //                   ),
+                          //                   onTap: () {
+                          //                     setState(() {
+                          //                       like[1] = !like[1];
+                          //                     });
+                          //                   },
+                          //                 ),
+                          //               ],
+                          //             ),
+                          //             SizedBox(height: 4),
+                          //             Text(
+                          //               '看起來很讚欸',
+                          //               style: TextStyle(
+                          //                 color: const Color(0xFF333333),
+                          //                 fontSize: 14,
+                          //                 fontFamily: 'PingFang TC',
+                          //                 fontWeight: FontWeight.w400,
+                          //               ),
+                          //             ),
+                          //             SizedBox(height: 4),
+                          //             Text(
+                          //               '今天 12:00',
+                          //               style: TextStyle(
+                          //                 color: Color(0xFF888888),
+                          //                 fontSize: 12,
+                          //                 fontFamily: 'PingFang TC',
+                          //                 fontWeight: FontWeight.w400,
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ],
                         ],
                       );
                     },
@@ -401,9 +439,37 @@ class _CommentBoardState extends State<CommentBoard> {
                           child: SvgPicture.asset('assets/icons/leave_comment.svg'),
                         ),
                         onTap: () {
+                          final now = DateTime.now();
+                          final formattedNow =
+                              '${now.year.toString().padLeft(4, '0')}-'
+                              '${now.month.toString().padLeft(2, '0')}-'
+                              '${now.day.toString().padLeft(2, '0')} '
+                              '${now.hour.toString().padLeft(2, '0')}:'
+                              '${now.minute.toString().padLeft(2, '0')}';
                           setState(() {
-                            _controller.text = '';
-                            _focusNode.unfocus();
+                            futureData = postComment(id, _controller.text);
+                            futureData.then((result) {
+                              if (result['message'] == 'Comment created successfully') {
+                                comments?.insert(
+                                  0,
+                                  {
+                                    'id' : 0,
+                                    'content' : _controller.text,
+                                    'user' : {
+                                      'id' : user?['id'],
+                                      'name' : user?['name'],
+                                      'avatar_url' : user?['avatar_url'],
+                                      'background_url' : '',
+                                    },
+                                    'like_count' : 0,
+                                    'is_liked' : false,
+                                    'time_added' : formattedNow,
+                                  },
+                                );
+                                _controller.text = '';
+                                _focusNode.unfocus();
+                              }
+                            });
                           });
                         },
                       )

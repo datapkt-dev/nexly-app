@@ -5,12 +5,15 @@ import 'package:nexly/modules/profile/pages/changePWD.dart';
 import 'package:nexly/modules/profile/pages/profile_edit.dart';
 import 'package:nexly/modules/profile/widgets/black_list.dart';
 import 'package:nexly/modules/profile/widgets/privacy.dart';
+import '../../app/config/app_config.dart';
 import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
-import '../login/pages/resetPWD.dart';
 import '../setting/setting.dart';
 import 'controller/profile_controller.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:io';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -48,6 +51,12 @@ class _ProfileState extends State<Profile> {
 
     // 兩個請求併發，提高速度
     final f1 = profileController.getUserProfile(user?['id']);
+    f1.then((result) {
+      setState(() {
+        user = result['data']['user'];
+        temp = user?['avatar_url'];
+      });
+    });
     final f2 = profileController.getUserBlackList();
     final results = await Future.wait([f1, f2]);
 
@@ -64,84 +73,65 @@ class _ProfileState extends State<Profile> {
     };
   }
 
-  // Future<Map<String, dynamic>> uploadImg(String filePath) async {
-  //   final file = File(filePath);
-  //   if (!await file.exists()) {
-  //     return {'error': 'File not found: $filePath'};
-  //   }
-  //
-  //   final uri = Uri.parse('$baseUrl/upload-image'); // 若有 HTTPS 請改 https
-  //   final request = http.MultipartRequest('POST', uri);
-  //
-  //   request.files.add(
-  //     await http.MultipartFile.fromPath('files', filePath), // 不帶 contentType
-  //   );
-  //
-  //   final streamed = await request.send();
-  //   final response = await http.Response.fromStream(streamed);
-  //   final body = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-  //
-  //   return body;
-  // }
-  //
-  // Future<Map<String, dynamic>> editUserImg(String newImgUrl) async {
-  //   final url = Uri.parse('$baseUrl/projects/1/users/${userProfile['id']}');
-  //   String? token = await authStorage.getToken();
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer $token',
-  //   };
-  //
-  //   final body = jsonEncode({
-  //     "name" : userProfile['name'],
-  //     "birthday" : userProfile['birthday'],
-  //     "gender" : userProfile['gender'],
-  //     "country" : "TW",
-  //     "avatar_url" : newImgUrl,
-  //     "background_url" : ""
-  //   });
-  //
-  //   try {
-  //     final response = await http.patch(url, headers: headers, body: body);
-  //     final responseData = jsonDecode(response.body);
-  //     print(responseData);
-  //     if (responseData['message'] == '員工更新成功') {
-  //       setState(() {
-  //         futureData = getUserProfile(user?['id']);
-  //         futureData.then((result) async {
-  //           print(result);
-  //           await authStorage.saveProfile(result['data']);
-  //         });
-  //       });
-  //     }
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
-  //
-  // Future<Map<String, dynamic>> delUser() async {
-  //   final url = Uri.parse('$baseUrl/projects/1/users/${userProfile['id']}');
-  //   String? token = await authStorage.getToken();
-  //
-  //   final headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer $token',
-  //   };
-  //
-  //   try {
-  //     final response = await http.delete(url, headers: headers);
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     return responseData;
-  //   } catch (e) {
-  //     print('請求錯誤：$e');
-  //     return {'error': e.toString()};
-  //   }
-  // }
+  Future<Map<String, dynamic>> uploadImg(String filePath) async {
+    final String baseUrl = AppConfig.baseURL;
+    final file = File(filePath);
+    if (!await file.exists()) {
+      return {'error': 'File not found: $filePath'};
+    }
+
+    final uri = Uri.parse('$baseUrl/upload-image'); // 若有 HTTPS 請改 https
+    final request = http.MultipartRequest('POST', uri);
+
+    request.files.add(
+      await http.MultipartFile.fromPath('files', filePath), // 不帶 contentType
+    );
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    final body = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+
+    return body;
+  }
+
+  Future<Map<String, dynamic>> editUserImg(String newImgUrl) async {
+    final String baseUrl = AppConfig.baseURL;
+    final url = Uri.parse('$baseUrl/projects/1/users/me');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({
+      // "name" : userProfile['name'],
+      // "birthday" : userProfile['birthday'],
+      // "gender" : userProfile['gender'],
+      // "country" : "TW",
+      "avatar_url" : newImgUrl,
+      // "background_url" : ""
+    });
+
+    try {
+      final response = await http.patch(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      if (responseData['message'] == 'User updated successfully') {
+        setState(() {
+          futureData = _loadUser();
+          futureData.then((result) async {
+            await authStorage.saveProfile(result['user']);
+          });
+        });
+      }
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
 
   @override
   void initState() {
@@ -167,20 +157,22 @@ class _ProfileState extends State<Profile> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              profileController.postBlock();
-            },
-            child: Text(
-              'Block',
-              style: TextStyle(
-                color: const Color(0xFF333333),
-                fontSize: 16,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
+          // TextButton(
+          //   onPressed: () {
+          //     setState(() {
+          //       futureData = editUserImg('');
+          //     });
+          //   },
+          //   child: Text(
+          //     'Block',
+          //     style: TextStyle(
+          //       color: const Color(0xFF333333),
+          //       fontSize: 16,
+          //       fontFamily: 'PingFang TC',
+          //       fontWeight: FontWeight.w400,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       body: SingleChildScrollView(
@@ -218,8 +210,8 @@ class _ProfileState extends State<Profile> {
                                     height: 80,
                                     decoration: ShapeDecoration(
                                       image: temp != '' ? DecorationImage(
-                                        // image: NetworkImage(userProfile['avatar_url'] ?? ''),
-                                        image: AssetImage(temp),
+                                        image: NetworkImage(temp),
+                                        // image: AssetImage(temp),
                                         fit: BoxFit.cover,
                                       ) : null,
                                       shape: OvalBorder(
@@ -253,9 +245,15 @@ class _ProfileState extends State<Profile> {
                               ),
                               onImagePicked: (imgRoute) async {
                                 print('success pick');
-                                print(imgRoute);
                                 setState(() {
-                                  temp = imgRoute;
+                                  futureData = uploadImg(imgRoute);
+                                  futureData.then((result) {
+                                    if (result['message'] == 'Upload successful') {
+                                      futureData = editUserImg(result['data']['urls'][0]);
+                                    }
+                                    // editUserImg(newImgUrl);
+                                  });
+                                  // temp = imgRoute;
                                 });
                                 // final res = await uploadImg(imgRoute);
                                 // if (res.containsKey('error') && res['error'] != null) {
@@ -811,7 +809,7 @@ class _ProfileState extends State<Profile> {
                                     const SizedBox(height: 60),
                                     Row(
                                       children: [
-                                        // 確認刪除
+                                        // 確認登出
                                         Expanded(
                                           child: GestureDetector(
                                             child: Container(

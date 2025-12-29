@@ -143,7 +143,6 @@ class _IndexState extends State<IndexPage> {
                             (taleContent['image_url'] is String && taleContent['image_url'].toString().isNotEmpty)
                                 ? taleContent['image_url']
                                 : '';
-                            print(taleContent['id']);
                             return TaleCard(
                               networkImage: imageUrl,
                               tag: taleContent['category']['name'],

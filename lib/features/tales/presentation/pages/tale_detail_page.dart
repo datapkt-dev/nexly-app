@@ -72,7 +72,7 @@ class _PostState extends State<Post> {
     final AuthService authStorage = AuthService();
 
     final url = Uri.parse('$baseUrl/tales/$id/like/toggle');
-    print(url);
+
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -85,7 +85,6 @@ class _PostState extends State<Post> {
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
-      print(responseData);
 
       // return responseData;
     } catch (e) {
@@ -99,7 +98,7 @@ class _PostState extends State<Post> {
     final AuthService authStorage = AuthService();
 
     final url = Uri.parse('$baseUrl/tales/$id/favorite/toggle');
-    print(url);
+
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -112,7 +111,6 @@ class _PostState extends State<Post> {
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
-      print(responseData);
 
       // return responseData;
     } catch (e) {
@@ -252,7 +250,6 @@ class _PostState extends State<Post> {
                 .toString()
                 .substring(0, 16)
                 .replaceAll('T', ' ');
-            print(content);
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -279,7 +276,7 @@ class _PostState extends State<Post> {
                                 height: 32,
                                 decoration: ShapeDecoration(
                                   image: DecorationImage(
-                                    image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                    image: NetworkImage(content['user']['avatar_url']??''),
                                     fit: BoxFit.cover,
                                   ),
                                   shape: OvalBorder(
@@ -388,7 +385,7 @@ class _PostState extends State<Post> {
                                   isScrollControlled: true,           // 解除預設高度限制
                                   backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
                                   builder: (ctx) {
-                                    return CommentBoard(id: content['id'], comments: content['recent_comments'],);
+                                    return CommentBoard(id: content['id']);
                                   },
                                 );
                               },

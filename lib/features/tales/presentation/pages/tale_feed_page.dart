@@ -17,24 +17,23 @@ class IndexPage extends StatefulWidget {
 }
 
 class _IndexState extends State<IndexPage> {
+  final ScrollController _scrollController = ScrollController();
+  List tales = [];
+  int page = 1;
+  bool isLoading = false;
+  bool hasMore = true; // API 還有沒有下一頁
+
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   bool _showOverlay = false;
   final List<String> tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
   List<bool> tagsActive = [true, false, false, false, false,];
-  final List<String> img = [
-    'assets/images/landscape/dog.jpg',
-    'assets/images/landscape/egypt.jpg',
-    'assets/images/landscape/goingup.jpg',
-    'assets/images/landscape/hiking.jpg',
-  ];
-  List<bool> collected = [true, false, false, false, false, false,];
 
-  Future<Map<String, dynamic>> getTales() async {
+  Future<Map<String, dynamic>> getTales(int page) async {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/others');
+    final url = Uri.parse('$baseUrl/projects/1/tales/others?page=$page&page_size=5');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -53,10 +52,40 @@ class _IndexState extends State<IndexPage> {
     }
   }
 
+  Future<void> loadMoreTales() async {
+    if (isLoading || !hasMore) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final result = await getTales(page);
+
+    final List newItems = result['data']['items'];
+
+    setState(() {
+      page += 1;
+      tales.addAll(newItems);
+      isLoading = false;
+
+      if (newItems.isEmpty) {
+        hasMore = false;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    futureData = getTales();
+
+    loadMoreTales();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent) {
+        loadMoreTales();
+      }
+    });
   }
 
   @override
@@ -105,70 +134,64 @@ class _IndexState extends State<IndexPage> {
                   ),
                 ),
                 Expanded(
-                  child: FutureBuilder(
-                    future: futureData,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                  child: GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(0),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 10,
+                      mainAxisExtent: 278,
+                    ),
+                    itemCount: tales.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == tales.length) {
+                        if (isLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (!hasMore) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: Text(
+                                '沒有更多貼文',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
                       }
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            '發生錯誤: ${snapshot.error}',
-                            style: const TextStyle(color: Colors.red, fontSize: 16),
-                          ),
-                        );
-                      }
-                      List tales = [];
-                      if (snapshot.data?['data']['items'].isNotEmpty) {
-                        tales = snapshot.data?['data']['items'];
-                      }
-                      return SingleChildScrollView(
-                        child: GridView.builder(
-                          padding: const EdgeInsets.all(0),
-                          shrinkWrap: true, // 高度隨內容變化
-                          physics: NeverScrollableScrollPhysics(), // 交給外層滾動
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 10,
-                            mainAxisExtent: 278,   // ✅ 固定每個 item 的高度 (250 圖片 + 文字空間)
-                          ),
-                          itemCount: tales.length,
-                          itemBuilder: (context, index) {
-                            Map<String, dynamic> taleContent = tales[index];
-                            final String imageUrl =
-                            (taleContent['image_url'] is String && taleContent['image_url'].toString().isNotEmpty)
-                                ? taleContent['image_url']
-                                : '';
-                            return TaleCard(
-                              networkImage: imageUrl,
-                              tag: taleContent['category']['name'],
-                              title: taleContent['title'],
-                              isCollected: taleContent['is_favorited'],
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => Post(id: taleContent['id'],)),
-                                );
-                              },
-                              onCollectTap: () {
-                                // setState(() {
-                                //   collected[index] = !collected[index];
-                                // });
-                              },
-                              onMoreTap: () {
-                                ActionMenuBottomSheet.show(
-                                  context,
-                                  rootContext: context,
-                                  targetId: 'post_123',
-                                );
-                              },
-                            );
-                          },
-                        ),
+                      final taleContent = tales[index];
+                      return TaleCard(
+                        networkImage: taleContent['image_url'] ?? '',
+                        tag: taleContent['category']['name'],
+                        title: taleContent['title'],
+                        isCollected: taleContent['is_favorited'],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => Post(id: taleContent['id'],)),
+                          );
+                        },
+                        onCollectTap: () {
+                          // setState(() {
+                          //   collected[index] = !collected[index];
+                          // });
+                        },
+                        onMoreTap: () {
+                          ActionMenuBottomSheet.show(
+                            context,
+                            rootContext: context,
+                            targetId: 'post_123',
+                          );
+                        },
                       );
                     },
                   ),

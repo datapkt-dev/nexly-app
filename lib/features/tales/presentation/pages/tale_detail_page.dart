@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
 import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
@@ -9,19 +10,20 @@ import 'package:nexly/modules/user/user.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../unit/auth_service.dart';
+import '../../di/providers.dart';
 
-class Post extends StatefulWidget {
+class Post extends ConsumerStatefulWidget {
   final bool myself;
   final int id;
   const Post({super.key, this.myself = false, this.id = 0});
 
   @override
-  State<Post> createState() => _PostState();
+  ConsumerState<Post> createState() => _PostState();
 }
 
 enum _PostMenu {edit, copyToCollab, delete, report,}
 
-class _PostState extends State<Post> {
+class _PostState extends ConsumerState<Post> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   int? id;
@@ -122,57 +124,84 @@ class _PostState extends State<Post> {
   @override
   void initState() {
     super.initState();
-    if (widget.myself) {
-      myself = widget.myself;
-    } else {
-      id = widget.id;
-      futureData = getTaleContent(widget.id);
+
+    myself = widget.myself;
+    id = widget.id;
+
+    if (!myself && id != null) {
+      futureData = getTaleContent(id!).then((result) {
+        final content = result['data'];
+
+        // ✅ 等 build 結束後，再同步更新 Riverpod
+        Future.microtask(() {
+          final notifier = ref.read(talesFeedProvider.notifier);
+          final current = ref.read(talesFeedProvider);
+
+          notifier.state = [
+            for (final tale in current)
+              if (tale['id'] == id)
+                <String, dynamic>{
+                  ...tale as Map<String, dynamic>,
+                  ...content as Map<String, dynamic>,
+                }
+              else
+                tale,
+          ];
+        });
+
+        return result;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ 先把 provider 的資料「安全轉型」
+    final List<Map<String, dynamic>> feed = ref
+        .watch(talesFeedProvider)
+        .map<Map<String, dynamic>>(
+          (e) => Map<String, dynamic>.from(e),
+    )
+        .toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           '貼文',
           style: TextStyle(
-            color: const Color(0xFF333333),
+            color: Color(0xFF333333),
             fontSize: 18,
             fontFamily: 'PingFang TC',
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
-          if (!myself) ...[
+          if (!myself)
             IconButton(
               onPressed: () {
                 ShareBottomSheet.show(context);
               },
-              icon: Icon(Icons.open_in_new),
+              icon: const Icon(Icons.open_in_new),
             ),
-          ],
           PopupMenuButton<_PostMenu>(
             icon: const Icon(Icons.more_vert),
             position: PopupMenuPosition.under,
-            offset: const Offset(0, 8),                    // 往下偏移一點
-            shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+            offset: const Offset(0, 8),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: const BorderSide(color: Color(0xFFEDEDED)),
             ),
             color: Colors.white,
             elevation: 8,
-            constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
+            constraints: const BoxConstraints(minWidth: 180),
             onSelected: (v) async {
               switch (v) {
                 case _PostMenu.edit:
-                // TODO: 編輯貼文
                   break;
                 case _PostMenu.copyToCollab:
-                // TODO: 複製至協作
                   break;
                 case _PostMenu.delete:
                   final ok = await showDialog<bool>(
@@ -187,14 +216,14 @@ class _PostState extends State<Post> {
                     ),
                   );
                   if (ok == true) {
-                    // TODO: 呼叫刪除 API
+                    // TODO delete api
                   }
                   break;
                 case _PostMenu.report:
-                  final result = await ReportBottomSheet.show(
+                  await ReportBottomSheet.show(
                     context,
                     targetId: 'post_123',
-                    targetType: ReportTarget.post, // 或 ReportTarget.user
+                    targetType: ReportTarget.post,
                   );
                   break;
               }
@@ -216,12 +245,11 @@ class _PostState extends State<Post> {
                     style: TextStyle(color: Colors.red),
                   ),
                 ),
-              ] else ...[
+              ] else
                 const PopupMenuItem(
                   value: _PostMenu.report,
                   child: Text('檢舉貼文'),
                 ),
-              ],
             ],
           ),
         ],
@@ -234,407 +262,160 @@ class _PostState extends State<Post> {
               child: CircularProgressIndicator(),
             );
           }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                '發生錯誤: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red, fontSize: 16),
-              ),
-            );
+          if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+            return const Center(child: Text('讀取文章錯誤'));
           }
-          if (snapshot.data!.isNotEmpty) {
-            final Map<String, dynamic> content = snapshot.data!['data'];
-            final formatted = DateTime
-                .parse(content['time_added'])
-                .toLocal()
-                .toString()
-                .substring(0, 16)
-                .replaceAll('T', ' ');
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    height: 513,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE7E7E7),
-                      borderRadius: BorderRadius.circular(20),
-                      image: _buildDecorationImage(content['image_url']??''),
-                    ),
+
+          final Map<String, dynamic> content = Map<String, dynamic>.from(snapshot.data!['data']);
+
+          final Map<String, dynamic> tale =
+          feed.firstWhere(
+                (e) => e['id'] == id,
+            orElse: () => content,
+          );
+
+          final int commentCount = tale['comment_count'] ?? 0;
+          final int likeCount = tale['like_count'] ?? 0;
+          final bool isLiked = tale['is_liked'] ?? false;
+          final bool isFavorited = tale['is_favorited'] ?? false;
+
+          final formatted = DateTime.parse(content['time_added'])
+              .toLocal()
+              .toString()
+              .substring(0, 16)
+              .replaceAll('T', ' ');
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  height: 513,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE7E7E7),
+                    borderRadius: BorderRadius.circular(20),
+                    image: _buildDecorationImage(content['image_url'] ?? ''),
                   ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16,),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 8,),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: ShapeDecoration(
-                                  image: DecorationImage(
-                                    image: NetworkImage(content['user']['avatar_url']??''),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFFE7E7E7),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 7,),
-                              GestureDetector(
-                                child: Text(
-                                  '${content['user']['name']}',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.50,
-                                  ),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const User()),
-                                  );
-                                },
-                              ),
-                              Spacer(),
-                              GestureDetector(
-                                child: Icon(
-                                  Icons.bookmark,
-                                  color: content['is_favorited'] ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    content['is_favorited'] = !content['is_favorited'];
-                                    postFavoriteTale(id!);
-                                  });
-                                },
-                              ),
-                            ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+
+                      // ===== 使用者列 =====
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundImage:
+                            NetworkImage(content['user']['avatar_url'] ?? ''),
                           ),
-                        ),
-                        SizedBox(height: 12,),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              child: Icon(
-                                Icons.favorite,
-                                color: content['is_liked'] ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  postLikeTale(id!);
-                                  content['is_liked'] = !content['is_liked'];
-                                  content['is_liked'] ? content['like_count']++ : content['like_count']--;
-                                });
-                              },
+                          const SizedBox(width: 8),
+                          Text(
+                            content['user']['name'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: Icon(
+                              Icons.bookmark,
+                              color: isFavorited
+                                  ? const Color(0xFFD63C95)
+                                  : const Color(0xFFD9D9D9),
                             ),
-                            SizedBox(width: 4,),
-                            InkWell(
-                              child: Text(
-                                '${content['like_count']}',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (ctx) => const LikeList(),
-                                );
-                              },
+                            onPressed: () {
+                              postFavoriteTale(id!);
+                              ref.read(talesFeedProvider.notifier).state = [
+                                for (final t in feed)
+                                  if (t['id'] == id)
+                                    {
+                                      ...t,
+                                      'is_favorited': !isFavorited,
+                                    }
+                                  else
+                                    t,
+                              ];
+                            },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ===== Like / Comment =====
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.favorite,
+                              color: isLiked
+                                  ? const Color(0xFFED4D4D)
+                                  : const Color(0xFFD9D9D9),
                             ),
-                            SizedBox(width: 10,),
-                            InkWell(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble,
-                                    color: Color(0xFFD9D9D9),
-                                  ),
-                                  SizedBox(width: 4,),
-                                  Text(
-                                    '${content['comment_count']}',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 14,
-                                      fontFamily: 'PingFang TC',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,           // 解除預設高度限制
-                                  backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-                                  builder: (ctx) {
-                                    return CommentBoard(id: content['id']);
-                                  },
-                                );
-                              },
+                            onPressed: () {
+                              postLikeTale(id!);
+                              ref.read(talesFeedProvider.notifier).state = [
+                                for (final t in feed)
+                                  if (t['id'] == id)
+                                    {
+                                      ...t,
+                                      'is_liked': !isLiked,
+                                      'like_count':
+                                      isLiked ? likeCount - 1 : likeCount + 1,
+                                    }
+                                  else
+                                    t,
+                              ];
+                            },
+                          ),
+                          Text(likeCount > 0 ? '$likeCount' : ''),
+                          const SizedBox(width: 16),
+                          InkWell(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => CommentBoard(id: id!),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                const Icon(Icons.chat_bubble,
+                                    color: Color(0xFFD9D9D9)),
+                                const SizedBox(width: 4),
+                                Text(commentCount > 0 ? '$commentCount' : ''),
+                              ],
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Text(
-                          '${content['title']}',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 16,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w500,
                           ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Text(
+                        content['title'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
-                        SizedBox(height: 4,),
-                        Text(
-                          '${content['content']}',
-                          style: TextStyle(
-                            color: const Color(0xFF333333),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        SizedBox(height: 4,),
-                        Text(
-                          '$formatted',
-                          style: TextStyle(
-                            color: const Color(0xFF838383),
-                            fontSize: 14,
-                            fontFamily: 'PingFang TC',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        SizedBox(height: 8,),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(content['content'] ?? ''),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatted,
+                        style: const TextStyle(color: Color(0xFF838383)),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                ],
-              ),
-            );
-          } else {
-            return Center(
-              child: Text('讀取文章錯誤'),
-            );
-            // return SingleChildScrollView(
-            //   child: Column(
-            //     children: [
-            //       Container(
-            //         height: 513,
-            //         width: double.infinity,
-            //         decoration: BoxDecoration(
-            //           color: const Color(0xFFEFEFEF),
-            //           borderRadius: BorderRadius.circular(20),
-            //           image: const DecorationImage(
-            //             image: AssetImage('assets/images/postImg.png'),
-            //             fit: BoxFit.cover,
-            //           ),
-            //         ),
-            //       ),
-            //       Padding(
-            //         padding: EdgeInsets.symmetric(horizontal: 16,),
-            //         child: Column(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             Container(
-            //               padding: EdgeInsets.symmetric(vertical: 8,),
-            //               child: Row(
-            //                 children: [
-            //                   // Container(
-            //                   //   width: 32,
-            //                   //   height: 32,
-            //                   //   // decoration: ShapeDecoration(
-            //                   //   //   image: DecorationImage(
-            //                   //   //     image: AssetImage('assets/images/postImg.png'),
-            //                   //   //     fit: BoxFit.cover,
-            //                   //   //   ),
-            //                   //   //   shape: RoundedRectangleBorder(
-            //                   //   //     side: BorderSide(
-            //                   //   //       width: 1,
-            //                   //   //       color: const Color(0xFFE7E7E7),
-            //                   //   //     ),
-            //                   //   //     borderRadius: BorderRadius.circular(100),
-            //                   //   //   ),
-            //                   //   // ),
-            //                   //   // clipBehavior: Clip.antiAlias,
-            //                   //   child: SvgPicture.asset(
-            //                   //     'assets/images/avatar.svg',
-            //                   //     // fit: BoxFit.cover,
-            //                   //   ),
-            //                   // ),
-            //                   Container(
-            //                     width: 32,
-            //                     height: 32,
-            //                     decoration: ShapeDecoration(
-            //                       image: DecorationImage(
-            //                         image: AssetImage('assets/images/ChatGPTphoto.png'),
-            //                         fit: BoxFit.cover,
-            //                       ),
-            //                       shape: OvalBorder(
-            //                         side: BorderSide(
-            //                           width: 2,
-            //                           color: const Color(0xFFE7E7E7),
-            //                         ),
-            //                       ),
-            //                     ),
-            //                   ),
-            //                   SizedBox(width: 7,),
-            //                   GestureDetector(
-            //                     child: Text(
-            //                       'sam9527',
-            //                       style: TextStyle(
-            //                         color: const Color(0xFF333333),
-            //                         fontSize: 14,
-            //                         fontFamily: 'PingFang TC',
-            //                         fontWeight: FontWeight.w500,
-            //                         height: 1.50,
-            //                       ),
-            //                     ),
-            //                     onTap: () {
-            //                       Navigator.push(
-            //                         context,
-            //                         MaterialPageRoute(builder: (context) => const User()),
-            //                       );
-            //                     },
-            //                   ),
-            //                   Spacer(),
-            //                   GestureDetector(
-            //                     child: Icon(
-            //                       Icons.bookmark,
-            //                       color: collected ? Color(0xFFD63C95) : Color(0xFFD9D9D9),
-            //                     ),
-            //                     onTap: () {
-            //                       setState(() {
-            //                         collected = !collected;
-            //                       });
-            //                     },
-            //                   ),
-            //                 ],
-            //               ),
-            //             ),
-            //             SizedBox(height: 12,),
-            //             Row(
-            //               children: [
-            //                 GestureDetector(
-            //                   child: Icon(
-            //                     Icons.favorite,
-            //                     color: liked ? Color(0xFFED4D4D) : Color(0xFFD9D9D9),
-            //                   ),
-            //                   onTap: () {
-            //                     setState(() {
-            //                       liked = !liked;
-            //                     });
-            //                   },
-            //                 ),
-            //                 SizedBox(width: 4,),
-            //                 InkWell(
-            //                   child: Text(
-            //                     '123',
-            //                     style: TextStyle(
-            //                       color: Colors.black,
-            //                       fontSize: 14,
-            //                       fontFamily: 'PingFang TC',
-            //                       fontWeight: FontWeight.w400,
-            //                     ),
-            //                   ),
-            //                   onTap: () {
-            //                     showModalBottomSheet(
-            //                       context: context,
-            //                       isScrollControlled: true,
-            //                       backgroundColor: Colors.transparent,
-            //                       builder: (ctx) => const LikeList(),
-            //                     );
-            //                   },
-            //                 ),
-            //                 SizedBox(width: 10,),
-            //                 InkWell(
-            //                   child: Row(
-            //                     mainAxisSize: MainAxisSize.min,
-            //                     children: [
-            //                       Icon(
-            //                         Icons.chat_bubble,
-            //                         color: Color(0xFFD9D9D9),
-            //                       ),
-            //                       SizedBox(width: 4,),
-            //                       Text(
-            //                         '10',
-            //                         style: TextStyle(
-            //                           color: Colors.black,
-            //                           fontSize: 14,
-            //                           fontFamily: 'PingFang TC',
-            //                           fontWeight: FontWeight.w400,
-            //                         ),
-            //                       ),
-            //                     ],
-            //                   ),
-            //                   onTap: () {
-            //                     showModalBottomSheet(
-            //                       context: context,
-            //                       isScrollControlled: true,           // 解除預設高度限制
-            //                       backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
-            //                       builder: (ctx) {
-            //                         return CommentBoard();
-            //                       },
-            //                     );
-            //                   },
-            //                 ),
-            //               ],
-            //             ),
-            //             SizedBox(height: 10,),
-            //             Text(
-            //               '扶老奶奶過馬路',
-            //               style: TextStyle(
-            //                 color: const Color(0xFF333333),
-            //                 fontSize: 16,
-            //                 fontFamily: 'PingFang TC',
-            //                 fontWeight: FontWeight.w500,
-            //               ),
-            //             ),
-            //             SizedBox(height: 4,),
-            //             Text(
-            //               '首先你要先找到老奶奶\n找到老奶奶之後，你要趁拐杖不注意扶老奶奶過馬路，秘訣就是你要比他的拐杖更有用、更出色、更可靠\n記得注意安全',
-            //               style: TextStyle(
-            //                 color: const Color(0xFF333333),
-            //                 fontSize: 14,
-            //                 fontFamily: 'PingFang TC',
-            //                 fontWeight: FontWeight.w400,
-            //               ),
-            //             ),
-            //             SizedBox(height: 4,),
-            //             Text(
-            //               '2025/04/12',
-            //               style: TextStyle(
-            //                 color: const Color(0xFF838383),
-            //                 fontSize: 14,
-            //                 fontFamily: 'PingFang TC',
-            //                 fontWeight: FontWeight.w400,
-            //               ),
-            //             ),
-            //             SizedBox(height: 8,),
-            //           ],
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // );
-          }
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

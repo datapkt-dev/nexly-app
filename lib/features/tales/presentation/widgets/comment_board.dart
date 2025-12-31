@@ -1,20 +1,25 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../unit/auth_service.dart';
+import '../../di/providers.dart';
+import 'comment_board/comment_input_bar.dart';
+import 'comment_board/comment_list.dart';
+import 'comment_board/reply_indicator.dart';
 
-class CommentBoard extends StatefulWidget {
+class CommentBoard extends ConsumerStatefulWidget {
   final int id;
   const CommentBoard({super.key, required this.id});
 
   @override
-  State<CommentBoard> createState() => _CommentBoardState();
+  ConsumerState<CommentBoard> createState() => _CommentBoardState();
 }
 
-class _CommentBoardState extends State<CommentBoard> {
+class _CommentBoardState extends ConsumerState<CommentBoard> {
   final ScrollController _scrollController = ScrollController();
   List comments = [];
   int page = 1;
@@ -47,7 +52,6 @@ class _CommentBoardState extends State<CommentBoard> {
     try {
       final response = await http.get(url, headers: headers);
       final responseData = jsonDecode(response.body);
-      print(responseData);
 
       return responseData;
     } catch (e) {
@@ -87,7 +91,7 @@ class _CommentBoardState extends State<CommentBoard> {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/tales/comments/$id/like');
+    final url = Uri.parse('$baseUrl/tales/comments/$id/like/toggle');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -100,7 +104,6 @@ class _CommentBoardState extends State<CommentBoard> {
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
-      print(responseData);
 
       // return responseData;
     } catch (e) {
@@ -190,7 +193,7 @@ class _CommentBoardState extends State<CommentBoard> {
       loadMore(id);
       _scrollController.addListener(() {
         if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200) {
+            _scrollController.position.maxScrollExtent) {
           loadMore(id);
         }
       });
@@ -302,88 +305,6 @@ class _CommentBoardState extends State<CommentBoard> {
                             );
                           },
                         ),
-                        // 用於顯示第二層留言
-                        // if (true) ...[
-                        //   SizedBox(height: 20,),
-                        //   Row(
-                        //     crossAxisAlignment: CrossAxisAlignment.start,
-                        //     children: [
-                        //       SizedBox(width: 48,),
-                        //       Container(
-                        //         width: 40,
-                        //         height: 40,
-                        //         decoration: ShapeDecoration(
-                        //           image: DecorationImage(
-                        //             image: AssetImage('assets/images/ChatGPTphoto.png'),
-                        //             fit: BoxFit.cover,
-                        //           ),
-                        //           shape: OvalBorder(
-                        //             side: BorderSide(
-                        //               width: 2,
-                        //               color: const Color(0xFFE7E7E7),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       ),
-                        //       const SizedBox(width: 8),
-                        //       // 右側文字塊
-                        //       Expanded(
-                        //         child: Column(
-                        //           mainAxisAlignment: MainAxisAlignment.center,
-                        //           crossAxisAlignment: CrossAxisAlignment.start,
-                        //           children: [
-                        //             Row(
-                        //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //               children: [
-                        //                 Text(
-                        //                   'Chris1122',
-                        //                   style: TextStyle(
-                        //                     color: const Color(0xFF333333),
-                        //                     fontSize: 14,
-                        //                     fontFamily: 'PingFang TC',
-                        //                     fontWeight: FontWeight.w500,
-                        //                   ),
-                        //                 ),
-                        //                 GestureDetector(
-                        //                   child: Icon(
-                        //                     Icons.favorite,
-                        //                     size: 20,
-                        //                     // color: like[1] ? Colors.red : Color(0xFFD9D9D9),
-                        //                   ),
-                        //                   onTap: () {
-                        //                     setState(() {
-                        //                       // like[1] = !like[1];
-                        //                     });
-                        //                   },
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //             SizedBox(height: 4),
-                        //             Text(
-                        //               '看起來很讚欸',
-                        //               style: TextStyle(
-                        //                 color: const Color(0xFF333333),
-                        //                 fontSize: 14,
-                        //                 fontFamily: 'PingFang TC',
-                        //                 fontWeight: FontWeight.w400,
-                        //               ),
-                        //             ),
-                        //             SizedBox(height: 4),
-                        //             Text(
-                        //               '今天 12:00',
-                        //               style: TextStyle(
-                        //                 color: Color(0xFF888888),
-                        //                 fontSize: 12,
-                        //                 fontFamily: 'PingFang TC',
-                        //                 fontWeight: FontWeight.w400,
-                        //               ),
-                        //             ),
-                        //           ],
-                        //         ),
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ],
                       ),
                       if (isLoading)
                         const Padding(
@@ -432,18 +353,21 @@ class _CommentBoardState extends State<CommentBoard> {
                       } else {
                         futureData = postComment(id, _controller.text);
                         futureData.then((result) {
+                          print(result);
                           if (result['message'] == 'Comment created successfully') {
+                            if (comments.isEmpty) {
+                              hasMore = true;   // 重新允許分頁
+                              page = 2;         // page=1 已經是目前這一批
+                            }
+
                             comments.insert(
                               0,
                               {
                                 'id' : 0,
                                 'content' : _controller.text,
-                                'user' : {
-                                  'id' : user?['id'],
-                                  'name' : user?['name'],
-                                  'user_avatar_url' : user?['avatar_url'],
-                                  'background_url' : '',
-                                },
+                                'user_id' : user?['id'],
+                                'user_name' : user?['name'],
+                                'user_avatar_url' : user?['avatar_url'],
                                 'like_count' : 0,
                                 'is_liked' : false,
                                 'time_added' : formattedNow,
@@ -451,6 +375,16 @@ class _CommentBoardState extends State<CommentBoard> {
                             );
                             _controller.text = '';
                             _focusNode.unfocus();
+                            ref.read(talesFeedProvider.notifier).state = [
+                              for (final tale in ref.read(talesFeedProvider))
+                                if (tale['id'] == id)
+                                  {
+                                    ...tale,
+                                    'comment_count': (tale['comment_count'] as int) + 1,
+                                  }
+                                else
+                                  tale,
+                            ];
                           }
                         });
                       }
@@ -463,273 +397,6 @@ class _CommentBoardState extends State<CommentBoard> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CommentList extends StatelessWidget {
-  final List comments;
-  final void Function(Map comment) onLike;
-  final void Function(Map comment) onReply;
-  final Future<String?> Function(
-      BuildContext context,
-      Offset globalPosition,
-      ) onLongPressMenu;
-
-  const CommentList({
-    super.key,
-    required this.comments,
-    required this.onLike,
-    required this.onReply,
-    required this.onLongPressMenu,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      itemCount: comments.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final comment = comments[index];
-        return CommentItem(
-          comment: comment,
-          onLike: () => onLike(comment),
-          onReply: () => onReply(comment),
-          onLongPressMenu: onLongPressMenu,
-        );
-      },
-    );
-  }
-}
-
-class CommentItem extends StatelessWidget {
-  final Map comment;
-  final VoidCallback onLike;
-  final VoidCallback onReply;
-  final Future<String?> Function(
-      BuildContext context,
-      Offset globalPosition,
-      ) onLongPressMenu;
-
-  const CommentItem({
-    super.key,
-    required this.comment,
-    required this.onLike,
-    required this.onReply,
-    required this.onLongPressMenu,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final formatted = DateTime
-        .parse(comment['time_added'])
-        .toLocal()
-        .toString()
-        .substring(0, 16)
-        .replaceAll('T', ' ');
-
-    return GestureDetector(
-      onLongPressStart: (details) async {
-        await onLongPressMenu(context, details.globalPosition);
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CommentAvatar(url: comment['user_avatar_url']),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommentHeader(
-                  name: comment['user_name'],
-                  isLiked: comment['is_liked'],
-                  onLike: onLike,
-                ),
-                const SizedBox(height: 4),
-                Text(comment['content']),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      formatted,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: onReply,
-                      child: const Text(
-                        '回覆',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CommentAvatar extends StatelessWidget {
-  final String? url;
-  final double size;
-
-  const CommentAvatar({
-    super.key,
-    required this.url,
-    this.size = 40,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final hasUrl = url != null && url!.isNotEmpty;
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: ShapeDecoration(
-        color: const Color(0xFFE7E7E7),
-        image: hasUrl
-            ? DecorationImage(
-          image: NetworkImage(url!),
-          fit: BoxFit.cover,
-        )
-            : null,
-        shape: OvalBorder(
-          side: BorderSide(
-            width: 2,
-            color: const Color(0xFFE7E7E7),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CommentHeader extends StatelessWidget {
-  final String name;
-  final bool isLiked;
-  final VoidCallback onLike;
-
-  const CommentHeader({
-    super.key,
-    required this.name,
-    required this.isLiked,
-    required this.onLike,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          name,
-          style: const TextStyle(
-            color: Color(0xFF333333),
-            fontSize: 14,
-            fontFamily: 'PingFang TC',
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        GestureDetector(
-          onTap: onLike,
-          child: Icon(
-            Icons.favorite,
-            size: 20,
-            color: isLiked ? Colors.red : const Color(0xFFD9D9D9),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ReplyIndicator extends StatelessWidget {
-  final String name;
-  final VoidCallback onCancel;
-
-  const ReplyIndicator({
-    super.key,
-    required this.name,
-    required this.onCancel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          '正在回覆 $name',
-          style: const TextStyle(color: Color(0xFF898989)),
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: onCancel,
-          child: const Icon(Icons.close),
-        ),
-      ],
-    );
-  }
-}
-
-class CommentInputBar extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final bool showSend;
-  final VoidCallback onSend;
-
-  const CommentInputBar({
-    super.key,
-    required this.controller,
-    required this.focusNode,
-    required this.showSend,
-    required this.onSend,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECF0F2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              decoration: const InputDecoration(
-                hintText: '新增留言',
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-        ),
-        if (showSend) ...[
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: onSend,
-            child: Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: Color(0xFF2C538A),
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset('assets/icons/leave_comment.svg'),
-            ),
-          ),
-        ],
-      ],
     );
   }
 }

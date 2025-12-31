@@ -1,24 +1,26 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexly/features/tales/presentation/pages/tale_detail_page.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
 import '../../../../unit/auth_service.dart';
+import '../../di/providers.dart';
 import '../widgets/filter_overlay.dart';
 import '../widgets/tag_selector.dart';
 import '../widgets/tale_card.dart';
 
-class IndexPage extends StatefulWidget {
+class IndexPage extends ConsumerStatefulWidget {
   const IndexPage({super.key});
 
   @override
-  State<IndexPage> createState() => _IndexState();
+  ConsumerState<IndexPage> createState() => _IndexState();
 }
 
-class _IndexState extends State<IndexPage> {
+class _IndexState extends ConsumerState<IndexPage> {
   final ScrollController _scrollController = ScrollController();
-  List tales = [];
+  // List tales = [];
   int page = 1;
   bool isLoading = false;
   bool hasMore = true; // API 還有沒有下一頁
@@ -65,13 +67,42 @@ class _IndexState extends State<IndexPage> {
 
     setState(() {
       page += 1;
-      tales.addAll(newItems);
       isLoading = false;
-
-      if (newItems.isEmpty) {
-        hasMore = false;
-      }
+      if (newItems.isEmpty) hasMore = false;
     });
+
+    // ✅ 同步更新 Riverpod 共用狀態
+    ref.read(talesFeedProvider.notifier).state = [
+      ...ref.read(talesFeedProvider),
+      ...newItems,
+    ];
+  }
+
+  Future<void> postFavoriteTale(int id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/$id/favorite/toggle');
+
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    // final body = jsonEncode(temp);
+
+    try {
+      final response = await http.post(url, headers: headers,);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      // return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      // return {'error': e.toString()};
+    }
   }
 
   @override
@@ -90,6 +121,8 @@ class _IndexState extends State<IndexPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tales = ref.watch(talesFeedProvider);
+
     return SafeArea(
       child: Stack(
         children: [
@@ -181,9 +214,18 @@ class _IndexState extends State<IndexPage> {
                           );
                         },
                         onCollectTap: () {
-                          // setState(() {
-                          //   collected[index] = !collected[index];
-                          // });
+                          final id = taleContent['id'];
+                          postFavoriteTale(id);
+                          ref.read(talesFeedProvider.notifier).state = [
+                            for (final tale in ref.read(talesFeedProvider))
+                              if (tale['id'] == id)
+                                {
+                                  ...tale,
+                                  'is_favorited': !(tale['is_favorited'] as bool),
+                                }
+                              else
+                                tale,
+                          ];
                         },
                         onMoreTap: () {
                           ActionMenuBottomSheet.show(

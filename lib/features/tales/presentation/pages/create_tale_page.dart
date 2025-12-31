@@ -398,6 +398,7 @@ class _ContentEditState extends State<PostContentEdit> {
                             "image_url": result['data']['urls'][0],
                             "publish_type": "personal" ,
                           });
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('發佈成功')));
                           Navigator.pop(context);
                         }
                       });

@@ -26,6 +26,8 @@ dependencies:
   share_plus: ^10.1.4
   social_sharing_plus: ^1.2.3
   flutter_secure_storage: ^9.2.4
+  flutter_riverpod: ^2.5.1
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -44,3 +46,9 @@ flutter:
     - assets/icons/index_frame/
     - assets/icons/new_post/
     - assets/images/landscape/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  remove_alpha_ios: true

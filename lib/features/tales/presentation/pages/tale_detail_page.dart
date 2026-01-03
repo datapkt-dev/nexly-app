@@ -9,6 +9,7 @@ import 'package:nexly/modules/user/user.dart';
 
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
+import '../../../../modules/profile/profile.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/providers.dart';
 
@@ -27,7 +28,6 @@ class _PostState extends ConsumerState<Post> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   int? id;
-  bool collected = false;
   bool liked = false;
   bool myself = false;
 
@@ -303,19 +303,36 @@ class _PostState extends ConsumerState<Post> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-
                       // ===== 使用者列 =====
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundImage:
-                            NetworkImage(content['user']['avatar_url'] ?? ''),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            content['user']['name'] ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          GestureDetector(
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage:
+                                  NetworkImage(content['user']['avatar_url'] ?? ''),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  content['user']['name'] ?? '',
+                                  style: const TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(builder: (context) => const User()),
+                              // );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ProfilePage.other(userId: '123'),
+                                ),
+                              );
+                            },
                           ),
                           const Spacer(),
                           IconButton(

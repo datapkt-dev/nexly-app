@@ -6,14 +6,14 @@ import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n.dart';
 import '../../models/locale.dart';
 
-class Setting extends StatefulWidget {
-  const Setting({super.key});
+class LanguageSetting extends StatefulWidget {
+  const LanguageSetting({super.key});
 
   @override
-  State<Setting> createState() => _SettingState();
+  State<LanguageSetting> createState() => _SettingState();
 }
 
-class _SettingState extends State<Setting> {
+class _SettingState extends State<LanguageSetting> {
   bool light = true;
 
   void _showPicker(Widget child) {

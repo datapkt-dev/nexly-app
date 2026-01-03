@@ -1,14 +1,12 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/upload_image_widget.dart';
 import 'package:nexly/modules/index/pages/notification_page.dart';
-import 'package:nexly/modules/index/pages/search_page_rebuild.dart';
-import 'package:nexly/modules/new_post/new_post.dart';
+import 'package:nexly/modules/index/pages/search_page.dart';
 import '../../features/tales/presentation/pages/create_tale_page.dart';
 import '../../features/tales/presentation/pages/tale_feed_page.dart';
-import 'pages/search_page.dart';
+import '../profile/profile.dart';
 import 'pages/personal_page.dart';
 
 class Index extends StatefulWidget {
@@ -29,217 +27,6 @@ class _IndexFrameState extends State<Index> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // drawer: contentIndex == 0
-      //     ? Drawer(
-      //   backgroundColor: Colors.white,
-      //   child: ListView(
-      //     children: [
-      //       Container(
-      //         margin: EdgeInsets.symmetric(horizontal: 20,),
-      //         child: Row(
-      //           children: [
-      //             Container(
-      //               width: 60,
-      //               height: 60,
-      //               decoration: ShapeDecoration(
-      //                 color: const Color(0xFFD9D9D9),
-      //                 shape: RoundedRectangleBorder(
-      //                   borderRadius: BorderRadius.circular(100),
-      //                 ),
-      //               ),
-      //             ),
-      //             const SizedBox(width: 16,),
-      //             const Column(
-      //               mainAxisSize: MainAxisSize.min,
-      //               children: [
-      //                 Text(
-      //                   'User Name',
-      //                   style: TextStyle(
-      //                     color: const Color(0xFF333333),
-      //                     fontSize: 16,
-      //                     fontFamily: 'PingFang TC',
-      //                     fontWeight: FontWeight.w400,
-      //                   ),
-      //                 ),
-      //                 SizedBox(height: 10,),
-      //                 Text(
-      //                   '＠Aa1234567',
-      //                   style: TextStyle(
-      //                     color: const Color(0xFF838383),
-      //                     fontSize: 14,
-      //                     fontFamily: 'PingFang TC',
-      //                     fontWeight: FontWeight.w400,
-      //                     height: 1.25,
-      //                   ),
-      //                 ),
-      //               ],
-      //             ),
-      //           ],
-      //         ),
-      //       ),
-      //       SizedBox(height: 20,),
-      //       ListTile(
-      //         title: Text(
-      //           '我的邀請碼',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {
-      //           // Navigator.push(
-      //           //   context,
-      //           //   MaterialPageRoute(builder: (context) => const Invitation()),
-      //           // );
-      //         },
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '會員中心',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {
-      //           // Navigator.push(
-      //           //   context,
-      //           //   MaterialPageRoute(builder: (context) => const MemberCenter()),
-      //           // );
-      //         },
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '預約記錄',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {
-      //           // Navigator.push(
-      //           //   context,
-      //           //   MaterialPageRoute(builder: (context) => const Appointment()),
-      //           // );
-      //         },
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '瀏覽記錄',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {
-      //           // Navigator.push(
-      //           //   context,
-      //           //   MaterialPageRoute(builder: (context) => const History()),
-      //           // );
-      //         },
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '求職',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '商城',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '條款',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '客服',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '設定',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //       ListTile(
-      //         title: Text(
-      //           '登出',
-      //           style: TextStyle(
-      //             color: const Color(0xFF333333),
-      //             fontSize: 14,
-      //             fontFamily: 'PingFang TC',
-      //             fontWeight: FontWeight.w400,
-      //           ),
-      //         ),
-      //         onTap: () {},
-      //       ),
-      //
-      //     ],
-      //   ),
-      // )
-      //     : null,
-      // appBar: contentIndex == 0
-      //     ? AppBar(
-      //   backgroundColor: Colors.white,
-      //   scrolledUnderElevation: 0,
-      //   elevation: 0,
-      //   title: Text(
-      //     'pop circle文字logo',
-      //     style: TextStyle(
-      //       color: const Color(0xFF333333),
-      //       fontSize: 16,
-      //       fontFamily: 'PingFang TC',
-      //       fontWeight: FontWeight.w400,
-      //     ),
-      //   ),
-      //   centerTitle: false,
-      // )
-      //     : null,
       body: _buildContent(),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -357,11 +144,11 @@ class _IndexFrameState extends State<Index> {
       case 0:
         return IndexPage();
       case 1:
-        return SearchPageRebuild();
+        return SearchPage();
       case 2:
         return NotificationPage();
       case 3:
-        return PersonalPage();
+        return ProfilePage.self()();
       default:
         return const Center(child: Text("尚未開放"));
     }

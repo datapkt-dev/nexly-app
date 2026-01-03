@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/cooperation/cooperation.dart';
-import 'package:nexly/modules/profile/profile.dart';
+import 'package:nexly/modules/account_setting/account_setting.dart';
 import 'package:nexly/modules/progress/progress.dart';
-import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../followed/followed.dart';
@@ -56,8 +54,8 @@ class _PersonalPageState extends State<PersonalPage> {
               PopupMenuButton<int>(
                 icon: const Icon(Icons.more_vert),
                 position: PopupMenuPosition.under,
-                offset: const Offset(0, 8),                    // 往下偏移一點
-                shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+                offset: const Offset(0, 8),
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: const BorderSide(color: Color(0xFFEDEDED)),
                 ),
@@ -69,15 +67,9 @@ class _PersonalPageState extends State<PersonalPage> {
                     case 0: // 帳號設定
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Profile()),
+                        MaterialPageRoute(builder: (context) => const AccountSetting()),
                       );
                       break;
-                    // case 1: // 前往語言設定
-                    //   Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(builder: (context) => const Setting()),
-                    //   );
-                    //   break;
                   }
                 },
                 itemBuilder: (context) => [
@@ -85,17 +77,8 @@ class _PersonalPageState extends State<PersonalPage> {
                     value: 0,
                     child: Text('帳號設定'),
                   ),
-                  // PopupMenuItem(
-                  //   value: 1,
-                  //   child: Text('語言設定'),
-                  // ),
                 ],
               )
-
-              // IconButton(
-              //   onPressed: () {},
-              //   icon: Icon(Icons.more_vert),
-              // ),
             ],
           ),
           Expanded(
@@ -109,23 +92,6 @@ class _PersonalPageState extends State<PersonalPage> {
                       children: [
                         Row(
                           children: [
-                            // Container(
-                            //   width: 60,
-                            //   height: 60,
-                            //   // decoration: ShapeDecoration(
-                            //   //   // image: DecorationImage(
-                            //   //   //   image: NetworkImage("https://placehold.co/60x60"),
-                            //   //   //   fit: BoxFit.cover,
-                            //   //   // ),
-                            //   //   shape: OvalBorder(
-                            //   //     side: BorderSide(
-                            //   //       width: 1,
-                            //   //       color: const Color(0xFFE7E7E7),
-                            //   //     ),
-                            //   //   ),
-                            //   // ),
-                            //   child: SvgPicture.asset('assets/images/avatar_1.svg'),
-                            // ),
                             Container(
                               width: 60,
                               height: 60,
@@ -615,7 +581,7 @@ class _PersonalPageState extends State<PersonalPage> {
                     fontFamily: 'PingFang TC',
                     fontWeight: FontWeight.w400,
                   ),
-                )
+                ),
               ],
             );
           }

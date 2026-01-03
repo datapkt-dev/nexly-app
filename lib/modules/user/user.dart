@@ -3,9 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/modules/cooperation/cooperation.dart';
 import 'package:nexly/modules/followed/followed.dart';
 import 'package:nexly/modules/payment/widgets/NoticeBlock.dart';
-import 'package:nexly/modules/profile/profile.dart';
 import 'package:nexly/modules/progress/progress.dart';
-import 'package:nexly/modules/setting/setting.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../features/tales/presentation/pages/tale_detail_page.dart';
@@ -27,7 +25,6 @@ class _PersonalPageState extends State<User> {
     'assets/images/landscape/hiking.jpg',
     'assets/images/postImg.png',
   ];
-  bool light = true;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +269,7 @@ class _PersonalPageState extends State<User> {
                               ),
                             ),
                             child: Text(
-                              '追蹤${light ? '中' : ''}',
+                              '追蹤',
                               style: TextStyle(
                                 color: const Color(0xFF333333),
                                 fontSize: 14,
@@ -283,7 +280,7 @@ class _PersonalPageState extends State<User> {
                           ),
                           onTap: () {
                             setState(() {
-                              light = !light;
+
                             });
                           },
                         ),

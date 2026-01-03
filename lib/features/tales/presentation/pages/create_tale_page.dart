@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nexly/features/tales/presentation/widgets/submit_button.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../unit/auth_service.dart';
+import '../widgets/category_chips.dart';
 
 class PostContentEdit extends StatefulWidget {
   final String? filePath;
@@ -15,13 +17,19 @@ class PostContentEdit extends StatefulWidget {
 }
 
 class _ContentEditState extends State<PostContentEdit> {
-  Future<Map<String, dynamic>> futureData = Future.value({});
+  Future<void>? futureData;
 
   TextEditingController controllerTitle = TextEditingController();
   TextEditingController controllerContent = TextEditingController();
-  List<String> tags = ['情感', '個人', '挑戰', '冒險', '冒險', '冒險', '冒險', '冒險'];
-  List<bool> selectedClass = [false, false, false, false, false, false, false, false];
-  List<bool> selectedTarget = [false, false, false, false, false, false, false, false];
+  List<Map<String, dynamic>> tags = [
+    {'name' : '個人頁', 'is_active': false,},
+    {'name' : '資料夾A', 'is_active': false,},
+    {'name' : '資料夾B', 'is_active': false,},
+    {'name' : '資料夾C', 'is_active': false,},
+    {'name' : '資料夾D', 'is_active': false,},
+    {'name' : '資料夾E', 'is_active': false,},
+  ];
+  List<Map<String, dynamic>> categories = [];
   String filePath = '';
 
   Future<Map<String, dynamic>> uploadImg(String filePath) async {
@@ -70,10 +78,75 @@ class _ContentEditState extends State<PostContentEdit> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.get(url, headers: headers);
+    final responseData = jsonDecode(response.body);
+
+    final List apiCategories = responseData['data'] as List;
+    print(apiCategories);
+
+    return apiCategories.asMap().entries.map<Map<String, dynamic>>((entry) {
+      final index = entry.key;
+      final c = entry.value;
+
+      return {
+        ...Map<String, dynamic>.from(c),
+        'is_active': index == 0, // ⭐ 第一筆 true，其餘 false
+      };
+    }).toList();
+  }
+
+  Future<void> _initPage() async {
+    final result = await getCategories();
+
+    setState(() {
+      categories = result;
+    });
+  }
+
+  Future<void> _submitPost() async {
+    final selectedCategory = categories.firstWhere(
+          (c) => c['is_active'] == true,
+      orElse: () => {},
+    );
+
+    final uploadResult = await uploadImg(filePath);
+
+    if (uploadResult['message'] != 'Upload successful') {
+      throw Exception('Upload failed');
+    }
+
+    await postTale({
+      "title": controllerTitle.text,
+      "content": controllerContent.text,
+      "category_id": selectedCategory['id'],
+      "image_url": uploadResult['data']['urls'][0],
+      "publish_type": "personal",
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('發佈成功')));
+      Navigator.pop(context);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    print(widget.filePath);
+    futureData = _initPage();
+
     if (widget.filePath != null) {
       filePath = widget.filePath!;
     }
@@ -132,13 +205,10 @@ class _ContentEditState extends State<PostContentEdit> {
                       ),
                       Container(
                         margin: EdgeInsets.symmetric(horizontal: 16,),
-                        // padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border(
                             bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
-                            // color: const Color(0xFFEEEEEE),
-                            // width: 1,
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -215,58 +285,15 @@ class _ContentEditState extends State<PostContentEdit> {
                           ],
                         ),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: List.generate(tags.length+2, (index) {
-                            if (index == 0) {
-                              return SizedBox(width: 16,);
-                            } else if (index == tags.length+1) {
-                              return SizedBox(width: 16,);
+                      CategoryChips(
+                        categories: categories,
+                        onTap: (index) {
+                          setState(() {
+                            for (int i = 0; i < categories.length; i++) {
+                              categories[i]['is_active'] = i == index;
                             }
-                            return GestureDetector(
-                              child: Container(
-                                height: 30,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.only(left: 8, right: 4),
-                                margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
-                                decoration: ShapeDecoration(
-                                  color: selectedClass[index-1] ? Color(0xFF2C538A) : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      width: 1,
-                                      color: const Color(0xFF2C538A),
-                                    ),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      tags[index-1],
-                                      style: TextStyle(
-                                        color: selectedClass[index-1] ? Colors.white : Color(0xFF2C538A),
-                                        fontSize: 14,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                    Icon(
-                                      selectedClass[index-1] ? Icons.close : Icons.add,
-                                      size: 16,
-                                      color: selectedClass[index-1] ? Colors.white : Color(0xFF2C538A),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedClass[index-1] = !selectedClass[index-1];
-                                });
-                              },
-                            );
-                          }),
-                        ),
+                          });
+                        },
                       ),
                       SizedBox(height: 20,),
                       Padding(
@@ -294,117 +321,44 @@ class _ContentEditState extends State<PostContentEdit> {
                           ],
                         ),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: List.generate(tags.length+2, (index) {
-                            if (index == 0) {
-                              return SizedBox(width: 16,);
-                            } else if (index == tags.length+1) {
-                              return SizedBox(width: 16,);
-                            }
-                            return GestureDetector(
-                              child: Container(
-                                height: 30,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.only(left: 8, right: 4),
-                                margin: EdgeInsets.only(left: index > 1 ? 10 : 0,),
-                                decoration: ShapeDecoration(
-                                  color: selectedTarget[index-1] ? Color(0xFF2C538A) : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      width: 1,
-                                      color: const Color(0xFF2C538A),
-                                    ),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      tags[index-1],
-                                      style: TextStyle(
-                                        color: selectedTarget[index-1] ? Colors.white : Color(0xFF2C538A),
-                                        fontSize: 14,
-                                        fontFamily: 'PingFang TC',
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                    Icon(
-                                      selectedTarget[index-1] ? Icons.close : Icons.add,
-                                      size: 16,
-                                      color: selectedTarget[index-1] ? Colors.white :  Color(0xFF2C538A),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedTarget[index-1] = !selectedTarget[index-1];
-                                });
-                              },
-                            );
-                          }),
-                        ),
+                      CategoryChips(
+                        categories: tags,
+                        onTap: (index) {
+                          setState(() {
+                            tags[index]['is_active'] = !tags[index]['is_active'];
+                          });
+                        },
                       ),
                     ],
                   ),
                 ),
               ),
-              GestureDetector(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x19333333),
-                        blurRadius: 4,
-                        offset: Offset(0, -2),
-                        spreadRadius: 0,
-                      )
-                    ],
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    alignment: Alignment.center,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF2C538A),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                    child: Text(
-                      '發佈',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontFamily: 'PingFang TC',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x19333333),
+                      blurRadius: 4,
+                      offset: Offset(0, -2),
+                      spreadRadius: 0,
+                    )
+                  ],
                 ),
-                onTap: () {
-                  print('press');
-                  if (controllerTitle.text != '' && controllerContent.text != '') {
+                child: SubmitButton(
+                  buttonName: '發佈',
+                  onPressed: () {
+                    if (controllerTitle.text.isEmpty || controllerContent.text.isEmpty) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(const SnackBar(content: Text('標題與描述不可為空')));
+                      return;
+                    }
                     setState(() {
-                      futureData = uploadImg(filePath);
-                      futureData.then((result) {
-                        if (result['message'] == 'Upload successful') {
-                          futureData = postTale({
-                            "title": controllerTitle.text,
-                            "content": controllerContent.text,
-                            "category_id": 1,
-                            "image_url": result['data']['urls'][0],
-                            "publish_type": "personal" ,
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('發佈成功')));
-                          Navigator.pop(context);
-                        }
-                      });
+                      futureData = _submitPost(); // ⭐ 關鍵
                     });
-                  }
-                },
+                  },
+                ),
               ),
               SizedBox(height: 30,),
             ],

@@ -28,8 +28,54 @@ class _IndexState extends ConsumerState<IndexPage> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   bool _showOverlay = false;
-  final List<String> tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
+  // final List tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
+  List<Map<String, dynamic>> tags = [];
   List<bool> tagsActive = [true, false, false, false, false,];
+
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.get(url, headers: headers);
+    final responseData = jsonDecode(response.body);
+
+    final List apiCategories = responseData['data'] as List;
+
+    return [
+      // ⭐「全部」固定在第一筆
+      {
+        'id': 0,
+        'name': '全部',
+        'is_active': true,
+      },
+
+      // ⭐ API 原資料完整保留，只改 is_active
+      ...apiCategories.map<Map<String, dynamic>>(
+            (c) => {
+          ...Map<String, dynamic>.from(c),
+          'is_active': false,
+        },
+      ),
+    ];
+  }
+
+  Future<void> _initPage() async {
+    final result = await getCategories();
+
+    setState(() {
+      tags = result;
+    });
+
+    loadMoreTales();
+  }
 
   Future<Map<String, dynamic>> getTales(int page) async {
     final AuthService authStorage = AuthService();
@@ -96,7 +142,6 @@ class _IndexState extends ConsumerState<IndexPage> {
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
-      print(responseData);
 
       // return responseData;
     } catch (e) {
@@ -109,7 +154,7 @@ class _IndexState extends ConsumerState<IndexPage> {
   void initState() {
     super.initState();
 
-    loadMoreTales();
+    _initPage();
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -138,18 +183,20 @@ class _IndexState extends ConsumerState<IndexPage> {
                     children: [
                       Expanded(
                         child: TagSelector(
-                          tags: tags,
-                          active: tagsActive,
+                          tags: tags.map((e) => e['name'] as String).toList(),
+                          active: tags.map((e) => e['is_active'] as bool).toList(),
                           scrollable: true,
                           onTap: (index) {
                             setState(() {
                               if (index == 0) {
-                                for (int i = 0; i < tagsActive.length; i++) {
-                                  tagsActive[i] = (i == 0);
+                                // 🟢 點「全部」：其他全部關閉
+                                for (int i = 0; i < tags.length; i++) {
+                                  tags[i]['is_active'] = i == 0;
                                 }
                               } else {
-                                tagsActive[0] = false;
-                                tagsActive[index] = !tagsActive[index];
+                                // 🟡 點其他分類：可多選
+                                tags[0]['is_active'] = false; // 「全部」一定關閉
+                                tags[index]['is_active'] = !(tags[index]['is_active'] as bool);
                               }
                             });
                           },
@@ -243,8 +290,8 @@ class _IndexState extends ConsumerState<IndexPage> {
           ),
           FilterOverlay(
             show: _showOverlay,
-            tags: tags,
-            active: tagsActive,
+            tags: tags.map((e) => e['name'] as String).toList(),
+            active: tags.map((e) => e['is_active'] as bool).toList(),
             onClose: () {
               setState(() {
                 _showOverlay = false;
@@ -253,12 +300,14 @@ class _IndexState extends ConsumerState<IndexPage> {
             onTagTap: (index) {
               setState(() {
                 if (index == 0) {
-                  for (int i = 0; i < tagsActive.length; i++) {
-                    tagsActive[i] = (i == 0);
+                  // 🟢 點「全部」：其他全部關閉
+                  for (int i = 0; i < tags.length; i++) {
+                    tags[i]['is_active'] = i == 0;
                   }
                 } else {
-                  tagsActive[0] = false;
-                  tagsActive[index] = !tagsActive[index];
+                  // 🟡 點其他分類：可多選
+                  tags[0]['is_active'] = false; // 「全部」一定關閉
+                  tags[index]['is_active'] = !(tags[index]['is_active'] as bool);
                 }
               });
             },

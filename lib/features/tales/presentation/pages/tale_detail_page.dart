@@ -370,7 +370,17 @@ class _PostState extends ConsumerState<Post> {
                               ];
                             },
                           ),
-                          Text(likeCount > 0 ? '$likeCount' : ''),
+                          InkWell(
+                            child: Text(likeCount > 0 ? '$likeCount' : ''),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (ctx) => const LikeList(),
+                              );
+                            },
+                          ),
                           const SizedBox(width: 16),
                           InkWell(
                             onTap: () {

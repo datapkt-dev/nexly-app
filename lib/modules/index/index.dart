@@ -148,7 +148,7 @@ class _IndexFrameState extends State<Index> {
       case 2:
         return NotificationPage();
       case 3:
-        return ProfilePage.self()();
+        return ProfilePage.self();
       default:
         return const Center(child: Text("尚未開放"));
     }

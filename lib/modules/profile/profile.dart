@@ -1,31 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:nexly/modules/account_setting/account_setting.dart';
 import 'package:nexly/modules/cooperation/cooperation.dart';
 import 'package:nexly/modules/progress/progress.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
+import '../../app/config/app_config.dart';
+import '../../features/tales/presentation/widgets/report.dart';
+import '../../unit/auth_service.dart';
 import '../followed/followed.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
+import '../payment/widgets/NoticeBlock.dart';
+import '../providers.dart';
 
-class ProfilePage extends StatefulWidget {
+class Profile extends ConsumerStatefulWidget {
   final bool isSelf;
-  final String? userId;
+  final int userId;
 
-  const ProfilePage.self({super.key})
-      : isSelf = true,
-        userId = null;
+  const Profile.self({super.key, required this.userId})
+      : isSelf = true;
 
-  const ProfilePage.other({
-    super.key,
-    required this.userId,
-  }) : isSelf = false;
+  const Profile.other({super.key, required this.userId,})
+      : isSelf = false;
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<Profile> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<Profile> {
+  late Future<Map<String, dynamic>> futureData;
+
   int selectedIndex = 0;
 
   final List<String> img = [
@@ -36,15 +43,50 @@ class _ProfilePageState extends State<ProfilePage> {
     'assets/images/postImg.png',
   ];
 
+  Future<Map<String, dynamic>> getProfile(id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/projects/1/users/$id/profile');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    futureData = getProfile(widget.userId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
 
+    // final info = [
+    //   t.tale,
+    //   t.follower,
+    //   t.following,
+    //   t.trusted_circle,
+    // ];
     final info = [
-      t.tale,
-      t.follower,
-      t.following,
-      t.trusted_circle,
+      '貼文',
+      '粉絲',
+      '追蹤中',
+      '朋友圈',
     ];
 
     final category = [
@@ -66,16 +108,36 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _buildHeader(context, info, category),
+        child: FutureBuilder(
+          future: futureData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  '發生錯誤: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              );
+            }
+            final account = snapshot.data!['data'];
+            print(account);
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildHeader(context, account, info, category),
+                  ),
+                  _buildContent(),
+                ],
               ),
-              _buildContent(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -85,17 +147,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildHeader(
       BuildContext context,
+      Map account,
       List<String> info,
       List<String> category,
       ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildUserRow(),
+        _buildUserRow(account),
         const SizedBox(height: 10),
-        _buildInfoRow(info),
+        _buildInfoRow(info, account),
         const SizedBox(height: 20),
-        _buildBio(),
+        _buildBio(account['bio']??'-'),
         const SizedBox(height: 20),
         _buildProgressCard(context),
         const SizedBox(height: 10),
@@ -105,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildUserRow() {
+  Widget _buildUserRow(Map account) {
     return Row(
       children: [
         Container(
@@ -113,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
           height: 60,
           decoration: ShapeDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/ChatGPTphoto.png'),
+              image: NetworkImage(account['avatar_url']),
               fit: BoxFit.cover,
             ),
             shape: OvalBorder(
@@ -129,7 +192,7 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Sam',
+              '${account['name']}',
               style: TextStyle(
                 color: const Color(0xFF333333),
                 fontSize: 16,
@@ -138,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             Text(
-              'sam9527',
+              '${account['account']}',
               style: TextStyle(
                 color: const Color(0xFF838383),
                 fontSize: 14,
@@ -149,12 +212,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const Spacer(),
-        if (!widget.isSelf) _buildFollowButton(),
+        if (!widget.isSelf) _buildFollowButton(account['is_following']),
       ],
     );
   }
 
-  Widget _buildFollowButton() {
+  Widget _buildFollowButton(bool following) {
     return InkWell(
       child: Container(
         width: 80,
@@ -166,13 +229,14 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        child: const Text('追蹤'),
+        child: Text('追蹤${following? '中' : ''}'),
       ),
       onTap: () {},
     );
   }
 
-  Widget _buildInfoRow(List<String> info) {
+  Widget _buildInfoRow(List<String> info, Map account) {
+    final count = [account['tales_count'], account['followers_count'], account['following_count'], 0];
     return Wrap(
       spacing: 10,
       children: List.generate(info.length, (index) {
@@ -190,7 +254,7 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '100',
+                '${count[index]}',
                 style: TextStyle(
                   color: const Color(0xFF333333),
                   fontSize: 14,
@@ -215,9 +279,15 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildBio() {
-    return const Text(
-      '個人簡介寫在這裡，個人簡介寫在這裡個人簡介寫在這裡',
+  Widget _buildBio(String bio) {
+    return Text(
+      bio,
+      style: TextStyle(
+        color: const Color(0xFF333333),
+        fontSize: 14,
+        fontFamily: 'PingFang TC',
+        fontWeight: FontWeight.w400,
+      ),
     );
   }
 
@@ -471,38 +541,148 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildAddFolderCard() {
-    return GestureDetector(
-      onTap: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const CollaborationSettingsSheet(),
-      ),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: ShapeDecoration(
-          color: const Color(0x1924B7BD),
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Color(0xFF2C538A)),
-            borderRadius: BorderRadius.circular(10),
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const CollaborationSettingsSheet(),
+          ),
+          child: Container(
+            height: 115,
+            alignment: Alignment.center,
+            decoration: ShapeDecoration(
+              color: const Color(0x1924B7BD),
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                  width: 1,
+                  color: Color(0xFF2C538A),
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Column(
+              children: [
+                SizedBox(height: 30,),
+                Icon(Icons.add),
+                SizedBox(height: 4,),
+                Text(
+                  '新增資料夾',
+                  style: TextStyle(
+                    color: const Color(0xFF333333),
+                    fontSize: 14,
+                    fontFamily: 'PingFang TC',
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: const Icon(Icons.add),
-      ),
+        Spacer(),
+      ],
     );
   }
 
   Widget _buildCooperationItem() {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => Cooperation(myself: widget.isSelf),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          child: Container(
+            height: 115,
+            decoration: ShapeDecoration(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                side: BorderSide(
+                  width: 1,
+                  color: Colors.white,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(img[3]), // ✅ 用 AssetImage
+                          fit: BoxFit.cover,
+                        ),
+                        color: Color(0xFFE7E7E7),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(img[1]), // ✅ 用 AssetImage
+                                fit: BoxFit.cover,
+                              ),
+                              color: Color(0xFFE7E7E7),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(img[2]), // ✅ 用 AssetImage
+                                fit: BoxFit.cover,
+                              ),
+                              color: Color(0xFFE7E7E7),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Cooperation()),
+            );
+          },
         ),
-      ),
-      child: Container(
-        color: Colors.grey.shade200,
-      ),
+        SizedBox(height: 4,),
+        Row(
+          children: [
+            Text(
+              '協作資料夾名稱',
+              style: TextStyle(
+                color: const Color(0xFF333333),
+                fontSize: 14,
+                fontFamily: 'PingFang TC',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Spacer(),
+          ],
+        ),
+        SizedBox(height: 1.5,),
+        Text(
+          '3 Tales • 5 參與者',
+          style: TextStyle(
+            color: const Color(0xFF898989),
+            fontSize: 12,
+            fontFamily: 'PingFang TC',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 
@@ -511,6 +691,15 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildSelfMenu(BuildContext context) {
     return PopupMenuButton<int>(
       icon: const Icon(Icons.more_vert),
+      position: PopupMenuPosition.under,
+      offset: const Offset(0, 8),
+      shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFEDEDED)),
+      ),
+      color: Colors.white,
+      elevation: 8,
+      constraints: const BoxConstraints(minWidth: 180),
       itemBuilder: (_) => const [
         PopupMenuItem(value: 0, child: Text('帳號設定')),
       ],
@@ -526,11 +715,130 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildOtherUserMenu(BuildContext context) {
     return PopupMenuButton<int>(
       icon: const Icon(Icons.more_vert),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: 0, child: Text('檢舉此用戶')),
-        PopupMenuItem(value: 1, child: Text('封鎖此用戶')),
+      position: PopupMenuPosition.under,
+      offset: const Offset(0, 8),                    // 往下偏移一點
+      shape: RoundedRectangleBorder(                 // 圓角 + 邊框
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFEDEDED)),
+      ),
+      color: Colors.white,
+      elevation: 8,
+      constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
+      onSelected: (value) async {
+        switch (value) {
+          case 0:
+            final result = await ReportBottomSheet.show(
+              context,
+              targetId: 'post_123',
+              targetType: ReportTarget.user, // 或 ReportTarget.user
+            );
+            break;
+          case 1:
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+              builder: (ctx) {
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16,),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      // 小手把
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDADADA),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+
+                      // 標題列 + 關閉
+                      Align(
+                        alignment: AlignmentGeometry.centerRight,
+                        child: IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      NoticeBlock(
+                        title: '封鎖後此用戶將無法',
+                        items: [
+                          '查看你個人頁面及已發布的tales',
+                          '解除你們彼此的追蹤關係',
+                          '從彼此所屬的co-tales中移除',
+                          '無法邀請你至co-tales',
+                          '分享訊息給你',
+                        ],
+                      ),
+                      SizedBox(height: 20,),
+                      GestureDetector(
+                        child: Container(
+                          width: double.infinity,
+                          height: 40,
+                          padding: const EdgeInsets.all(10),
+                          alignment: Alignment.center,
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFF2C538A),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          ),
+                          child: Text(
+                            '確定',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                        onTap: () async {
+                          Navigator.pop(context); // 關閉選單
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('已封鎖'),
+                              behavior: SnackBarBehavior.floating,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 30,),
+                    ],
+                  ),
+                );// 自訂內容（見下）;
+              },
+            );
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 0,
+          child: Text('檢舉此用戶'),
+        ),
+        PopupMenuItem(
+          value: 1,
+          child: Text('封鎖此用戶'),
+        ),
       ],
-      onSelected: (_) {},
     );
   }
 }

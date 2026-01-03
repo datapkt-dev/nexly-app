@@ -177,7 +177,7 @@ class _PersonalPageState extends State<PersonalPage> {
                         ),
                         SizedBox(height: 20,),
                         Text(
-                          '個人簡介寫在這裡，個人簡介寫在這裡個人簡介寫在這裡，個人簡介寫在這裡',
+                          '個人簡介寫在這裡，個人簡介寫在這裡',
                           style: TextStyle(
                             color: const Color(0xFF333333),
                             fontSize: 14,

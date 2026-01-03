@@ -6,7 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../unit/auth_service.dart';
-import '../../di/providers.dart';
+import '../../di/tales_providers.dart';
 import 'comment_board/comment_input_bar.dart';
 import 'comment_board/comment_list.dart';
 import 'comment_board/reply_indicator.dart';

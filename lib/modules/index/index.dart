@@ -1,26 +1,54 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nexly/components/widgets/upload_image_widget.dart';
 import 'package:nexly/modules/index/pages/notification_page.dart';
 import 'package:nexly/modules/index/pages/search_page.dart';
 import '../../features/tales/presentation/pages/create_tale_page.dart';
 import '../../features/tales/presentation/pages/tale_feed_page.dart';
+import '../../unit/auth_service.dart';
 import '../profile/profile.dart';
-import 'pages/personal_page.dart';
+import '../providers.dart';
 
-class Index extends StatefulWidget {
+class Index extends ConsumerStatefulWidget {
   const Index({super.key});
 
   @override
-  State<Index> createState() => _IndexFrameState();
+  ConsumerState<Index> createState() => _IndexFrameState();
 }
 
-class _IndexFrameState extends State<Index> {
+class _IndexFrameState extends ConsumerState<Index> {
   int contentIndex = 0;
 
   Color _getItemColor(int index) {
     return contentIndex == index ? const Color(0xFF2C538A) : const Color(0xFFD1D1D1);
+  }
+
+  Future<void> _loadData() async {
+    final current = ref.read(userProfileProvider);
+
+    // ⭐ 已經有資料就直接跳過
+    if (current.isNotEmpty) {
+      debugPrint('userProfileProvider 已有資料，略過讀取');
+      return;
+    }
+
+    final authStorage = AuthService();
+    final result = await authStorage.getProfile();
+
+    if (result == null) return;
+
+    ref.read(userProfileProvider.notifier).state =
+    Map<String, dynamic>.from(result);
+
+    debugPrint('已存入 userProfileProvider: $result');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
   @override
@@ -148,7 +176,9 @@ class _IndexFrameState extends State<Index> {
       case 2:
         return NotificationPage();
       case 3:
-        return ProfilePage.self();
+        // return PersonalPage();
+        final profile = ref.read(userProfileProvider);
+        return Profile.self(userId: profile['id'],);
       default:
         return const Center(child: Text("尚未開放"));
     }

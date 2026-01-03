@@ -6,7 +6,7 @@ import 'package:nexly/features/tales/presentation/pages/tale_detail_page.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
 import '../../../../unit/auth_service.dart';
-import '../../di/providers.dart';
+import '../../di/tales_providers.dart';
 import '../widgets/filter_overlay.dart';
 import '../widgets/tag_selector.dart';
 import '../widgets/tale_card.dart';

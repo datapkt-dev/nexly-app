@@ -11,7 +11,7 @@ import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../modules/profile/profile.dart';
 import '../../../../unit/auth_service.dart';
-import '../../di/providers.dart';
+import '../../di/tales_providers.dart';
 
 class Post extends ConsumerStatefulWidget {
   final bool myself;
@@ -326,10 +326,11 @@ class _PostState extends ConsumerState<Post> {
                               //   context,
                               //   MaterialPageRoute(builder: (context) => const User()),
                               // );
+                              print(content['user_id']);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const ProfilePage.other(userId: '123'),
+                                  builder: (_) => Profile.other(userId: content['user_id']),
                                 ),
                               );
                             },

@@ -154,6 +154,10 @@ class _IndexState extends ConsumerState<IndexPage> {
   void initState() {
     super.initState();
 
+    Future.microtask(() {
+      ref.read(talesFeedProvider.notifier).state = [];
+    });
+
     _initPage();
 
     _scrollController.addListener(() {
@@ -162,6 +166,12 @@ class _IndexState extends ConsumerState<IndexPage> {
         loadMoreTales();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override

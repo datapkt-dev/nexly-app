@@ -26,13 +26,13 @@ class _IndexFrameState extends ConsumerState<Index> {
   }
 
   Future<void> _loadData() async {
-    final current = ref.read(userProfileProvider);
-
-    // ⭐ 已經有資料就直接跳過
-    if (current.isNotEmpty) {
-      debugPrint('userProfileProvider 已有資料，略過讀取');
-      return;
-    }
+    // final current = ref.read(userProfileProvider);
+    //
+    // // ⭐ 已經有資料就直接跳過
+    // if (current.isNotEmpty) {
+    //   debugPrint('userProfileProvider 已有資料，略過讀取');
+    //   return;
+    // }
 
     final authStorage = AuthService();
     final result = await authStorage.getProfile();
@@ -42,7 +42,7 @@ class _IndexFrameState extends ConsumerState<Index> {
     ref.read(userProfileProvider.notifier).state =
     Map<String, dynamic>.from(result);
 
-    debugPrint('已存入 userProfileProvider: $result');
+    // debugPrint('已存入 userProfileProvider: $result');
   }
 
   @override

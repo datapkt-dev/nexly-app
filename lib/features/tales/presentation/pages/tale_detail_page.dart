@@ -128,30 +128,40 @@ class _PostState extends ConsumerState<Post> {
     myself = widget.myself;
     id = widget.id;
 
-    if (!myself && id != null) {
-      futureData = getTaleContent(id!).then((result) {
-        final content = result['data'];
+    futureData = getTaleContent(id!).then((result) {
+      final Map<String, dynamic> content =
+      Map<String, dynamic>.from(result['data']);
 
-        // ✅ 等 build 結束後，再同步更新 Riverpod
-        Future.microtask(() {
-          final notifier = ref.read(talesFeedProvider.notifier);
-          final current = ref.read(talesFeedProvider);
+      Future.microtask(() {
+        final notifier = ref.read(talesFeedProvider.notifier);
+        final List current = ref.read(talesFeedProvider);
 
+        final index = current.indexWhere((t) => t['id'] == id);
+
+        if (index >= 0) {
+          // ===== 已存在 → 更新 =====
           notifier.state = [
-            for (final tale in current)
-              if (tale['id'] == id)
-                <String, dynamic>{
-                  ...tale as Map<String, dynamic>,
-                  ...content as Map<String, dynamic>,
+            for (int i = 0; i < current.length; i++)
+              if (i == index)
+                {
+                  ...Map<String, dynamic>.from(current[i]),
+                  ...content,
                 }
               else
-                tale,
+                current[i],
           ];
-        });
-
-        return result;
+        } else {
+          // ===== 不存在 → 插入（放前面）=====
+          notifier.state = [
+            content,
+            ...current,
+          ];
+        }
       });
-    }
+
+      return result;
+    });
+
   }
 
   @override

@@ -14,7 +14,6 @@ import '../../unit/auth_service.dart';
 import '../followed/followed.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../payment/widgets/NoticeBlock.dart';
-import '../providers.dart';
 
 class Profile extends ConsumerStatefulWidget {
   final bool isSelf;
@@ -31,7 +30,14 @@ class Profile extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<Profile> {
-  late Future<Map<String, dynamic>> futureData;
+  final ScrollController _scrollController = ScrollController();
+  List items = [];
+  int page = 1;
+  bool isLoading = false;
+  bool hasMore = true; // API 還有沒有下一頁
+
+  late Future<Map<String, dynamic>> futureUser;
+  late Future<void> futureData;
 
   int selectedIndex = 0;
 
@@ -66,10 +72,151 @@ class _ProfilePageState extends ConsumerState<Profile> {
     }
   }
 
+  Future<Map<String, dynamic>> getUserTales(int userId, int page) async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/tales/others?page=$page&search_user_id=$userId&page_size=5');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getCoTales(int userId, int page) async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/users/$userId/cotales');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> getFavorites(int userId, int page) async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/users/$userId/favorites');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (isLoading || !hasMore) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final result = await _fetchData(
+      index: selectedIndex,
+      page: page,
+    );
+
+    // 假設未來三者都會回傳這種格式
+    final List newItems;
+    if (selectedIndex == 0) {
+      newItems = result['data']['items'] ?? [];
+    } else {
+      newItems = result['data'] ?? [];
+    }
+
+    setState(() {
+      page += 1;
+      isLoading = false;
+      items.addAll(newItems);
+      if (newItems.isEmpty) {
+        hasMore = false;
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>> _fetchData({required int index, required int page,}) {
+    switch (index) {
+      case 0:
+        return getUserTales(widget.userId, page);
+      case 1:
+        return getCoTales(widget.userId, page);
+      case 2:
+        return getFavorites(widget.userId, page);
+      default:
+        throw Exception('Unknown index');
+    }
+  }
+
+  Future<void> _reloadData() async {
+    setState(() {
+      page = 1;
+      hasMore = true;
+      isLoading = false;
+      items.clear();
+    });
+
+    await loadMore();
+  }
+
+  void onTabChanged(int index) {
+    if (selectedIndex == index) return;
+
+    setState(() {
+      selectedIndex = index;
+    });
+
+    futureData = _reloadData();
+  }
+
   @override
   void initState() {
     super.initState();
-    futureData = getProfile(widget.userId);
+    futureUser = getProfile(widget.userId);
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        loadMore();
+      }
+    });
+
+    futureData = _reloadData();
   }
 
   @override
@@ -89,10 +236,15 @@ class _ProfilePageState extends ConsumerState<Profile> {
       '朋友圈',
     ];
 
+    // final category = [
+    //   t.tale,
+    //   t.cooperation,
+    //   t.collection,
+    // ];
     final category = [
-      t.tale,
-      t.cooperation,
-      t.collection,
+      '貼文',
+      '協作',
+      '收藏',
     ];
 
     return Scaffold(
@@ -108,36 +260,56 @@ class _ProfilePageState extends ConsumerState<Profile> {
         ],
       ),
       body: SafeArea(
-        child: FutureBuilder(
-          future: futureData,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  '發生錯誤: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FutureBuilder(
+                  future: futureUser,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          '發生錯誤: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red, fontSize: 16),
+                        ),
+                      );
+                    }
+                    final account = snapshot.data!['data'];
+                    return _buildHeader(context, account, info, category);
+                  },
                 ),
-              );
-            }
-            final account = snapshot.data!['data'];
-            print(account);
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildHeader(context, account, info, category),
-                  ),
-                  _buildContent(),
-                ],
               ),
-            );
-          },
+              const SizedBox(height: 10),
+              _buildCategoryTabs(category),
+              const SizedBox(height: 10),
+              FutureBuilder(
+                future: futureData,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        '發生錯誤: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    );
+                  }
+                  return _buildContent();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -161,9 +333,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
         _buildBio(account['bio']??'-'),
         const SizedBox(height: 20),
         _buildProgressCard(context),
-        const SizedBox(height: 10),
-        _buildCategoryTabs(category),
-        const SizedBox(height: 10),
       ],
     );
   }
@@ -423,6 +592,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
     return Container(
       width: double.infinity,
       height: 32,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(2),
       decoration: ShapeDecoration(
         color: Colors.white,
@@ -463,13 +633,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                   ),
                 ),
               ),
-              onTap: () {
-                setState(() {
-                  setState(() {
-                    selectedIndex = index;
-                  });
-                });
-              },
+              onTap: () => onTabChanged(index),
             ),
           );
         }),
@@ -495,19 +659,21 @@ class _ProfilePageState extends ConsumerState<Profile> {
         mainAxisSpacing: 1,
         mainAxisExtent: 171,
       ),
-      itemCount: 7,
+      itemCount: items.length,
       itemBuilder: (_, index) {
+        final item = items[index];
+        print(item);
         return GestureDetector(
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Post(myself: true,), //按照是否為自己的貼文提供狀態
+              builder: (_) => Post(myself: selectedIndex==0, id: item['${selectedIndex==0 ? '' : 'tales_'}id'],), //按照是否為自己的貼文提供狀態
             ),
           ),
           child: Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(img[index % img.length]),
+                image: NetworkImage(item['image_url']),
                 fit: BoxFit.cover,
               ),
             ),
@@ -529,7 +695,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
           mainAxisSpacing: 10,
           mainAxisExtent: 162,
         ),
-        itemCount: widget.isSelf ? 5 : 4,
+        itemCount: widget.isSelf ? items.length+1 : items.length,
         itemBuilder: (_, index) {
           if (widget.isSelf && index == 0) {
             return _buildAddFolderCard();
@@ -707,7 +873,11 @@ class _ProfilePageState extends ConsumerState<Profile> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AccountSetting()),
-        );
+        ).then((result) {
+          setState(() {
+            futureUser = getProfile(widget.userId);
+          });
+        });
       },
     );
   }

@@ -203,10 +203,6 @@ class _LoginState extends State<Login> {
                               }
                             });
                           });
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => Index()),
-                          // );
                         },
                       ),
                       SizedBox(height: 16,),

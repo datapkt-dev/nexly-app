@@ -10,6 +10,7 @@ class Progress extends StatefulWidget {
 }
 
 class _ProgressState extends State<Progress> {
+  List<String> titles = ['個人', '團體',];
   List<String> tags = ['最近完成活動', '未完成活動',];
   int selectedTag = 0;
   int current = 0;
@@ -39,7 +40,7 @@ class _ProgressState extends State<Progress> {
             backgroundColor: Colors.transparent,
             iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
-              '個人成就',
+              '${titles[current]}成就',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

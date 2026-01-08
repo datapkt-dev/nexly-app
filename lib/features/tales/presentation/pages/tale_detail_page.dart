@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
 import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
-import 'package:nexly/modules/user/user.dart';
-
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../modules/profile/profile.dart';
@@ -336,7 +334,6 @@ class _PostState extends ConsumerState<Post> {
                               //   context,
                               //   MaterialPageRoute(builder: (context) => const User()),
                               // );
-                              print(content['user_id']);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

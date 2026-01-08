@@ -11,7 +11,7 @@ import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../../app/config/app_config.dart';
 import '../../features/tales/presentation/widgets/report.dart';
 import '../../unit/auth_service.dart';
-import '../followed/followed.dart';
+import '../follow_list/follow_list.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../payment/widgets/NoticeBlock.dart';
 
@@ -39,6 +39,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
   late Future<Map<String, dynamic>> futureUser;
   late Future<void> futureData;
 
+  bool? _isFollowing;
   int selectedIndex = 0;
 
   final List<String> img = [
@@ -157,10 +158,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
     final List newItems;
     if (selectedIndex == 0) {
       newItems = result['data']['items'] ?? [];
+    } else if (selectedIndex == 2) {
+      newItems = result['data']['favorites'] ?? [];
+    } else if (selectedIndex == 1) {
+      newItems = result['data']['cotales'] ?? [];
     } else {
-      newItems = result['data'] ?? [];
+      newItems = [];
     }
-
     setState(() {
       page += 1;
       isLoading = false;
@@ -203,6 +207,35 @@ class _ProfilePageState extends ConsumerState<Profile> {
     });
 
     futureData = _reloadData();
+  }
+
+  Future<void> postFollow(int id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/projects/1/users/me/follow/toggle');
+
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final body = jsonEncode({
+      "user_id": id
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      // return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      // return {'error': e.toString()};
+    }
   }
 
   @override
@@ -274,6 +307,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                       );
                     }
                     if (snapshot.hasError) {
+                      print('1111111');
                       return Center(
                         child: Text(
                           '發生錯誤: ${snapshot.error}',
@@ -282,6 +316,8 @@ class _ProfilePageState extends ConsumerState<Profile> {
                       );
                     }
                     final account = snapshot.data!['data'];
+                    print(account);
+                    _isFollowing ??= account['is_following'] ?? false;
                     return _buildHeader(context, account, info, category);
                   },
                 ),
@@ -298,6 +334,8 @@ class _ProfilePageState extends ConsumerState<Profile> {
                     );
                   }
                   if (snapshot.hasError) {
+                    print('22222222');
+                    print(snapshot);
                     return Center(
                       child: Text(
                         '發生錯誤: ${snapshot.error}',
@@ -321,8 +359,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
       BuildContext context,
       Map account,
       List<String> info,
-      List<String> category,
-      ) {
+      List<String> category) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -381,12 +418,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
           ],
         ),
         const Spacer(),
-        if (!widget.isSelf) _buildFollowButton(account['is_following']),
+        if (!widget.isSelf) _buildFollowButton(account['id']),
       ],
     );
   }
 
-  Widget _buildFollowButton(bool following) {
+  Widget _buildFollowButton(int id) {
+    final following = _isFollowing ?? false;
     return InkWell(
       child: Container(
         width: 80,
@@ -400,9 +438,15 @@ class _ProfilePageState extends ConsumerState<Profile> {
         ),
         child: Text('追蹤${following? '中' : ''}'),
       ),
-      onTap: () {},
+      onTap: () {
+        setState(() {
+          _isFollowing = !following;
+        });
+        postFollow(id);
+      },
     );
   }
+
 
   Widget _buildInfoRow(List<String> info, Map account) {
     final count = [account['tales_count'], account['followers_count'], account['following_count'], 0];
@@ -415,8 +459,12 @@ class _ProfilePageState extends ConsumerState<Profile> {
               ? () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const Followed()),
-            );
+              MaterialPageRoute(builder: (context) => FollowList(userId: account['id'], userName: account['name'], act: index-1,)),
+            ).then((result) {
+              setState(() {
+                futureUser = getProfile(widget.userId);
+              });
+            });
           }
               : null,
           child: Row(
@@ -662,7 +710,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
       itemCount: items.length,
       itemBuilder: (_, index) {
         final item = items[index];
-        print(item);
         return GestureDetector(
           onTap: () => Navigator.push(
             context,

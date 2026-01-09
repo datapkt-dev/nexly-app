@@ -852,11 +852,25 @@ class _ProfilePageState extends ConsumerState<Profile> {
       onSelected: (value) async {
         switch (value) {
           case 0:
-            final result = await ReportBottomSheet.show(
+            final result = await ReportBottomSheet.showAndSubmit(
               context,
-              targetId: 'post_123',
-              targetType: ReportTarget.user, // 或 ReportTarget.user
+              targetId: userId,
+              targetType: ReportTarget.user,
+              onSubmit: (report) async {
+                final controller = AccountSettingController();
+                return await controller.postReport(
+                  report.targetType.name,
+                  report.targetId,
+                  report.reason.name,
+                  // note: report.note,
+                );
+              },
             );
+            if (result?['message'] == 'Report submitted successfully') {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('已送出檢舉')),
+              );
+            }
             break;
           case 1:
             showModalBottomSheet(
@@ -938,7 +952,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
                           Navigator.pop(context); // 關閉選單
                           final accountSettingController = AccountSettingController();
                           final result = await accountSettingController.postBlock(userId);
-                          print(result);
                           if (result['message'] == 'Blocked successfully') {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(

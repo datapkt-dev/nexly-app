@@ -84,16 +84,16 @@ class ActionMenuBottomSheet extends StatelessWidget {
             Navigator.pop(context); // 關閉選單
             await Future.microtask(() {});
             // 開啟檢舉 bottom sheet（使用你前面做的）
-            final result = await ReportBottomSheet.show(
-              rootContext,
-              targetId: targetId,
-              targetType: ReportTarget.post, // 或 ReportTarget.user 視情況
-            );
-            if (result != null) {
-              ScaffoldMessenger.of(rootContext).showSnackBar(
-                const SnackBar(content: Text('已送出檢舉')),
-              );
-            }
+            // final result = await ReportBottomSheet.show(
+            //   rootContext,
+            //   // targetId: targetId,
+            //   targetType: ReportTarget.post, // 或 ReportTarget.user 視情況
+            // );
+            // if (result != null) {
+            //   ScaffoldMessenger.of(rootContext).showSnackBar(
+            //     const SnackBar(content: Text('已送出檢舉')),
+            //   );
+            // }
           }),
 
           const SizedBox(height: 8),

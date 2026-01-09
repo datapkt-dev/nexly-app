@@ -158,4 +158,32 @@ class AccountSettingController {
       return {'error': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> postReport(String type, int id, String reason) async {
+    final url = Uri.parse('$baseUrl/projects/1/reports');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+    };
+
+    final body = jsonEncode({
+      "report_type": type, // tales user comment
+      "target_id": id,
+      "reason": "scam" // needs to be oneof bullying scam misinformation self_harm illegal_goods copyright other
+      // "reason_type": // must include when reason is other
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+      print(responseData);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
 }

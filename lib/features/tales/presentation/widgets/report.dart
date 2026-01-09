@@ -1,16 +1,22 @@
 // report_bottom_sheet.dart
 import 'package:flutter/material.dart';
 
-/// 回傳使用者選擇的檢舉資料
+/// 檢舉結果資料（只在 BottomSheet 內部使用）
 class ReportResult {
-  ReportResult({required this.targetId, required this.targetType, required this.reason, this.note});
-  final String targetId;          // 被檢舉對象 ID
-  final ReportTarget targetType;  // 貼文 / 使用者
-  final ReportReason reason;      // 檢舉主因
-  final String? note;             // 其他補充/說明
+  ReportResult({
+    required this.targetId,
+    required this.targetType,
+    required this.reason,
+    this.note,
+  });
+
+  final int targetId;
+  final ReportTarget targetType;
+  final ReportReason reason;
+  final String? note;
 }
 
-enum ReportTarget { post, user }
+enum ReportTarget { tales, user }
 
 enum ReportReason {
   hateOrViolence,
@@ -41,27 +47,34 @@ class ReportBottomSheet extends StatefulWidget {
     super.key,
     required this.targetId,
     required this.targetType,
+    required this.onSubmit,
     this.initialReason,
   });
 
-  final String targetId;
+  final int targetId;
   final ReportTarget targetType;
   final ReportReason? initialReason;
 
-  static Future<ReportResult?> show(
+  /// ⭐ 由外部注入的送出行為（API）
+  final Future<Map<String, dynamic>> Function(ReportResult result) onSubmit;
+
+  /// ⭐【方案 3】唯一對外入口
+  static Future<Map<String, dynamic>?> showAndSubmit(
       BuildContext context, {
-        required String targetId,
+        required int targetId,
         required ReportTarget targetType,
+        required Future<Map<String, dynamic>> Function(ReportResult result) onSubmit,
         ReportReason? initialReason,
       }) {
-    return showModalBottomSheet<ReportResult>(
+    return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => ReportBottomSheet(
+      builder: (_) => ReportBottomSheet(
         targetId: targetId,
         targetType: targetType,
         initialReason: initialReason,
+        onSubmit: onSubmit,
       ),
     );
   }
@@ -73,6 +86,7 @@ class ReportBottomSheet extends StatefulWidget {
 class _ReportBottomSheetState extends State<ReportBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _noteCtrl = TextEditingController();
+
   ReportReason? _reason;
   bool _submitting = false;
 
@@ -90,33 +104,51 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _submitting = true);
 
-    // 模擬等待 API。串真 API 時把這段移除，直接 pop 結果即可。
-    await Future.delayed(const Duration(milliseconds: 250));
-
-    if (!mounted) return;
-    Navigator.of(context).pop(ReportResult(
+    final result = ReportResult(
       targetId: widget.targetId,
       targetType: widget.targetType,
       reason: _reason!,
       note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
-    ));
+    );
+
+    try {
+      final response = await widget.onSubmit(result);
+
+      if (!mounted) return;
+      Navigator.pop(context, response); // ⭐ 把 API 回傳值往外丟
+    } catch (e) {
+      setState(() => _submitting = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('送出失敗')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.targetType == ReportTarget.post ? '檢舉此貼文' : '檢舉此用戶';
+    final title =
+    widget.targetType == ReportTarget.tales ? '檢舉此貼文' : '檢舉此用戶';
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(16)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, -8)),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 20,
+              offset: const Offset(0, -8),
+            ),
           ],
         ),
         child: SafeArea(
@@ -125,7 +157,6 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              // 手把
               Container(
                 width: 40,
                 height: 4,
@@ -135,139 +166,94 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
                 ),
               ),
               const SizedBox(height: 12),
-              // 標題
               Text(
                 title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: const Color(0xFF333333),
+                style: const TextStyle(
                   fontSize: 18,
-                  fontFamily: 'PingFang TC',
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 12),
 
-              // 內容表單
               Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '您想檢舉什麼內容？',
-                      style: TextStyle(
-                        color: const Color(0xFF333333),
-                        fontSize: 16,
-                        fontFamily: 'PingFang TC',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    const Text('您想檢舉什麼內容？'),
                     const SizedBox(height: 8),
-
-                    // 下拉選單
                     Container(
-                      // padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         border: Border.all(color: const Color(0xFFEEEEEE)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<ReportReason>(
                         value: _reason,
-                        isExpanded: true,
                         decoration: InputDecoration(
                           hintText: '請選擇',
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          border: InputBorder.none,      // ← 移除預設下匡線
+                          border: InputBorder.none, // ← 移除預設下匡線
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                         ),
                         items: ReportReason.values
-                            .map((r) => DropdownMenuItem(
-                          value: r,
-                          child: Text(r.label, style: const TextStyle(fontSize: 14)),
-                        ))
+                            .map(
+                              (r) => DropdownMenuItem(
+                            value: r,
+                            child: Text(r.label),
+                          ),
+                        )
                             .toList(),
                         onChanged: (v) => setState(() => _reason = v),
-                        validator: (v) => v == null ? '請選擇檢舉原因' : null,
+                        validator: (v) =>
+                        v == null ? '請選擇檢舉原因' : null,
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
-                    // 只有選「其他」時顯示輸入框（可改為永遠顯示）
-                    if (_reason == ReportReason.other) ...[
-                      Container(
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 1,
-                              strokeAlign: BorderSide.strokeAlignCenter,
-                              color: const Color(0xFFE7E7E7),
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                    if (_reason == ReportReason.other)
+                      TextFormField(
+                        controller: _noteCtrl,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          hintText: '檢舉原因',
+                          border: OutlineInputBorder(),
                         ),
-                        child: TextFormField(
-                          controller: _noteCtrl,
-                          maxLines: 4,
-                          textInputAction: TextInputAction.newline,
-                          decoration: InputDecoration(
-                            hintText: '檢舉原因',
-                            hintStyle: const TextStyle(
-                              color: Color(0xFFABABAB),
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w400,
-                            ),
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            contentPadding: const EdgeInsets.all(12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          validator: (v) {
-                            if (_reason == ReportReason.other && (v == null || v.trim().isEmpty)) {
-                              return '請填寫原因';
-                            }
-                            return null;
-                          },
-                        ),
+                        validator: (v) =>
+                        v == null || v.trim().isEmpty
+                            ? '請填寫原因'
+                            : null,
                       ),
-                      const SizedBox(height: 10),
-                    ],
                   ],
                 ),
               ),
 
-              // 底部按鈕
+              const SizedBox(height: 12),
               GestureDetector(
+                onTap: _submitting ? null : _submit,
                 child: Container(
                   width: double.infinity,
-                  margin: EdgeInsets.symmetric(vertical: 10,),
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   alignment: Alignment.center,
-                  decoration: ShapeDecoration(
+                  decoration: BoxDecoration(
                     color: const Color(0xFF2C538A),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(
-                    '確定',
-                    style: TextStyle(
+                  child: _submitting
+                      ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: Colors.white,
-                      fontSize: 14,
-                      fontFamily: 'PingFang TC',
-                      fontWeight: FontWeight.w500,
                     ),
+                  )
+                      : const Text(
+                    '確定',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                },
               ),
+              const SizedBox(height: 10),
             ],
           ),
         ),

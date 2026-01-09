@@ -6,6 +6,7 @@ import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
 import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import '../../../../app/config/app_config.dart';
+import '../../../../modules/account_setting/controller/accountSetting_controller.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../modules/profile/profile.dart';
 import '../../../../modules/providers.dart';
@@ -13,7 +14,6 @@ import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
 
 class Post extends ConsumerStatefulWidget {
-  // final bool myself;
   final int id;
   const Post({super.key, this.id = 0});
 
@@ -26,7 +26,7 @@ enum _PostMenu {edit, copyToCollab, delete, report,}
 class _PostState extends ConsumerState<Post> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
-  int? id;
+  late int id;
   bool liked = false;
   bool myself = false;
 
@@ -124,7 +124,6 @@ class _PostState extends ConsumerState<Post> {
   void initState() {
     super.initState();
 
-    // myself = widget.myself;
     id = widget.id;
 
     futureData = getTaleContent(id!).then((result) {
@@ -231,11 +230,26 @@ class _PostState extends ConsumerState<Post> {
                   }
                   break;
                 case _PostMenu.report:
-                  await ReportBottomSheet.show(
+                  final result = await ReportBottomSheet.showAndSubmit(
                     context,
-                    targetId: 'post_123',
-                    targetType: ReportTarget.post,
+                    targetId: id,
+                    targetType: ReportTarget.tales,
+                    onSubmit: (report) async {
+                      final controller = AccountSettingController();
+                      return await controller.postReport(
+                        report.targetType.name,
+                        report.targetId,
+                        report.reason.name,
+                        // note: report.note,
+                      );
+                    },
                   );
+                  print(result?['message']);
+                  if (result?['message'] == 'Report submitted successfully') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('已送出檢舉')),
+                    );
+                  }
                   break;
               }
             },

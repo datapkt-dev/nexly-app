@@ -40,6 +40,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
   bool hasMore = true; // API 還有沒有下一頁
 
   late Future<Map<String, dynamic>> futureUser;
+  late Future<Map<String, dynamic>> futureAchievement;
   late Future<void> futureData;
 
   bool? _isFollowing;
@@ -124,6 +125,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
   void initState() {
     super.initState();
     futureUser = profileController.getProfile(widget.userId);
+    futureAchievement = profileController.getAchievement(widget.userId);
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent) {
@@ -247,7 +249,25 @@ class _ProfilePageState extends ConsumerState<Profile> {
         const SizedBox(height: 20),
         _buildBio(account['bio']??'-'),
         const SizedBox(height: 20),
-        _buildProgressCard(context, account['id']),
+        FutureBuilder(
+          future: futureAchievement,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  '發生錯誤: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              );
+            }
+            return _buildProgressCard(context, account['id'], snapshot.data!['data']);
+          },
+        ),
       ],
     );
   }
@@ -386,8 +406,17 @@ class _ProfilePageState extends ConsumerState<Profile> {
     );
   }
 
-  Widget _buildProgressCard(BuildContext context, userId) {
+  Widget _buildProgressCard(BuildContext context, userId, Map<String, dynamic> achievement) {
     final t = AppLocalizations.of(context)!;
+
+    final int personalDone = achievement['personal_tales']['completed'] ?? 0;
+    final int personalTotal = achievement['personal_tales']['total'] ?? 0;
+    final double personalPercent = personalTotal == 0 ? 0.0 : personalDone / personalTotal;
+
+    final int groupDone = achievement['co_tales']['completed'] ?? 0;
+    final int groupTotal = achievement['co_tales']['total'] ?? 0;
+    final double groupPercent = groupTotal == 0 ? 0.0 : groupDone / groupTotal;
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -440,7 +469,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                 ),
                 SizedBox(width: 10,),
                 Text(
-                  '10/42',
+                  '$personalDone/$personalTotal',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -453,11 +482,11 @@ class _ProfilePageState extends ConsumerState<Profile> {
             Row(
               children: [
                 Expanded(
-                  child: LabeledProgressBar(percent: 0.5),
+                  child: LabeledProgressBar(percent: personalPercent),
                 ),
                 SizedBox(width: 16,),
                 Text(
-                  '50%',
+                  '${(personalPercent * 100).toInt()}%',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -481,7 +510,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                 ),
                 SizedBox(width: 10,),
                 Text(
-                  '10/42',
+                  '$groupDone/$groupTotal',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -494,11 +523,11 @@ class _ProfilePageState extends ConsumerState<Profile> {
             Row(
               children: [
                 Expanded(
-                  child: LabeledProgressBar(percent: 0.25),
+                  child: LabeledProgressBar(percent: groupPercent),
                 ),
                 SizedBox(width: 16,),
                 Text(
-                  '25%',
+                  '${(groupPercent * 100).toInt()}%',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

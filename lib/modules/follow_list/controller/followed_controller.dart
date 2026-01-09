@@ -9,6 +9,7 @@ class FollowedController {
 
   Future<Map<String, dynamic>> getFollowingList(id) async {
     final url = Uri.parse('$baseUrl/projects/1/users/$id/followings');
+    print(url);
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -37,6 +38,7 @@ class FollowedController {
 
   Future<Map<String, dynamic>> getFollowerList(id) async {
     final url = Uri.parse('$baseUrl/projects/1/users/$id/followers');
+    print(url);
     String? token = await authStorage.getToken();
 
     final headers = {

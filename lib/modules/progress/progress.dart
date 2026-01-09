@@ -17,8 +17,9 @@ class Progress extends StatefulWidget {
 class _ProgressState extends State<Progress> {
   List<String> titles = ['個人', '團體',];
   List<String> tags = ['最近完成活動', '未完成活動',];
-  int selectedTag = 0;
   int current = 0;
+  int selectedTag = 0;
+
 
   late int userId;
   late Future<Map<String, dynamic>> futureData;
@@ -104,8 +105,9 @@ class _ProgressState extends State<Progress> {
                 );
               }
               final achievements = snapshot.data?['data'];
-              final personal = achievements['personal_tales'];
-              final group = achievements['co_tales'];
+              final personal = achievements['personal_tales']['tales'];
+              final group = achievements['co_tales']['tales'];
+              final List data = [personal, group];
               return Column(
                 children: [
                   StatsCarousel(
@@ -185,9 +187,14 @@ class _ProgressState extends State<Progress> {
                           Expanded(
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(vertical: 10),
-                              itemCount: 6, // 你的資料長度
+                              itemCount: data[current].length, // 你的資料長度
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (context, index) {
+                                final item = data[current][index];
+                                String formatDate(String iso) {
+                                  final dt = DateTime.parse(iso).toLocal();
+                                  return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
+                                }
                                 return Row(
                                   children: [
                                     // 圖片卡（給固定寬/高避免擠壓）
@@ -196,7 +203,7 @@ class _ProgressState extends State<Progress> {
                                       height: 95,
                                       decoration: ShapeDecoration(
                                         image: DecorationImage(
-                                          image: AssetImage(current == 0 ? 'assets/images/landscape/goingup.jpg' : 'assets/images/landscape/hiking.jpg'),
+                                          image: NetworkImage('${item['image_url']}'),
                                           fit: BoxFit.cover,
                                         ),
                                         shape: RoundedRectangleBorder(
@@ -212,7 +219,7 @@ class _ProgressState extends State<Progress> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            '巴黎喝咖啡活動(${current == 0 ? '個人' : '團體'})',
+                                            '${item['title']}',
                                             style: TextStyle(
                                               color: Color(0xFF333333),
                                               fontSize: 16,
@@ -221,7 +228,7 @@ class _ProgressState extends State<Progress> {
                                           ),
                                           SizedBox(height: 6),
                                           Text(
-                                            '2025.01.03',
+                                            formatDate(item['created_at']),
                                             style: TextStyle(
                                               color: Color(0xFF24B7BD),
                                               fontSize: 14,

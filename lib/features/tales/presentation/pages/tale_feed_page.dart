@@ -28,7 +28,6 @@ class _IndexState extends ConsumerState<IndexPage> {
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   bool _showOverlay = false;
-  // final List tags = ['全部', '旅遊', '學習', '挑戰', '冒險',];
   List<Map<String, dynamic>> tags = [];
   List<bool> tagsActive = [true, false, false, false, false,];
 
@@ -77,11 +76,22 @@ class _IndexState extends ConsumerState<IndexPage> {
     loadMoreTales();
   }
 
-  Future<Map<String, dynamic>> getTales(int page) async {
+  Future<Map<String, dynamic>> getTales(int page, List selectedTags) async {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/others?page=$page&page_size=5');
+    // 判斷是否為「全部」
+    final bool isAll =
+        selectedTags.isEmpty ||
+            (selectedTags.length == 1 && selectedTags.first == 0);
+
+    // 組 query
+    final query = isAll
+        ? 'page=$page&page_size=5'
+        : 'page=$page&page_size=5&category_id=${selectedTags.join(',')}';
+
+    final url = Uri.parse('$baseUrl/projects/1/tales/others?$query');
+
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -107,7 +117,11 @@ class _IndexState extends ConsumerState<IndexPage> {
       isLoading = true;
     });
 
-    final result = await getTales(page);
+    final List<int> selected =
+    tags.where((tag) => tag['is_active'] == true)
+        .map<int>((tag) => tag['id'] as int)
+        .toList();
+    final result = await getTales(page, selected);
 
     final List newItems = result['data']['items'];
 
@@ -148,6 +162,19 @@ class _IndexState extends ConsumerState<IndexPage> {
       print('請求錯誤：$e');
       // return {'error': e.toString()};
     }
+  }
+
+  Future<void> _reloadTales() async {
+    // 重置分頁狀態
+    page = 1;
+    hasMore = true;
+    isLoading = false;
+
+    // 清空舊資料
+    ref.read(talesFeedProvider.notifier).state = [];
+
+    // 重新抓第一頁
+    await loadMoreTales();
   }
 
   @override
@@ -196,7 +223,7 @@ class _IndexState extends ConsumerState<IndexPage> {
                           tags: tags.map((e) => e['name'] as String).toList(),
                           active: tags.map((e) => e['is_active'] as bool).toList(),
                           scrollable: true,
-                          onTap: (index) {
+                          onTap: (index) async {
                             setState(() {
                               if (index == 0) {
                                 // 🟢 點「全部」：其他全部關閉
@@ -209,6 +236,8 @@ class _IndexState extends ConsumerState<IndexPage> {
                                 tags[index]['is_active'] = !(tags[index]['is_active'] as bool);
                               }
                             });
+
+                            await _reloadTales();
                           },
                         ),
                       ),
@@ -307,7 +336,7 @@ class _IndexState extends ConsumerState<IndexPage> {
                 _showOverlay = false;
               });
             },
-            onTagTap: (index) {
+            onTagTap: (index) async {
               setState(() {
                 if (index == 0) {
                   // 🟢 點「全部」：其他全部關閉
@@ -320,6 +349,8 @@ class _IndexState extends ConsumerState<IndexPage> {
                   tags[index]['is_active'] = !(tags[index]['is_active'] as bool);
                 }
               });
+
+              await _reloadTales();
             },
           ),
         ],

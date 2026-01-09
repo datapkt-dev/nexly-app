@@ -87,24 +87,23 @@ class StatsCard extends StatelessWidget {
 class StatsCarousel extends StatefulWidget {
   const StatsCarousel({
     super.key,
+    required this.achievements,
     this.onIndexChanged, // 新增：回傳索引給父層
   });
 
   final ValueChanged<int>? onIndexChanged;
+  final Map<String, dynamic> achievements;
 
   @override
   State<StatsCarousel> createState() => _StatsCarouselState();
 }
 
 class _StatsCarouselState extends State<StatsCarousel> {
+  late Map<String, dynamic> achievements;
   final _page = PageController(viewportFraction: 0.88); // 露出左右邊緣
   int _index = 0;
 
-  final items = const [
-    // 你可以從後端計算 percent = done/(done+todo)
-    (title: '個人', percent: 0.5, done: 10, todo: 32),
-    (title: '團體', percent: 0.25, done: 8,  todo: 24),
-  ];
+  late List items;
 
   @override
   void initState() {
@@ -113,6 +112,31 @@ class _StatsCarouselState extends State<StatsCarousel> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onIndexChanged?.call(_index);
     });
+    achievements = widget.achievements;
+    print(achievements);
+    items = [
+      // 你可以從後端計算 percent = done/(done+todo)
+      (
+      title: '個人',
+      percent: (achievements['personal_tales']['total'] ?? 0) == 0
+          ? 0.0
+          : (achievements['personal_tales']['completed'] ?? 0)
+          / (achievements['personal_tales']['total'] ?? 0),
+      done: achievements['personal_tales']['completed'] ?? 0,
+      todo: (achievements['personal_tales']['total'] ?? 0)
+          - (achievements['personal_tales']['completed'] ?? 0),
+      ),
+      (
+      title: '團體',
+      percent: (achievements['co_tales']['total'] ?? 0) == 0
+          ? 0.0
+          : (achievements['co_tales']['completed'] ?? 0)
+          / (achievements['co_tales']['total'] ?? 0),
+      done: achievements['co_tales']['completed'] ?? 0,
+      todo: (achievements['co_tales']['total'] ?? 0)
+          - (achievements['co_tales']['completed'] ?? 0),
+      ),
+    ];
   }
 
   @override

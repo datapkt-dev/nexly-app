@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../login/login.dart';
-import '../controller/profile_controller.dart';
+import '../controller/accountSetting_controller.dart';
 
 class ChangePWD extends StatefulWidget {
   final int id;
@@ -11,7 +11,7 @@ class ChangePWD extends StatefulWidget {
 }
 
 class _ResetPWDState extends State<ChangePWD> {
-  final ProfileController profileController = ProfileController();
+  final AccountSettingController accountSettingController = AccountSettingController();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   TextEditingController controllerPassword = TextEditingController();
@@ -233,7 +233,7 @@ class _ResetPWDState extends State<ChangePWD> {
                         errCheck = false;
                       });
                       if (controllerPassword.text == controllerPasswordCheck.text) {
-                        final res =  await profileController.changePassword(widget.id, controllerPassword.text);
+                        final res =  await accountSettingController.changePassword(widget.id, controllerPassword.text);
                         print(res);
                         if (res['message'] == 'Password set successfully') {
                           Navigator.pushAndRemoveUntil(

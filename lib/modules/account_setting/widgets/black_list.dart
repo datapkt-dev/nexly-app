@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../controller/profile_controller.dart';
+import '../controller/accountSetting_controller.dart';
 
 class BlackList extends StatefulWidget {
   final blockList;
@@ -11,11 +11,11 @@ class BlackList extends StatefulWidget {
 }
 
 class _BlackListState extends State<BlackList> {
-  final ProfileController profileController = ProfileController();
+  final AccountSettingController accountSettingController = AccountSettingController();
   List? blockList;
 
   void unblock (int id) {
-    profileController.unBlock(id);
+    accountSettingController.unBlock(id);
   }
 
   @override

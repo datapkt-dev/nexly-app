@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../controller/profile_controller.dart';
+import '../controller/accountSetting_controller.dart';
 
 class Privacy extends StatefulWidget {
   final dataPass;
@@ -11,7 +11,7 @@ class Privacy extends StatefulWidget {
 }
 
 class _PrivacyState extends State<Privacy> {
-  final ProfileController profileController = ProfileController();
+  final AccountSettingController accountSettingController = AccountSettingController();
 
   bool tales = false;
   bool cooperate = false;
@@ -23,7 +23,7 @@ class _PrivacyState extends State<Privacy> {
       "privacy_cotales": cooperate,
       "privacy_favorites": collection,
     };
-    profileController.editUser(temp);
+    accountSettingController.editUser(temp);
   }
 
   @override

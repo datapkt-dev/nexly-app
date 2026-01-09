@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import '../../../components/widgets/DateInputFormatter.dart';
-import '../controller/profile_controller.dart';
+import '../controller/accountSetting_controller.dart';
 
 class ProfileEdit extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -13,7 +13,7 @@ class ProfileEdit extends StatefulWidget {
 }
 
 class _ProfileEditState extends State<ProfileEdit> {
-  final ProfileController profileController = ProfileController();
+  final AccountSettingController accountSettingController = AccountSettingController();
   Future<Map<String, dynamic>> futureData = Future.value({});
   Map<String, dynamic> profileData = {};
 
@@ -29,7 +29,7 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   Future<void> _loadUser() async {
     setState(() {
-      futureData = profileController.getUserProfile(widget.userProfile?['id']);
+      futureData = accountSettingController.getUserProfile(widget.userProfile?['id']);
       futureData.then((result) {
         profileData = result['data']['user'];
         controllerName.text = profileData['name'];
@@ -89,7 +89,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                   "gender": selectedGenderCode, // M, F, Other
                   "bio": controllerBio.text
                 };
-                futureData = profileController.editUser(tempData);
+                futureData = accountSettingController.editUser(tempData);
                 futureData.then((result) {
                   if (result['message'] == 'User updated successfully') {
                     Navigator.pop(context, 'refresh');

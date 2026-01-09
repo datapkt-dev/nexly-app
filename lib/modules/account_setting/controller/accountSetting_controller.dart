@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../../app/config/app_config.dart';
 import '../../../unit/auth_service.dart';
 
-class ProfileController {
+class AccountSettingController {
   final AuthService authStorage = AuthService();
   final String baseUrl = AppConfig.baseURL;
 

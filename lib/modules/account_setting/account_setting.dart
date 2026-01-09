@@ -10,7 +10,7 @@ import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../language_setting/language_setting.dart';
-import 'controller/profile_controller.dart';
+import 'controller/accountSetting_controller.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -24,7 +24,7 @@ class AccountSetting extends StatefulWidget {
 
 class _ProfileState extends State<AccountSetting> {
   final AuthService authStorage = AuthService();
-  final ProfileController profileController = ProfileController();
+  final AccountSettingController accountSettingController = AccountSettingController();
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   Map<String, dynamic>? user;
@@ -50,14 +50,14 @@ class _ProfileState extends State<AccountSetting> {
     }
 
     // 兩個請求併發，提高速度
-    final f1 = profileController.getUserProfile(user?['id']);
+    final f1 = accountSettingController.getUserProfile(user?['id']);
     f1.then((result) {
       setState(() {
         user = result['data']['user'];
         temp = user?['avatar_url'];
       });
     });
-    final f2 = profileController.getUserBlackList();
+    final f2 = accountSettingController.getUserBlackList();
     final results = await Future.wait([f1, f2]);
 
     final userRes  = results[0];

@@ -14,6 +14,7 @@ import '../../unit/auth_service.dart';
 import '../follow_list/follow_list.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../payment/widgets/NoticeBlock.dart';
+import 'controller/profile_controller.dart';
 
 class Profile extends ConsumerStatefulWidget {
   final bool isSelf;
@@ -30,6 +31,8 @@ class Profile extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<Profile> {
+  final ProfileController profileController = ProfileController();
+
   final ScrollController _scrollController = ScrollController();
   List items = [];
   int page = 1;
@@ -49,98 +52,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
     'assets/images/landscape/hiking.jpg',
     'assets/images/postImg.png',
   ];
-
-  Future<Map<String, dynamic>> getProfile(id) async {
-    final String baseUrl = AppConfig.baseURL;
-    final AuthService authStorage = AuthService();
-
-    final url = Uri.parse('$baseUrl/projects/1/users/$id/profile');
-    String? token = await authStorage.getToken();
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
-    };
-
-    try {
-      final response = await http.get(url, headers: headers);
-      final responseData = jsonDecode(response.body);
-
-      return responseData;
-    } catch (e) {
-      print('請求錯誤：$e');
-      return {'error': e.toString()};
-    }
-  }
-
-  Future<Map<String, dynamic>> getUserTales(int userId, int page) async {
-    final AuthService authStorage = AuthService();
-    final String baseUrl = AppConfig.baseURL;
-
-    final url = Uri.parse('$baseUrl/projects/1/tales/others?page=$page&search_user_id=$userId&page_size=5');
-    String? token = await authStorage.getToken();
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
-    };
-
-    try {
-      final response = await http.get(url, headers: headers);
-      final responseData = jsonDecode(response.body);
-
-      return responseData;
-    } catch (e) {
-      print('請求錯誤：$e');
-      return {'error': e.toString()};
-    }
-  }
-
-  Future<Map<String, dynamic>> getCoTales(int userId, int page) async {
-    final AuthService authStorage = AuthService();
-    final String baseUrl = AppConfig.baseURL;
-
-    final url = Uri.parse('$baseUrl/projects/1/users/$userId/cotales');
-    String? token = await authStorage.getToken();
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
-    };
-
-    try {
-      final response = await http.get(url, headers: headers);
-      final responseData = jsonDecode(response.body);
-
-      return responseData;
-    } catch (e) {
-      print('請求錯誤：$e');
-      return {'error': e.toString()};
-    }
-  }
-
-  Future<Map<String, dynamic>> getFavorites(int userId, int page) async {
-    final AuthService authStorage = AuthService();
-    final String baseUrl = AppConfig.baseURL;
-
-    final url = Uri.parse('$baseUrl/projects/1/users/$userId/favorites');
-    String? token = await authStorage.getToken();
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
-    };
-
-    try {
-      final response = await http.get(url, headers: headers);
-      final responseData = jsonDecode(response.body);
-
-      return responseData;
-    } catch (e) {
-      print('請求錯誤：$e');
-      return {'error': e.toString()};
-    }
-  }
 
   Future<void> loadMore() async {
     if (isLoading || !hasMore) return;
@@ -178,11 +89,11 @@ class _ProfilePageState extends ConsumerState<Profile> {
   Future<Map<String, dynamic>> _fetchData({required int index, required int page,}) {
     switch (index) {
       case 0:
-        return getUserTales(widget.userId, page);
+        return profileController.getUserTales(widget.userId, page);
       case 1:
-        return getCoTales(widget.userId, page);
+        return profileController.getCoTales(widget.userId, page);
       case 2:
-        return getFavorites(widget.userId, page);
+        return profileController.getFavorites(widget.userId, page);
       default:
         throw Exception('Unknown index');
     }
@@ -209,42 +120,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
     futureData = _reloadData();
   }
 
-  Future<void> postFollow(int id) async {
-    final String baseUrl = AppConfig.baseURL;
-    final AuthService authStorage = AuthService();
-
-    final url = Uri.parse('$baseUrl/projects/1/users/me/follow/toggle');
-
-    String? token = await authStorage.getToken();
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-
-    final body = jsonEncode({
-      "user_id": id
-    });
-
-    try {
-      final response = await http.post(url, headers: headers, body: body);
-      final responseData = jsonDecode(response.body);
-      print(responseData);
-
-      // return responseData;
-    } catch (e) {
-      print('請求錯誤：$e');
-      // return {'error': e.toString()};
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    futureUser = getProfile(widget.userId);
+    futureUser = profileController.getProfile(widget.userId);
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
+          _scrollController.position.maxScrollExtent) {
         loadMore();
       }
     });
@@ -307,7 +189,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
                       );
                     }
                     if (snapshot.hasError) {
-                      print('1111111');
                       return Center(
                         child: Text(
                           '發生錯誤: ${snapshot.error}',
@@ -316,7 +197,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
                       );
                     }
                     final account = snapshot.data!['data'];
-                    print(account);
                     _isFollowing ??= account['is_following'] ?? false;
                     return _buildHeader(context, account, info, category);
                   },
@@ -334,8 +214,6 @@ class _ProfilePageState extends ConsumerState<Profile> {
                     );
                   }
                   if (snapshot.hasError) {
-                    print('22222222');
-                    print(snapshot);
                     return Center(
                       child: Text(
                         '發生錯誤: ${snapshot.error}',
@@ -369,7 +247,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
         const SizedBox(height: 20),
         _buildBio(account['bio']??'-'),
         const SizedBox(height: 20),
-        _buildProgressCard(context),
+        _buildProgressCard(context, account['id']),
       ],
     );
   }
@@ -442,7 +320,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
         setState(() {
           _isFollowing = !following;
         });
-        postFollow(id);
+        profileController.postFollow(id);
       },
     );
   }
@@ -462,7 +340,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
               MaterialPageRoute(builder: (context) => FollowList(userId: account['id'], userName: account['name'], act: index-1,)),
             ).then((result) {
               setState(() {
-                futureUser = getProfile(widget.userId);
+                futureUser = profileController.getProfile(widget.userId);
               });
             });
           }
@@ -508,12 +386,12 @@ class _ProfilePageState extends ConsumerState<Profile> {
     );
   }
 
-  Widget _buildProgressCard(BuildContext context) {
+  Widget _buildProgressCard(BuildContext context, userId) {
     final t = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const Progress()),
+        MaterialPageRoute(builder: (_) => Progress(userId: userId,)),
       ),
       child: Container(
         width: double.infinity,
@@ -922,7 +800,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
           MaterialPageRoute(builder: (_) => const AccountSetting()),
         ).then((result) {
           setState(() {
-            futureUser = getProfile(widget.userId);
+            futureUser = profileController.getProfile(widget.userId);
           });
         });
       },

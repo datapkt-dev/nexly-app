@@ -314,10 +314,25 @@ class _IndexState extends ConsumerState<IndexPage> {
                           ];
                         },
                         onMoreTap: () {
+                          final id = taleContent['id'];
                           ActionMenuBottomSheet.show(
                             context,
                             rootContext: context,
                             targetId: 'post_123',
+                            onCollect: () {
+                              postFavoriteTale(id);
+
+                              ref.read(talesFeedProvider.notifier).state = [
+                                for (final tale in ref.read(talesFeedProvider))
+                                  if (tale['id'] == id)
+                                    {
+                                      ...tale,
+                                      'is_favorited': !(tale['is_favorited'] as bool),
+                                    }
+                                  else
+                                    tale,
+                              ];
+                            },
                           );
                         },
                       );

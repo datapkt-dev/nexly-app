@@ -11,6 +11,7 @@ import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../../app/config/app_config.dart';
 import '../../features/tales/presentation/widgets/report.dart';
 import '../../unit/auth_service.dart';
+import '../account_setting/controller/accountSetting_controller.dart';
 import '../follow_list/follow_list.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../payment/widgets/NoticeBlock.dart';
@@ -173,7 +174,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
         actions: [
           widget.isSelf
               ? _buildSelfMenu(context)
-              : _buildOtherUserMenu(context),
+              : _buildOtherUserMenu(context, widget.userId),
         ],
       ),
       body: SafeArea(
@@ -621,7 +622,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Post(myself: selectedIndex==0, id: item['${selectedIndex==0 ? '' : 'tales_'}id'],), //按照是否為自己的貼文提供狀態
+              builder: (_) => Post(id: item['${selectedIndex==0 ? '' : 'tales_'}id'],), //按照是否為自己的貼文提供狀態
             ),
           ),
           child: Container(
@@ -836,7 +837,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
     );
   }
 
-  Widget _buildOtherUserMenu(BuildContext context) {
+  Widget _buildOtherUserMenu(BuildContext context, int userId) {
     return PopupMenuButton<int>(
       icon: const Icon(Icons.more_vert),
       position: PopupMenuPosition.under,
@@ -860,7 +861,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
           case 1:
             showModalBottomSheet(
               context: context,
-              backgroundColor: Colors.transparent, // 讓我們自訂圓角容器
+              backgroundColor: Colors.transparent,
               builder: (ctx) {
                 return Container(
                   padding: EdgeInsets.symmetric(horizontal: 16,),
@@ -935,19 +936,32 @@ class _ProfilePageState extends ConsumerState<Profile> {
                         ),
                         onTap: () async {
                           Navigator.pop(context); // 關閉選單
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('已封鎖'),
-                              behavior: SnackBarBehavior.floating,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          final accountSettingController = AccountSettingController();
+                          final result = await accountSettingController.postBlock(userId);
+                          print(result);
+                          if (result['message'] == 'Blocked successfully') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('已封鎖'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('發生錯誤'),
+                                behavior: SnackBarBehavior.floating,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
                         },
                       ),
                       SizedBox(height: 30,),
                     ],
                   ),
-                );// 自訂內容（見下）;
+                );
               },
             );
             break;

@@ -28,7 +28,6 @@ class _FollowedState extends State<FollowList> {
   List<dynamic> followerList = [];
 
   Future<Map<String, dynamic>> _loadData(int id) async {
-    print('load');
     // 兩個請求併發，提高速度
     final f1 = followedController.getFollowingList(id);
     final f2 = followedController.getFollowerList(id);

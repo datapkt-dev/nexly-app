@@ -134,56 +134,56 @@ class _ProgressState extends State<Progress> {
                       ),
                       child: Column(
                         children: [
-                          Container(
-                            height: 32,
-                            padding: const EdgeInsets.all(2),
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(99),
-                              ),
-                              shadows: [
-                                BoxShadow(
-                                  color: Color(0x26000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 0),
-                                  spreadRadius: 0,
-                                )
-                              ],
-                            ),
-                            child: Row(
-                              children: List.generate(tags.length, (index) {
-                                return Expanded(
-                                  child: GestureDetector(
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      decoration: ShapeDecoration(
-                                        color: selectedTag == index ? const Color(0xFFF46C3F) : Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(99),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        tags[index],
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: selectedTag == index ? Colors.white : const Color(0xFF333333),
-                                          fontSize: 14,
-                                          fontFamily: 'PingFang TC',
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      setState(() {
-                                        selectedTag = index;
-                                      });
-                                    },
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
+                          // Container(
+                          //   height: 32,
+                          //   padding: const EdgeInsets.all(2),
+                          //   decoration: ShapeDecoration(
+                          //     color: Colors.white,
+                          //     shape: RoundedRectangleBorder(
+                          //       borderRadius: BorderRadius.circular(99),
+                          //     ),
+                          //     shadows: [
+                          //       BoxShadow(
+                          //         color: Color(0x26000000),
+                          //         blurRadius: 4,
+                          //         offset: Offset(0, 0),
+                          //         spreadRadius: 0,
+                          //       )
+                          //     ],
+                          //   ),
+                          //   child: Row(
+                          //     children: List.generate(tags.length, (index) {
+                          //       return Expanded(
+                          //         child: GestureDetector(
+                          //           child: Container(
+                          //             alignment: Alignment.center,
+                          //             decoration: ShapeDecoration(
+                          //               color: selectedTag == index ? const Color(0xFFF46C3F) : Colors.white,
+                          //               shape: RoundedRectangleBorder(
+                          //                 borderRadius: BorderRadius.circular(99),
+                          //               ),
+                          //             ),
+                          //             child: Text(
+                          //               tags[index],
+                          //               textAlign: TextAlign.center,
+                          //               style: TextStyle(
+                          //                 color: selectedTag == index ? Colors.white : const Color(0xFF333333),
+                          //                 fontSize: 14,
+                          //                 fontFamily: 'PingFang TC',
+                          //                 fontWeight: FontWeight.w500,
+                          //               ),
+                          //             ),
+                          //           ),
+                          //           onTap: () {
+                          //             setState(() {
+                          //               selectedTag = index;
+                          //             });
+                          //           },
+                          //         ),
+                          //       );
+                          //     }),
+                          //   ),
+                          // ),
                           Expanded(
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(vertical: 10),

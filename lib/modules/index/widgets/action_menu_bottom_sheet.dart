@@ -7,15 +7,18 @@ class ActionMenuBottomSheet extends StatelessWidget {
     super.key,
     required this.rootContext,     // 父畫面 context，用來顯示下一層 sheet / SnackBar
     required this.targetId,
+    required this.onCollect,
   });
 
   final BuildContext rootContext;
   final String targetId;
+  final VoidCallback onCollect;
 
   static Future<void> show(
       BuildContext context, {
         required BuildContext rootContext,
         required String targetId,
+        required VoidCallback onCollect,
       }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -26,6 +29,7 @@ class ActionMenuBottomSheet extends StatelessWidget {
       builder: (_) => ActionMenuBottomSheet(
         rootContext: rootContext,
         targetId: targetId,
+        onCollect: onCollect,
       ),
     );
   }
@@ -65,8 +69,9 @@ class ActionMenuBottomSheet extends StatelessWidget {
             await Future.microtask(() {}); // 確保已關閉後再開下一層
             ShareBottomSheet.show(rootContext);
           }),
-          tile('收藏', () {
+          tile('收藏/取消收藏', () {
             Navigator.pop(context); // 關閉選單
+            onCollect();
             ScaffoldMessenger.of(rootContext).showSnackBar(
               const SnackBar(
                 content: Text('已收藏 Tales'),

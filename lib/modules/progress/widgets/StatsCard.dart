@@ -113,7 +113,6 @@ class _StatsCarouselState extends State<StatsCarousel> {
       widget.onIndexChanged?.call(_index);
     });
     achievements = widget.achievements;
-    print(achievements);
     items = [
       // 你可以從後端計算 percent = done/(done+todo)
       (

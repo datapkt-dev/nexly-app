@@ -86,7 +86,7 @@ class AccountSettingController {
     }
   }
 
-  Future<Map<String, dynamic>> postBlock() async {
+  Future<Map<String, dynamic>> postBlock(int id) async {
     final url = Uri.parse('$baseUrl/projects/1/users/me/block');
     String? token = await authStorage.getToken();
 
@@ -95,13 +95,11 @@ class AccountSettingController {
       'Authorization': 'Bearer $token',
     };
 
-    final body = jsonEncode({'blocked_id': 1});
+    final body = jsonEncode({'blocked_id': id});
 
     try {
       final response = await http.post(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
-
-      print(responseData);
 
       return responseData;
     } catch (e) {

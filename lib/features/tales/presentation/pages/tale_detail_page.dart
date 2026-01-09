@@ -8,13 +8,14 @@ import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../modules/profile/profile.dart';
+import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
 
 class Post extends ConsumerStatefulWidget {
-  final bool myself;
+  // final bool myself;
   final int id;
-  const Post({super.key, this.myself = false, this.id = 0});
+  const Post({super.key, this.id = 0});
 
   @override
   ConsumerState<Post> createState() => _PostState();
@@ -123,12 +124,14 @@ class _PostState extends ConsumerState<Post> {
   void initState() {
     super.initState();
 
-    myself = widget.myself;
+    // myself = widget.myself;
     id = widget.id;
 
     futureData = getTaleContent(id!).then((result) {
-      final Map<String, dynamic> content =
-      Map<String, dynamic>.from(result['data']);
+      final Map<String, dynamic> content = Map<String, dynamic>.from(result['data']);
+
+      final userData = ref.watch(userProfileProvider);
+      if (userData['id'] == content['user_id']) myself = true;
 
       Future.microtask(() {
         final notifier = ref.read(talesFeedProvider.notifier);

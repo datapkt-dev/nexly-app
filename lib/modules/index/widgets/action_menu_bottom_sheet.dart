@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../features/tales/presentation/widgets/report.dart';
+import '../../account_setting/controller/accountSetting_controller.dart';
 import 'share_bottom_sheet.dart';
 
 class ActionMenuBottomSheet extends StatelessWidget {
@@ -11,13 +12,13 @@ class ActionMenuBottomSheet extends StatelessWidget {
   });
 
   final BuildContext rootContext;
-  final String targetId;
+  final int targetId;
   final VoidCallback onCollect;
 
   static Future<void> show(
       BuildContext context, {
         required BuildContext rootContext,
-        required String targetId,
+        required int targetId,
         required VoidCallback onCollect,
       }) {
     return showModalBottomSheet<void>(
@@ -84,16 +85,29 @@ class ActionMenuBottomSheet extends StatelessWidget {
             Navigator.pop(context); // 關閉選單
             await Future.microtask(() {});
             // 開啟檢舉 bottom sheet（使用你前面做的）
-            // final result = await ReportBottomSheet.show(
-            //   rootContext,
-            //   // targetId: targetId,
-            //   targetType: ReportTarget.post, // 或 ReportTarget.user 視情況
-            // );
-            // if (result != null) {
-            //   ScaffoldMessenger.of(rootContext).showSnackBar(
-            //     const SnackBar(content: Text('已送出檢舉')),
-            //   );
-            // }
+            final result = await ReportBottomSheet.showAndSubmit(
+              context,
+              targetId: targetId,
+              targetType: ReportTarget.tales,
+              onSubmit: (report) async {
+                final controller = AccountSettingController();
+                return await controller.postReport(
+                  report.targetType.name,
+                  report.targetId,
+                  report.reason.name,
+                  // note: report.note,
+                );
+              },
+            );
+            if (result?['message'] == 'Report submitted successfully') {
+              ScaffoldMessenger.of(rootContext).showSnackBar(
+                const SnackBar(content: Text('已送出檢舉')),
+              );
+            } else {
+              ScaffoldMessenger.of(rootContext).showSnackBar(
+                SnackBar(content: Text('${result?['message']}')),
+              );
+            }
           }),
 
           const SizedBox(height: 8),

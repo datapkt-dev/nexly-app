@@ -244,10 +244,13 @@ class _PostState extends ConsumerState<Post> {
                       );
                     },
                   );
-                  print(result?['message']);
                   if (result?['message'] == 'Report submitted successfully') {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('已送出檢舉')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${result?['message']}')),
                     );
                   }
                   break;

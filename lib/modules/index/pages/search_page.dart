@@ -458,7 +458,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             ActionMenuBottomSheet.show(
               context,
               rootContext: context,
-              targetId: 'post_$id',
+              targetId: id,
               onCollect: () {
                 postFavoriteTale(id);
                 setState(() {

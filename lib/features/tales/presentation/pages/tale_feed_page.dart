@@ -156,6 +156,7 @@ class _IndexState extends ConsumerState<IndexPage> {
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
+      print(responseData);
 
       // return responseData;
     } catch (e) {
@@ -318,7 +319,7 @@ class _IndexState extends ConsumerState<IndexPage> {
                           ActionMenuBottomSheet.show(
                             context,
                             rootContext: context,
-                            targetId: 'post_123',
+                            targetId: id,
                             onCollect: () {
                               postFavoriteTale(id);
 

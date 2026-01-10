@@ -178,7 +178,7 @@ class _IndexFrameState extends ConsumerState<Index> {
       case 3:
         // return PersonalPage();
         final profile = ref.read(userProfileProvider);
-        return Profile.self(userId: profile['id'],);
+        return Profile(userId: profile['id'],);
       default:
         return const Center(child: Text("尚未開放"));
     }

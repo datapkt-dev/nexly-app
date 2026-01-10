@@ -357,7 +357,7 @@ class _PostState extends ConsumerState<Post> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => Profile.other(userId: content['user_id']),
+                                  builder: (_) => Profile(userId: content['user_id']),
                                 ),
                               );
                             },

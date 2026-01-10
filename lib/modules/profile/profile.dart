@@ -15,23 +15,24 @@ import '../account_setting/controller/accountSetting_controller.dart';
 import '../follow_list/follow_list.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
 import '../payment/widgets/NoticeBlock.dart';
+import '../providers.dart';
 import 'controller/profile_controller.dart';
 
 class Profile extends ConsumerStatefulWidget {
-  final bool isSelf;
   final int userId;
 
-  const Profile.self({super.key, required this.userId})
-      : isSelf = true;
+  // const Profile.self({super.key, required this.userId})
+  //     : isSelf = true;
 
-  const Profile.other({super.key, required this.userId,})
-      : isSelf = false;
+  const Profile({super.key, required this.userId});
 
   @override
   ConsumerState<Profile> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends ConsumerState<Profile> {
+  bool myself = false;
+
   final ProfileController profileController = ProfileController();
 
   final ScrollController _scrollController = ScrollController();
@@ -125,6 +126,9 @@ class _ProfilePageState extends ConsumerState<Profile> {
   @override
   void initState() {
     super.initState();
+    final userData = ref.read(userProfileProvider);
+    if (userData['id'] == widget.userId) myself = true;
+
     futureUser = profileController.getProfile(widget.userId);
     futureAchievement = profileController.getAchievement(widget.userId);
     _scrollController.addListener(() {
@@ -170,9 +174,9 @@ class _ProfilePageState extends ConsumerState<Profile> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        leading: widget.isSelf ? const SizedBox.shrink() : null,
+        leading: myself ? const SizedBox.shrink() : null,
         actions: [
-          widget.isSelf
+          myself
               ? _buildSelfMenu(context)
               : _buildOtherUserMenu(context, widget.userId),
         ],
@@ -317,7 +321,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
           ],
         ),
         const Spacer(),
-        if (!widget.isSelf) _buildFollowButton(account['id']),
+        if (!myself) _buildFollowButton(account['id']),
       ],
     );
   }
@@ -650,9 +654,9 @@ class _ProfilePageState extends ConsumerState<Profile> {
           mainAxisSpacing: 10,
           mainAxisExtent: 162,
         ),
-        itemCount: widget.isSelf ? items.length+1 : items.length,
+        itemCount: myself ? items.length+1 : items.length,
         itemBuilder: (_, index) {
-          if (widget.isSelf && index == 0) {
+          if (myself && index == 0) {
             return _buildAddFolderCard();
           }
           return _buildCooperationItem();

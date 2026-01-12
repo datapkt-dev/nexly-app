@@ -18,8 +18,10 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
+  late Future<void> futureData;
+
   // 原有資料
-  final List<String> group = ['挑戰', '學習', '旅遊'];
+  List group = ['挑戰', '學習', '旅遊'];
   final List<String> img = [
     'assets/images/landscape/goingup.jpg',
     'assets/images/landscape/egypt.jpg',
@@ -40,6 +42,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   final ScrollController _scrollController = ScrollController();
   List tales = [];
+  List categoryTales = [];
   int page = 1;
   bool isLoading = false;
   bool hasMore = true;
@@ -56,7 +59,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     });
 
     final result = await getTales(page, keyword!);
-    print(result['data']['tales']);
     final List newItems = result['data']['tales'];
 
     setState(() {
@@ -72,13 +74,20 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     ];
   }
 
-  Future<Map<String, dynamic>> getTales(int page, String keyword) async {
+  Future<Map<String, dynamic>> getTales(int page, String? keyword) async {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse(
-      '$baseUrl/tales/search?title=$keyword&page_size=20&page=$page',
-    );
+    final Uri url;
+    if (keyword == null) {
+      url = Uri.parse(
+        '$baseUrl/tales/search?page_size=20&page=$page',
+      );
+    } else {
+      url = Uri.parse(
+        '$baseUrl/tales/search?title=$keyword&page_size=20&page=$page',
+      );
+    }
     print(url);
 
     String? token = await authStorage.getToken();
@@ -118,12 +127,44 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     }
   }
 
+  Future<List> getCategories() async {
+    final AuthService authStorage = AuthService();
+    final String baseUrl = AppConfig.baseURL;
+
+    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.get(url, headers: headers);
+    final responseData = jsonDecode(response.body);
+
+    final List apiCategories = responseData['data'];
+
+    return apiCategories;
+  }
+
+  Future<void> _initPage() async {
+    final results = await Future.wait([
+      getCategories(),
+      getTales(1, null),
+    ]);
+
+    group = results[0] as List;
+    categoryTales = (results[1] as Map)['data']['tales'];
+  }
+
   // =========================
   // lifecycle
   // =========================
   @override
   void initState() {
     super.initState();
+
+    futureData = _initPage();
 
     _focus.addListener(() {
       setState(() => _isFocused = _focus.hasFocus);
@@ -273,64 +314,87 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   // 初始分類畫面（完全未改）
   // =========================
   Widget _buildCategoryView() {
-    return ListView.separated(
-      itemCount: group.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        return Column(
-          children: [
-            SizedBox(
-              height: 40,
-              child: Row(
-                children: [
-                  Text(
-                    group[index],
-                    style: const TextStyle(
-                      color: Color(0xFF333333),
-                      fontSize: 16,
-                      fontFamily: 'PingFang TC',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.keyboard_arrow_right),
-                ],
-              ),
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(6, (i) {
-                  return GestureDetector(
-                    child: Container(
-                      width: 125,
-                      height: 125,
-                      margin: const EdgeInsets.only(right: 4),
-                      decoration: ShapeDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(img[i % 3]),
-                          fit: BoxFit.cover,
-                        ),
-                        color: const Color(0xFFE7E7E7),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+    return FutureBuilder(
+      future: futureData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        return ListView.separated(
+          itemCount: group.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final category = group[index];
+            final categoryId = category['id'];
+            // 🔑 關鍵：找出屬於此分類的貼文
+            final List categoryPosts = categoryTales
+                .where((tale) => tale['category_id'] == categoryId)
+                .toList();
+            if (categoryPosts.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    children: [
+                      Text(
+                        group[index]['name'],
+                        style: const TextStyle(
+                          color: Color(0xFF333333),
+                          fontSize: 16,
+                          fontFamily: 'PingFang TC',
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                    onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (_) => Post()),
-                      // );
-                    },
-                  );
-                }),
-              ),
-            ),
-          ],
+                      const Spacer(),
+                      const Icon(Icons.keyboard_arrow_right),
+                    ],
+                  ),
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(categoryPosts.length, (i) {
+                      final post = categoryPosts[i];
+                      return GestureDetector(
+                        child: Container(
+                          width: 125,
+                          height: 125,
+                          margin: const EdgeInsets.only(right: 4),
+                          decoration: ShapeDecoration(
+                            image: (post['image_url'] != null &&
+                                post['image_url'].toString().isNotEmpty)
+                                ? DecorationImage(
+                              image: NetworkImage(post['image_url']),
+                              fit: BoxFit.cover,
+                            )
+                                : null,
+                            color: const Color(0xFFE7E7E7),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => Post(id: post['id'],)),
+                          );
+                        },
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            );
+          },
         );
-      },
-    );
+      },);
   }
 
   // 最近搜尋

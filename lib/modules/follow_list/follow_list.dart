@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../unit/auth_service.dart';
+import '../profile/controller/profile_controller.dart';
 import 'controller/followed_controller.dart';
 
 class FollowList extends StatefulWidget {
@@ -20,7 +21,7 @@ class _FollowedState extends State<FollowList> {
 
   int selectedIndex = 0;
   final List<String> category = [' 粉絲', ' 追蹤',];
-  bool followed = true;
+  // bool followed = true;
 
   late String? userName;
   late final List<List> lists;
@@ -34,9 +35,11 @@ class _FollowedState extends State<FollowList> {
     final results = await Future.wait([f1, f2]);
 
     final followings  = results[0];
+    print(followings);
     // followingList = following['data']['items'];
 
     final followers = results[1];
+    print(followers);
     // followerList = follower['data']['items'];
 
     setState(() {
@@ -166,6 +169,7 @@ class _FollowedState extends State<FollowList> {
                     itemCount: lists[selectedIndex].length,
                     separatorBuilder: (_, __) => SizedBox.shrink(),
                     itemBuilder: (_, i) {
+                      final user = lists[selectedIndex][i];
                       return Row(
                         children: [
                           Padding(
@@ -187,7 +191,7 @@ class _FollowedState extends State<FollowList> {
                                   height: 40,
                                   decoration: ShapeDecoration(
                                     image: DecorationImage(
-                                      image: AssetImage('assets/images/ChatGPTphoto.png'),
+                                      image: NetworkImage(user['avatar_url']),
                                       fit: BoxFit.cover,
                                     ),
                                     shape: OvalBorder(
@@ -203,7 +207,7 @@ class _FollowedState extends State<FollowList> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${lists[selectedIndex][i]['name']}',
+                                      '${user['name']}',
                                       style: TextStyle(
                                         color: Color(0xFF333333),
                                         fontSize: 14,
@@ -213,7 +217,7 @@ class _FollowedState extends State<FollowList> {
                                     ),
                                     SizedBox(height: 4,),
                                     Text(
-                                      '${lists[selectedIndex][i]['email']}',
+                                      '${user['account']??''}',
                                       style: TextStyle(
                                         color: Color(0xFF898989),
                                         fontSize: 12,
@@ -231,7 +235,7 @@ class _FollowedState extends State<FollowList> {
                               width: 88,
                               height: 32,
                               alignment: Alignment.center,
-                              decoration: followed
+                              decoration: lists[selectedIndex][i]['is_following']
                                   ? ShapeDecoration(
                                 color: Colors.white,
                                 shape: RoundedRectangleBorder(
@@ -246,9 +250,9 @@ class _FollowedState extends State<FollowList> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                               ),
                               child: Text(
-                                '${followed ? '取消' : ''}追蹤',
+                                '${lists[selectedIndex][i]['is_following'] ? '取消' : ''}追蹤',
                                 style: TextStyle(
-                                  color: followed ? const Color(0xFF333333) : Colors.white,
+                                  color: lists[selectedIndex][i]['is_following'] ? const Color(0xFF333333) : Colors.white,
                                   fontSize: 14,
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w500,
@@ -257,8 +261,10 @@ class _FollowedState extends State<FollowList> {
                             ),
                             onTap: () {
                               setState(() {
-                                followed = !followed;
+                                lists[selectedIndex][i]['is_following'] = !lists[selectedIndex][i]['is_following'];
                               });
+                              final ProfileController profileController = ProfileController();
+                              profileController.postFollow(user['id']);
                             },
                           ),
                         ],

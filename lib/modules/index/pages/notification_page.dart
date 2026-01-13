@@ -102,28 +102,12 @@ class _NotificationPageState extends State<NotificationPage> {
                   }
                   return Column(
                     children: List.generate(notifications!.length, (index) {
+                      final timeText = notifications?[index]['time_added']?.substring(0, 16).replaceFirst('T', ' ');
                       return InkWell(
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20,),
                           child: Row(
                             children: [
-                              // Container(
-                              //   width: 48,
-                              //   height: 48,
-                              //   decoration: ShapeDecoration(
-                              //     image: DecorationImage(
-                              //       image: NetworkImage("https://placehold.co/48x48"),
-                              //       fit: BoxFit.cover,
-                              //     ),
-                              //     shape: OvalBorder(
-                              //       side: BorderSide(
-                              //         width: 2,
-                              //         color: const Color(0xFFE7E7E7),
-                              //       ),
-                              //     ),
-                              //   ),
-                              //   child: SvgPicture.asset('assets/images/avatar_2.svg'),
-                              // ),
                               Container(
                                 width: 48,
                                 height: 48,
@@ -146,7 +130,7 @@ class _NotificationPageState extends State<NotificationPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      notifications?[index]['title'],
+                                      notifications?[index]['content'],
                                       style: TextStyle(
                                         color: const Color(0xFF333333),
                                         fontSize: 14,
@@ -206,7 +190,7 @@ class _NotificationPageState extends State<NotificationPage> {
                                     // ],
                                     SizedBox(height: 4,),
                                     Text(
-                                      '5 小時',
+                                      timeText,
                                       style: TextStyle(
                                         color: const Color(0xFF838383),
                                         fontSize: 12,

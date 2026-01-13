@@ -25,7 +25,6 @@ class _LoginState extends State<Login> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    print(msg);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
@@ -200,6 +199,8 @@ class _LoginState extends State<Login> {
                                   MaterialPageRoute(builder: (context) => const Index()),
                                       (Route<dynamic> route) => false, // 移除所有先前頁面
                                 );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
                               }
                             });
                           });

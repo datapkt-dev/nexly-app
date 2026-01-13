@@ -281,28 +281,28 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                             });
                           },
                           onLongPressMenu: (context, globalPos) async {
-                            final overlayState =
-                            Navigator.of(context, rootNavigator: true).overlay!;
-                            final overlayBox =
-                            overlayState.context.findRenderObject() as RenderBox;
-
-                            return await showMenu<String>(
-                              context: overlayState.context,
-                              position: RelativeRect.fromLTRB(
-                                globalPos.dx,
-                                globalPos.dy + 8,
-                                overlayBox.size.width - globalPos.dx,
-                                overlayBox.size.height - globalPos.dy,
-                              ),
-                              items: const [
-                                PopupMenuItem(value: 'reply', child: Text('回覆')),
-                                PopupMenuItem(value: 'edit', child: Text('編輯')),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text('刪除', style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            );
+                            // final overlayState =
+                            // Navigator.of(context, rootNavigator: true).overlay!;
+                            // final overlayBox =
+                            // overlayState.context.findRenderObject() as RenderBox;
+                            //
+                            // return await showMenu<String>(
+                            //   context: overlayState.context,
+                            //   position: RelativeRect.fromLTRB(
+                            //     globalPos.dx,
+                            //     globalPos.dy + 8,
+                            //     overlayBox.size.width - globalPos.dx,
+                            //     overlayBox.size.height - globalPos.dy,
+                            //   ),
+                            //   items: const [
+                            //     PopupMenuItem(value: 'reply', child: Text('回覆')),
+                            //     PopupMenuItem(value: 'edit', child: Text('編輯')),
+                            //     PopupMenuItem(
+                            //       value: 'delete',
+                            //       child: Text('刪除', style: TextStyle(color: Colors.red)),
+                            //     ),
+                            //   ],
+                            // );
                           },
                         ),
                       ),

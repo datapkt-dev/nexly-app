@@ -28,7 +28,7 @@ class _PostState extends ConsumerState<Post> {
 
   late int id;
   bool liked = false;
-  bool myself = false;
+  bool self = false;
 
   Future<Map<String, dynamic>> getTaleContent(int id) async {
     final AuthService authStorage = AuthService();
@@ -120,17 +120,43 @@ class _PostState extends ConsumerState<Post> {
     }
   }
 
+  Future<Map<String, dynamic>> deleteTale(int id) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/projects/1/tales/$id');
+
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    // final body = jsonEncode(temp);
+
+    try {
+      final response = await http.delete(url, headers: headers,);
+      final responseData = jsonDecode(response.body);
+
+      return responseData;
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
     id = widget.id;
 
-    futureData = getTaleContent(id!).then((result) {
+    futureData = getTaleContent(id).then((result) {
       final Map<String, dynamic> content = Map<String, dynamic>.from(result['data']);
 
       final userData = ref.watch(userProfileProvider);
-      if (userData['id'] == content['user_id']) myself = true;
+      if (userData['id'] == content['user_id']) self = true;
 
       Future.microtask(() {
         final notifier = ref.read(talesFeedProvider.notifier);
@@ -189,13 +215,14 @@ class _PostState extends ConsumerState<Post> {
           ),
         ),
         actions: [
-          if (!myself)
-            IconButton(
-              onPressed: () {
-                ShareBottomSheet.show(context);
-              },
-              icon: const Icon(Icons.open_in_new),
-            ),
+          if (!self) ...[
+            // IconButton(
+            //   onPressed: () {
+            //     ShareBottomSheet.show(context);
+            //   },
+            //   icon: const Icon(Icons.open_in_new),
+            // ),
+          ],
           PopupMenuButton<_PostMenu>(
             icon: const Icon(Icons.more_vert),
             position: PopupMenuPosition.under,
@@ -210,6 +237,10 @@ class _PostState extends ConsumerState<Post> {
             onSelected: (v) async {
               switch (v) {
                 case _PostMenu.edit:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Post(id: 0,)),
+                );
                   break;
                 case _PostMenu.copyToCollab:
                   break;
@@ -226,7 +257,12 @@ class _PostState extends ConsumerState<Post> {
                     ),
                   );
                   if (ok == true) {
-                    // TODO delete api
+                    deleteTale(id).then((result) {
+                      print(result);
+                      if (result['message'] == 'Tale deleted successfully') {
+                        Navigator.pop(context, 'refresh');
+                      }
+                    });
                   }
                   break;
                 case _PostMenu.report:
@@ -257,7 +293,7 @@ class _PostState extends ConsumerState<Post> {
               }
             },
             itemBuilder: (context) => [
-              if (myself) ...[
+              if (self) ...[
                 const PopupMenuItem(
                   value: _PostMenu.edit,
                   child: Text('編輯貼文'),
@@ -371,7 +407,7 @@ class _PostState extends ConsumerState<Post> {
                                   : const Color(0xFFD9D9D9),
                             ),
                             onPressed: () {
-                              postFavoriteTale(id!);
+                              postFavoriteTale(id);
                               ref.read(talesFeedProvider.notifier).state = [
                                 for (final t in feed)
                                   if (t['id'] == id)
@@ -387,7 +423,7 @@ class _PostState extends ConsumerState<Post> {
                         ],
                       ),
 
-                      const SizedBox(height: 12),
+                      // const SizedBox(height: 12),
 
                       // ===== Like / Comment =====
                       Row(
@@ -400,7 +436,7 @@ class _PostState extends ConsumerState<Post> {
                                   : const Color(0xFFD9D9D9),
                             ),
                             onPressed: () {
-                              postLikeTale(id!);
+                              postLikeTale(id);
                               ref.read(talesFeedProvider.notifier).state = [
                                 for (final t in feed)
                                   if (t['id'] == id)
@@ -422,7 +458,7 @@ class _PostState extends ConsumerState<Post> {
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
-                                builder: (ctx) => const LikeList(),
+                                builder: (ctx) => LikeList(id: id,),
                               );
                             },
                           ),
@@ -433,7 +469,7 @@ class _PostState extends ConsumerState<Post> {
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
-                                builder: (_) => CommentBoard(id: id!),
+                                builder: (_) => CommentBoard(id: id),
                               );
                             },
                             child: Row(

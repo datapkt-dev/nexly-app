@@ -628,7 +628,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
             MaterialPageRoute(
               builder: (_) => Post(id: item['${selectedIndex==0 ? '' : 'tales_'}id'],), //按照是否為自己的貼文提供狀態
             ),
-          ),
+          ).then((result) {
+            if (result == 'refresh') {
+              futureUser = profileController.getProfile(widget.userId);
+              futureAchievement = profileController.getAchievement(widget.userId);
+              futureData = _reloadData();
+            }
+          }),
           child: Container(
             decoration: BoxDecoration(
               image: DecorationImage(

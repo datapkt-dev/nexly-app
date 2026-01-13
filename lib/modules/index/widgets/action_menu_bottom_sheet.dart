@@ -65,11 +65,11 @@ class ActionMenuBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 6),
 
-          tile('分享', () async {
-            Navigator.pop(context); // 關閉選單
-            await Future.microtask(() {}); // 確保已關閉後再開下一層
-            ShareBottomSheet.show(rootContext);
-          }),
+          // tile('分享', () async {
+          //   Navigator.pop(context); // 關閉選單
+          //   await Future.microtask(() {}); // 確保已關閉後再開下一層
+          //   ShareBottomSheet.show(rootContext);
+          // }),
           tile('收藏/取消收藏', () {
             Navigator.pop(context); // 關閉選單
             onCollect();

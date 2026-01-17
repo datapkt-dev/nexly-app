@@ -7,11 +7,11 @@ import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/account_setting/controller/accountSetting_controller.dart';
-import '../../../../modules/index/widgets/share_bottom_sheet.dart';
 import '../../../../modules/profile/profile.dart';
 import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
+import 'edit_tale_page.dart';
 
 class Post extends ConsumerStatefulWidget {
   final int id;
@@ -29,6 +29,7 @@ class _PostState extends ConsumerState<Post> {
   late int id;
   bool liked = false;
   bool self = false;
+  Map<String, dynamic> postContent = {};
 
   Future<Map<String, dynamic>> getTaleContent(int id) async {
     final AuthService authStorage = AuthService();
@@ -239,8 +240,14 @@ class _PostState extends ConsumerState<Post> {
                 case _PostMenu.edit:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Post(id: 0,)),
-                );
+                  MaterialPageRoute(builder: (context) => EditTalePage(postContent: postContent,)),
+                ).then((result) {
+                  if (result == 'refresh') {
+                    setState(() {
+                      futureData = getTaleContent(id);
+                    });
+                  }
+                });
                   break;
                 case _PostMenu.copyToCollab:
                   break;
@@ -331,6 +338,7 @@ class _PostState extends ConsumerState<Post> {
           }
 
           final Map<String, dynamic> content = Map<String, dynamic>.from(snapshot.data!['data']);
+          postContent = content;
 
           final Map<String, dynamic> tale =
           feed.firstWhere(
@@ -422,20 +430,18 @@ class _PostState extends ConsumerState<Post> {
                           ),
                         ],
                       ),
-
-                      // const SizedBox(height: 12),
-
+                      const SizedBox(height: 8),
                       // ===== Like / Comment =====
                       Row(
                         children: [
-                          IconButton(
-                            icon: Icon(
+                          GestureDetector(
+                            child: Icon(
                               Icons.favorite,
                               color: isLiked
                                   ? const Color(0xFFED4D4D)
                                   : const Color(0xFFD9D9D9),
                             ),
-                            onPressed: () {
+                            onTap: () {
                               postLikeTale(id);
                               ref.read(talesFeedProvider.notifier).state = [
                                 for (final t in feed)
@@ -451,27 +457,22 @@ class _PostState extends ConsumerState<Post> {
                               ];
                             },
                           ),
-                          InkWell(
-                            child: Text(likeCount > 0 ? '$likeCount' : ''),
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (ctx) => LikeList(id: id,),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 16),
-                          InkWell(
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) => CommentBoard(id: id),
-                              );
-                            },
+                          SizedBox(width: 4,),
+                          if (likeCount > 0) ...[
+                            GestureDetector(
+                              child: Text(likeCount > 0 ? '$likeCount' : ''),
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (ctx) => LikeList(id: id,),
+                                );
+                              },
+                            ),
+                          ],
+                          const SizedBox(width: 10),
+                          GestureDetector(
                             child: Row(
                               children: [
                                 const Icon(Icons.chat_bubble,
@@ -480,12 +481,18 @@ class _PostState extends ConsumerState<Post> {
                                 Text(commentCount > 0 ? '$commentCount' : ''),
                               ],
                             ),
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => CommentBoard(id: id),
+                              );
+                            },
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 10),
-
                       Text(
                         content['title'] ?? '',
                         style: const TextStyle(
@@ -498,7 +505,9 @@ class _PostState extends ConsumerState<Post> {
                       const SizedBox(height: 4),
                       Text(
                         formatted,
-                        style: const TextStyle(color: Color(0xFF838383)),
+                        style: const TextStyle(
+                          color: Color(0xFF838383),
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],

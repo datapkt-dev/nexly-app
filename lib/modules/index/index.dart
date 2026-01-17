@@ -121,7 +121,7 @@ class _IndexFrameState extends ConsumerState<Index> {
                   // );
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PostContentEdit(filePath: imgRoute,)),
+                    MaterialPageRoute(builder: (context) => CreateTalePage(filePath: imgRoute,)),
                   );
                 },
               ),

@@ -1,63 +1,34 @@
-import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nexly/features/tales/presentation/widgets/submit_button.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../unit/auth_service.dart';
 import '../widgets/category_chips.dart';
+import '../widgets/submit_button.dart';
 
-class CreateTalePage extends StatefulWidget {
-  final String? filePath;
-  const CreateTalePage({super.key, this.filePath});
+class EditTalePage extends StatefulWidget {
+  final Map<String, dynamic> postContent;
+  const EditTalePage({super.key, required this.postContent});
 
   @override
-  State<CreateTalePage> createState() => _ContentEditState();
+  State<EditTalePage> createState() => _EditTalePageState();
 }
 
-class _ContentEditState extends State<CreateTalePage> {
+class _EditTalePageState extends State<EditTalePage> {
+  Map<String, dynamic> content = {};
   Future<void>? futureData;
 
   TextEditingController controllerTitle = TextEditingController();
   TextEditingController controllerContent = TextEditingController();
-  List<Map<String, dynamic>> tags = [
-    {'name' : '個人頁', 'is_active': false,},
-    {'name' : '資料夾A', 'is_active': false,},
-    {'name' : '資料夾B', 'is_active': false,},
-    {'name' : '資料夾C', 'is_active': false,},
-    {'name' : '資料夾D', 'is_active': false,},
-    {'name' : '資料夾E', 'is_active': false,},
-  ];
   List<Map<String, dynamic>> categories = [];
-  String filePath = '';
+  bool completed = false;
 
-  Future<Map<String, dynamic>> uploadImg(String filePath) async {
-    final String baseUrl = AppConfig.baseURL;
-    final file = File(filePath);
-    if (!await file.exists()) {
-      return {'error': 'File not found: $filePath'};
-    }
-
-    final uri = Uri.parse('$baseUrl/upload-image'); // 若有 HTTPS 請改 https
-    final request = http.MultipartRequest('POST', uri);
-
-    request.files.add(
-      await http.MultipartFile.fromPath('files', filePath), // 不帶 contentType
-    );
-
-    final streamed = await request.send();
-    final response = await http.Response.fromStream(streamed);
-    final body = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-
-    return body;
-  }
-
-  Future<Map<String, dynamic>> postTale(Map<String, dynamic> temp) async {
+  Future<Map<String, dynamic>> patchEditTale(int taleId, Map<String, dynamic> temp) async {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/tales');
+    final url = Uri.parse('$baseUrl/projects/1/tales/$taleId');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -68,7 +39,7 @@ class _ContentEditState extends State<CreateTalePage> {
     final body = jsonEncode(temp);
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await http.patch(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
 
       return responseData;
@@ -76,6 +47,40 @@ class _ContentEditState extends State<CreateTalePage> {
       print('請求錯誤：$e');
       return {'error': e.toString()};
     }
+  }
+
+  Future<void> _submitPost() async {
+    final selectedCategory = categories.firstWhere(
+          (c) => c['is_active'] == true,
+      orElse: () => {},
+    );
+
+    // final uploadResult = await uploadImg(filePath);
+
+    // if (uploadResult['message'] != 'Upload successful') {
+    //   throw Exception('Upload failed');
+    // }
+
+    await patchEditTale(
+      content['id'],
+      {
+        "title": controllerTitle.text,
+        "content": controllerContent.text,
+        "category_id": selectedCategory['id'],
+        "image_url": content['image_url'],
+        "is_completed": completed,
+      },
+    ).then((result) {
+
+      if (result['message'] == 'Tale updated successfully') {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('編輯成功')));
+        Navigator.pop(context, 'refresh');
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${result['message']}')));
+      }
+    });
   }
 
   Future<List<Map<String, dynamic>>> getCategories() async {
@@ -94,15 +99,14 @@ class _ContentEditState extends State<CreateTalePage> {
     final responseData = jsonDecode(response.body);
 
     final List apiCategories = responseData['data'] as List;
-    print(apiCategories);
 
-    return apiCategories.asMap().entries.map<Map<String, dynamic>>((entry) {
-      final index = entry.key;
-      final c = entry.value;
+    final int? activeCategoryId = content['category']?['id'];
 
+    return apiCategories.map<Map<String, dynamic>>((c) {
+      final category = Map<String, dynamic>.from(c);
       return {
-        ...Map<String, dynamic>.from(c),
-        'is_active': index == 0, // ⭐ 第一筆 true，其餘 false
+        ...category,
+        'is_active': category['id'] == activeCategoryId,
       };
     }).toList();
   }
@@ -115,41 +119,15 @@ class _ContentEditState extends State<CreateTalePage> {
     });
   }
 
-  Future<void> _submitPost() async {
-    final selectedCategory = categories.firstWhere(
-          (c) => c['is_active'] == true,
-      orElse: () => {},
-    );
-
-    final uploadResult = await uploadImg(filePath);
-
-    if (uploadResult['message'] != 'Upload successful') {
-      throw Exception('Upload failed');
-    }
-
-    await postTale({
-      "title": controllerTitle.text,
-      "content": controllerContent.text,
-      "category_id": selectedCategory['id'],
-      "image_url": uploadResult['data']['urls'][0],
-      "publish_type": "personal",
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('發佈成功')));
-      Navigator.pop(context);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    futureData = _initPage();
 
-    if (widget.filePath != null) {
-      filePath = widget.filePath!;
-    }
+    content = widget.postContent;
+    controllerTitle.text = content['title'];
+    controllerContent.text = content['content'];
+    futureData = _initPage();
+    completed = content['is_completed'];
   }
 
   @override
@@ -197,7 +175,7 @@ class _ContentEditState extends State<CreateTalePage> {
                         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10,),
                         decoration: ShapeDecoration(
                           image: DecorationImage(
-                            image: AssetImage(filePath),
+                            image: NetworkImage(content['image_url']),
                             fit: BoxFit.cover,
                           ),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
@@ -295,40 +273,40 @@ class _ContentEditState extends State<CreateTalePage> {
                           });
                         },
                       ),
-                      // SizedBox(height: 20,),
-                      // Padding(
-                      //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      //   child: Row(
-                      //     children: [
-                      //       SvgPicture.asset(
-                      //         'assets/icons/new_post/postTo.svg',
-                      //         width: 20,
-                      //         height: 20,
-                      //       ),
-                      //       SizedBox(width: 10,),
-                      //       Text(
-                      //         '發佈至',
-                      //         style: TextStyle(
-                      //           color: const Color(0xFF333333),
-                      //           fontSize: 14,
-                      //           fontFamily: 'PingFang TC',
-                      //           fontWeight: FontWeight.w400,
-                      //           height: 1.50,
-                      //         ),
-                      //       ),
-                      //       Spacer(),
-                      //       Icon(Icons.keyboard_arrow_right),
-                      //     ],
-                      //   ),
-                      // ),
-                      // CategoryChips(
-                      //   categories: tags,
-                      //   onTap: (index) {
-                      //     setState(() {
-                      //       tags[index]['is_active'] = !tags[index]['is_active'];
-                      //     });
-                      //   },
-                      // ),
+                      SizedBox(height: 20,),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle_outline_rounded, size: 20,),
+                            SizedBox(width: 10,),
+                            Text(
+                              '完成Tales',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                                height: 1.50,
+                              ),
+                            ),
+                            Spacer(),
+                            Switch(
+                              value: completed,
+                              activeColor: Colors.white, // 白色圓鈕
+                              activeTrackColor: const Color(0xFFD63C95), // 粉色背景
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: const Color(0xFFE5E5E5),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  completed = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -347,7 +325,7 @@ class _ContentEditState extends State<CreateTalePage> {
                   ],
                 ),
                 child: SubmitButton(
-                  buttonName: '發佈',
+                  buttonName: '儲存',
                   onPressed: () {
                     if (controllerTitle.text.isEmpty || controllerContent.text.isEmpty) {
                       ScaffoldMessenger.of(context)

@@ -7,6 +7,7 @@ import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
+import '../widgets/TaleCardShimmer.dart';
 import '../widgets/filter_overlay.dart';
 import '../widgets/tag_selector.dart';
 import '../widgets/tale_card.dart';
@@ -178,6 +179,10 @@ class _IndexState extends ConsumerState<IndexPage> {
     await loadMoreTales();
   }
 
+  Future<void> _onRefresh() async {
+    await _reloadTales();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -254,90 +259,91 @@ class _IndexState extends ConsumerState<IndexPage> {
                   ),
                 ),
                 Expanded(
-                  child: GridView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(0),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 10,
-                      mainAxisExtent: 278,
-                    ),
-                    itemCount: tales.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == tales.length) {
-                        if (isLoading) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        if (!hasMore) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 24),
-                            child: Center(
-                              child: Text(
-                                '沒有更多貼文',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(0),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: 278,
+                      ),
+                      itemCount: tales.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == tales.length) {
+                          if (isLoading) {
+                            return TaleCardShimmer();
+                          }
+                          if (!hasMore) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Center(
+                                child: Text(
+                                  '沒有更多貼文',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
+                            );
+                          }
+                          return const SizedBox.shrink();
                         }
-                        return const SizedBox.shrink();
-                      }
-                      final taleContent = tales[index];
-                      return TaleCard(
-                        networkImage: taleContent['image_url'] ?? '',
-                        tag: taleContent['category']['name'],
-                        title: taleContent['title'],
-                        isCollected: taleContent['is_favorited'],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => Post(id: taleContent['id'],)),
-                          );
-                        },
-                        onCollectTap: () {
-                          final id = taleContent['id'];
-                          postFavoriteTale(id);
-                          ref.read(talesFeedProvider.notifier).state = [
-                            for (final tale in ref.read(talesFeedProvider))
-                              if (tale['id'] == id)
-                                {
-                                  ...tale,
-                                  'is_favorited': !(tale['is_favorited'] as bool),
-                                }
-                              else
-                                tale,
-                          ];
-                        },
-                        onMoreTap: () {
-                          final id = taleContent['id'];
-                          ActionMenuBottomSheet.show(
-                            context,
-                            rootContext: context,
-                            targetId: id,
-                            onCollect: () {
-                              postFavoriteTale(id);
+                        final taleContent = tales[index];
+                        return TaleCard(
+                          networkImage: taleContent['image_url'] ?? '',
+                          tag: taleContent['category']['name'],
+                          title: taleContent['title'],
+                          isCollected: taleContent['is_favorited'],
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => Post(id: taleContent['id'],)),
+                            );
+                          },
+                          onCollectTap: () {
+                            final id = taleContent['id'];
+                            postFavoriteTale(id);
+                            ref.read(talesFeedProvider.notifier).state = [
+                              for (final tale in ref.read(talesFeedProvider))
+                                if (tale['id'] == id)
+                                  {
+                                    ...tale,
+                                    'is_favorited': !(tale['is_favorited'] as bool),
+                                  }
+                                else
+                                  tale,
+                            ];
+                          },
+                          onMoreTap: () {
+                            final id = taleContent['id'];
+                            ActionMenuBottomSheet.show(
+                              context,
+                              rootContext: context,
+                              targetId: id,
+                              onCollect: () {
+                                postFavoriteTale(id);
 
-                              ref.read(talesFeedProvider.notifier).state = [
-                                for (final tale in ref.read(talesFeedProvider))
-                                  if (tale['id'] == id)
-                                    {
-                                      ...tale,
-                                      'is_favorited': !(tale['is_favorited'] as bool),
-                                    }
-                                  else
-                                    tale,
-                              ];
-                            },
-                          );
-                        },
-                      );
-                    },
+                                ref.read(talesFeedProvider.notifier).state = [
+                                  for (final tale in ref.read(talesFeedProvider))
+                                    if (tale['id'] == id)
+                                      {
+                                        ...tale,
+                                        'is_favorited': !(tale['is_favorited'] as bool),
+                                      }
+                                    else
+                                      tale,
+                                ];
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

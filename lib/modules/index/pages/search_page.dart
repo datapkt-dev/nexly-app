@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nexly/modules/index/widgets/SearchPageShimmer.dart';
 import '../../../app/config/app_config.dart';
 import '../../../features/tales/di/tales_providers.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
@@ -75,6 +76,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Future<Map<String, dynamic>> getTales(int page, String? keyword) async {
+    await Future.delayed(const Duration(seconds: 5));
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
@@ -318,9 +320,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       future: futureData,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return SearchPageShimmer();
         }
         return ListView.separated(
           itemCount: group.length,

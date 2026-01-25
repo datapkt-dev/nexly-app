@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:nexly/modules/account_setting/account_setting.dart';
 import 'package:nexly/modules/cooperation/cooperation.dart';
+import 'package:nexly/modules/profile/widgets/ProfileTaleShimmer.dart';
+import 'package:nexly/modules/profile/widgets/ProfileUserShimmer.dart';
 import 'package:nexly/modules/progress/progress.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
-import '../../app/config/app_config.dart';
 import '../../features/tales/presentation/widgets/report.dart';
-import '../../unit/auth_service.dart';
 import '../account_setting/controller/accountSetting_controller.dart';
 import '../follow_list/follow_list.dart';
 import '../index/widgets/collaboration_settings_sheet.dart';
@@ -20,9 +18,6 @@ import 'controller/profile_controller.dart';
 
 class Profile extends ConsumerStatefulWidget {
   final int userId;
-
-  // const Profile.self({super.key, required this.userId})
-  //     : isSelf = true;
 
   const Profile({super.key, required this.userId});
 
@@ -145,28 +140,17 @@ class _ProfilePageState extends ConsumerState<Profile> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
 
-    // final info = [
-    //   t.tale,
-    //   t.follower,
-    //   t.following,
-    //   t.trusted_circle,
-    // ];
     final info = [
-      '貼文',
-      '粉絲',
-      '追蹤中',
-      '朋友圈',
+      t.tale,
+      t.follower,
+      t.following,
+      t.trusted_circle,
     ];
 
-    // final category = [
-    //   t.tale,
-    //   t.cooperation,
-    //   t.collection,
-    // ];
     final category = [
-      '貼文',
-      '協作',
-      '收藏',
+      t.tale,
+      t.cooperation,
+      t.collection,
     ];
 
     return Scaffold(
@@ -191,9 +175,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                   future: futureUser,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return ProfileUserShimmer();
                     }
                     if (snapshot.hasError) {
                       return Center(
@@ -216,9 +198,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
                 future: futureData,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return ProfileTaleShimmer();
                   }
                   if (snapshot.hasError) {
                     return Center(

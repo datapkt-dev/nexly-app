@@ -206,6 +206,12 @@ class _PostState extends ConsumerState<Post> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         centerTitle: true,
+        leading: BackButton(
+          onPressed: () {
+            // ✅ 你要的自訂返回行為
+            Navigator.pop(context, 'refresh');
+          },
+        ),
         title: const Text(
           '貼文',
           style: TextStyle(

@@ -53,11 +53,8 @@ class TaleCard extends StatelessWidget {
                 decoration: ShapeDecoration(
                   image: _buildDecorationImage(),
                   color: const Color(0xFFE7E7E7),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(4),
-                      topRight: Radius.circular(4),
-                    ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
@@ -108,6 +105,7 @@ class TaleCard extends StatelessWidget {
           // ---------- 標題 + 更多 ----------
           Row(
             children: [
+              SizedBox(width: 8,),
               Expanded(
                 child: Text(
                   title,
@@ -125,6 +123,7 @@ class TaleCard extends StatelessWidget {
                 onTap: onMoreTap,
                 child: const Icon(Icons.more_vert),
               ),
+              SizedBox(width: 8,),
             ],
           ),
         ],

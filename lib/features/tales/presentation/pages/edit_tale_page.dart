@@ -137,7 +137,7 @@ class _EditTalePageState extends State<EditTalePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(
-          '新貼文',
+          '編輯貼文',
           style: TextStyle(
             color: const Color(0xFF333333),
             fontSize: 18,

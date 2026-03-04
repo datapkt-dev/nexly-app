@@ -55,7 +55,8 @@ Future<void> main() async {
     android: initializationSettingsAndroid,
     iOS: initializationSettingsIOS,
   );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+  await flutterLocalNotificationsPlugin.initialize(
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (payload) {});
 
   // iOS/macOS: 請求通知權限
@@ -129,10 +130,10 @@ Future<void> main() async {
               android: androidPlatformChannelSpecifics,
               iOS: iOSPlatformChannelSpecifics);
       flutterLocalNotificationsPlugin.show(
-        message.hashCode,
-        notification.title,
-        notification.body,
-        platformChannelSpecifics,
+        id: message.hashCode,
+        title: notification.title,
+        body: notification.body,
+        notificationDetails: platformChannelSpecifics,
         payload: message.data.toString(),
       );
     }

@@ -154,10 +154,15 @@ class AuthService {
       // ---- Android/iOS/macOS：google_sign_in v7 ----
       final gsi.GoogleSignIn signIn = gsi.GoogleSignIn.instance;
 
-      // 只初始化一次；iOS 通常可省略 clientId（由 plist 讀）
+      // 只初始化一次；iOS 由 plist 讀 clientId；Android 需要 serverClientId
       if (!_gsiInitialized) {
         await signIn.initialize(
-          clientId: defaultTargetPlatform == TargetPlatform.iOS ? null : null,
+          clientId: defaultTargetPlatform == TargetPlatform.iOS
+              ? null   // iOS 從 GoogleService-Info.plist 自動讀取
+              : null,  // Android 不需要 clientId
+          serverClientId: defaultTargetPlatform == TargetPlatform.android
+              ? '706139555720-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com' // TODO: 替換為你的 Web client ID
+              : null,
         );
         _gsiInitialized = true;
       }

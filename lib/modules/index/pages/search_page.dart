@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nexly/modules/index/widgets/SearchPageShimmer.dart';
 import '../../../app/config/app_config.dart';
-import '../../../features/tales/di/tales_providers.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../../../features/tales/presentation/widgets/tale_card.dart';
 import '../../../unit/auth_service.dart';
@@ -62,21 +62,27 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final result = await getTales(page, keyword!);
     final List newItems = result['data']['tales'];
 
+    // ✅ 預載所有搜尋結果圖片，完成後再一次顯示
+    if (newItems.isNotEmpty && mounted) {
+      await Future.wait(
+        newItems
+            .where((item) => item['image_url'] != null && item['image_url'].toString().isNotEmpty)
+            .map((item) => _precacheImage(item['image_url']))
+            .toList(),
+      );
+    }
+
+    if (!mounted) return;
+
     setState(() {
       page += 1;
       isLoading = false;
       if (newItems.isEmpty) hasMore = false;
-      tales.addAll(newItems); // ✅ 關鍵
+      tales.addAll(newItems);
     });
-
-    ref.read(talesFeedProvider.notifier).state = [
-      ...ref.read(talesFeedProvider),
-      ...newItems,
-    ];
   }
 
   Future<Map<String, dynamic>> getTales(int page, String? keyword) async {
-    await Future.delayed(const Duration(seconds: 5));
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
@@ -155,8 +161,28 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       getTales(1, null),
     ]);
 
-    group = results[0] as List;
-    categoryTales = (results[1] as Map)['data']['tales'];
+    final categories = results[0] as List;
+    final tales = (results[1] as Map)['data']['tales'] as List;
+
+    // ✅ 預載所有分類圖片，全部完成後再一次顯示
+    if (mounted) {
+      await Future.wait(
+        tales
+            .where((t) => t['image_url'] != null && t['image_url'].toString().isNotEmpty)
+            .map((t) => _precacheImage(t['image_url']))
+            .toList(),
+      );
+    }
+
+    group = categories;
+    categoryTales = tales;
+  }
+
+  /// 預載單張圖片到快取
+  Future<void> _precacheImage(String url) async {
+    try {
+      await precacheImage(CachedNetworkImageProvider(url), context);
+    } catch (_) {}
   }
 
   // =========================
@@ -170,10 +196,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     _focus.addListener(() {
       setState(() => _isFocused = _focus.hasFocus);
-    });
-
-    Future.microtask(() {
-      ref.read(talesFeedProvider.notifier).state = [];
     });
 
     _scrollController.addListener(() {
@@ -252,7 +274,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       isLoading = false;
 
                       tales.clear();
-                      ref.read(talesFeedProvider.notifier).state = [];
 
                       setState(() {});
                       loadMoreTales();
@@ -367,18 +388,23 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           height: 125,
                           margin: const EdgeInsets.only(right: 4),
                           decoration: ShapeDecoration(
-                            image: (post['image_url'] != null &&
-                                post['image_url'].toString().isNotEmpty)
-                                ? DecorationImage(
-                              image: NetworkImage(post['image_url']),
-                              fit: BoxFit.cover,
-                            )
-                                : null,
                             color: const Color(0xFFE7E7E7),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          clipBehavior: Clip.antiAlias,
+                          child: (post['image_url'] != null &&
+                              post['image_url'].toString().isNotEmpty)
+                              ? CachedNetworkImage(
+                                  imageUrl: post['image_url'],
+                                  fit: BoxFit.cover,
+                                  width: 125,
+                                  height: 125,
+                                  placeholder: (_, __) => const SizedBox.shrink(),
+                                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                                )
+                              : null,
                         ),
                         onTap: () {
                           Navigator.push(
@@ -513,10 +539,19 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           },
           onCollectTap: () {
             postFavoriteTale(id);
+            final willFavorite = !(taleContent['is_favorited'] as bool);
             setState(() {
-              taleContent['is_favorited'] =
-              !(taleContent['is_favorited'] as bool);
+              taleContent['is_favorited'] = willFavorite;
             });
+            if (willFavorite) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('已收藏', textAlign: TextAlign.center),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            }
           },
           onMoreTap: () {
             ActionMenuBottomSheet.show(

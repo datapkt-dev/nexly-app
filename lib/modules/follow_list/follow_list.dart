@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../unit/auth_service.dart';
 import '../profile/controller/profile_controller.dart';
@@ -109,41 +110,61 @@ class _FollowedState extends State<FollowList> {
                     )
                   ],
                 ),
-                child: Row(
-                  children: List.generate(category.length, (index) {
-                    return Expanded(
-                      child: GestureDetector(
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: ShapeDecoration(
-                            color: selectedIndex == index ? const Color(0xFFF46C3F) : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                          ),
-                          child: Text(
-                            '${lists[index].length}${category[index]}',
-                            style: TextStyle(
-                              color: selectedIndex == index ? Colors.white : const Color(0xFF333333),
-                              fontSize: 14,
-                              fontFamily: 'PingFang TC',
-                              fontWeight: FontWeight.w500,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final tabCount = category.length;
+                    final tabWidth = constraints.maxWidth / tabCount;
+                    return Stack(
+                      children: [
+                        // ===== 橘色滑塊 =====
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          left: selectedIndex * tabWidth,
+                          top: 0,
+                          bottom: 0,
+                          width: tabWidth,
+                          child: Container(
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFFF46C3F),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(99),
+                              ),
                             ),
                           ),
                         ),
-                        onTap: () {
-                          setState(() {
-                            setState(() {
-                              selectedIndex = index;
-                            });
-                          });
-                        },
-                      ),
+                        // ===== 文字標籤 =====
+                        Row(
+                          children: List.generate(tabCount, (index) {
+                            return Expanded(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  setState(() {
+                                    selectedIndex = index;
+                                  });
+                                },
+                                child: Center(
+                                  child: AnimatedDefaultTextStyle(
+                                    duration: const Duration(milliseconds: 250),
+                                    style: TextStyle(
+                                      color: selectedIndex == index
+                                          ? Colors.white
+                                          : const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    child: Text('${lists[index].length}${category[index]}'),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
                     );
-                  }),
+                  },
                 ),
               ),
             ),
@@ -246,7 +267,7 @@ class _FollowedState extends State<FollowList> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ) : ShapeDecoration(
-                                color: const Color(0xFF2C538A),
+                                color: const Color(0xFFF46C3F),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                               ),
                               child: Text(
@@ -260,11 +281,24 @@ class _FollowedState extends State<FollowList> {
                               ),
                             ),
                             onTap: () {
+                              HapticFeedback.lightImpact();
+                              final willFollow = !lists[selectedIndex][i]['is_following'];
                               setState(() {
-                                lists[selectedIndex][i]['is_following'] = !lists[selectedIndex][i]['is_following'];
+                                lists[selectedIndex][i]['is_following'] = willFollow;
                               });
                               final ProfileController profileController = ProfileController();
                               profileController.postFollow(user['id']);
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    willFollow ? '已追蹤' : '已取消追蹤',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
                             },
                           ),
                         ],

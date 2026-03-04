@@ -1,95 +1,26 @@
 {
   "project_info": {
-    "project_number": "680908606851",
-    "project_id": "nexly-d2dcc",
-    "storage_bucket": "nexly-d2dcc.firebasestorage.app"
+    "project_number": "706139555720",
+    "project_id": "nexly-production",
+    "storage_bucket": "nexly-production.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:680908606851:android:76f867b478180ce74d7ab6",
+        "mobilesdk_app_id": "1:706139555720:android:c6a263007ecee672415c3d",
         "android_client_info": {
           "package_name": "com.example.nexly"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "680908606851-sf3t4o8f9q43qmrla1pdg4tjppoo9gfa.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.nexly",
-            "certificate_hash": "5db832a95cc88d7f4e6d793235e5f61febdb841a"
-          }
-        },
-        {
-          "client_id": "680908606851-hoa13p3rbu4b6tu1p8cuaj6g4nbgb16k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4"
+          "current_key": "AIzaSyB7tNOPsdAHCNrvutdfUGeE5rYpZAw0YRo"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "680908606851-8a3ft24qtceltso2cn2jtj71hdjqok3o.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "tw.com.datapkt.nexly"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:680908606851:android:aea94c5364d941bc4d7ab6",
-        "android_client_info": {
-          "package_name": "tw.com.datapkt.nexly"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "680908606851-gnp6a2oed4l4el49fngbjggrkbc4mnad.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "tw.com.datapkt.nexly",
-            "certificate_hash": "5db832a95cc88d7f4e6d793235e5f61febdb841a"
-          }
-        },
-        {
-          "client_id": "680908606851-hoa13p3rbu4b6tu1p8cuaj6g4nbgb16k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "680908606851-8a3ft24qtceltso2cn2jtj71hdjqok3o.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "tw.com.datapkt.nexly"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

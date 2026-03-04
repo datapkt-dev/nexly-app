@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CommentAvatar extends StatelessWidget {
   final String? url;
@@ -14,24 +15,27 @@ class CommentAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasUrl = url != null && url!.isNotEmpty;
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: ShapeDecoration(
-        color: const Color(0xFFE7E7E7),
-        image: hasUrl
-            ? DecorationImage(
-          image: NetworkImage(url!),
-          fit: BoxFit.cover,
-        )
-            : null,
-        shape: OvalBorder(
-          side: BorderSide(
-            width: 2,
-            color: const Color(0xFFE7E7E7),
-          ),
-        ),
-      ),
+    return ClipOval(
+      child: hasUrl
+          ? Image(
+              image: CachedNetworkImageProvider(url!),
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              errorBuilder: (_, __, ___) => Container(
+                width: size,
+                height: size,
+                color: const Color(0xFFE7E7E7),
+                child: Icon(Icons.person, color: Colors.grey, size: size * 0.5),
+              ),
+            )
+          : Container(
+              width: size,
+              height: size,
+              color: const Color(0xFFE7E7E7),
+              child: Icon(Icons.person, color: Colors.grey, size: size * 0.5),
+            ),
     );
   }
 }

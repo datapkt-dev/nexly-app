@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class TaleCard extends StatelessWidget {
   final String networkImage;
   final String tag;
   final String title;
   final bool isCollected;
+  final int? heroTag;
 
   final VoidCallback onTap;
   final VoidCallback onCollectTap;
@@ -16,25 +18,16 @@ class TaleCard extends StatelessWidget {
     required this.tag,
     required this.title,
     required this.isCollected,
+    this.heroTag,
     required this.onTap,
     required this.onCollectTap,
     required this.onMoreTap,
   });
 
-  DecorationImage? _buildDecorationImage() {
-    if (networkImage.isEmpty) return null;
-
-    final uri = Uri.tryParse(networkImage);
-
-    // ⭐ 關鍵：一定要檢查 scheme + host
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      return null;
-    }
-
-    return DecorationImage(
-      image: NetworkImage(networkImage),
-      fit: BoxFit.cover,
-    );
+  bool _isValidUrl(String url) {
+    if (url.isEmpty) return false;
+    final uri = Uri.tryParse(url);
+    return uri != null && uri.hasScheme && uri.host.isNotEmpty;
   }
 
   @override
@@ -47,15 +40,30 @@ class TaleCard extends StatelessWidget {
           // ---------- 圖片區 ----------
           Stack(
             children: [
-              Container(
-                width: double.infinity,
-                height: 250,
-                decoration: ShapeDecoration(
-                  image: _buildDecorationImage(),
-                  color: const Color(0xFFE7E7E7),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+              Hero(
+                tag: heroTag != null ? 'tale-image-$heroTag' : UniqueKey(),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: _isValidUrl(networkImage)
+                      ? Image(
+                          image: CachedNetworkImageProvider(networkImage),
+                          width: double.infinity,
+                          height: 250,
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                          filterQuality: FilterQuality.low,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: double.infinity,
+                            height: 250,
+                            color: const Color(0xFFE7E7E7),
+                            child: const Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                        )
+                      : Container(
+                          width: double.infinity,
+                          height: 250,
+                          color: const Color(0xFFE7E7E7),
+                        ),
                 ),
               ),
 
@@ -119,10 +127,10 @@ class TaleCard extends StatelessWidget {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: onMoreTap,
-                child: const Icon(Icons.more_vert),
-              ),
+              // GestureDetector(
+              //   onTap: onMoreTap,
+              //   child: const Icon(Icons.more_vert),
+              // ),
               SizedBox(width: 8,),
             ],
           ),

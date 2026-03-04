@@ -16,12 +16,19 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _obscure = true;
   bool _googleLoading = false;           // 👈 Google 登入 loading 狀態
+  bool _appleLoading = false;            // 👈 Apple 登入 loading 狀態
   final _authService = AuthService();    // 👈 使用你的 AuthService
 
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   TextEditingController controllerAccount = TextEditingController();
   TextEditingController controllerPassword = TextEditingController();
+
+  String _accountError = '';
+  String _passwordError = '';
+  String _loginError = '';
+  Color _accountBorder = const Color(0xFFEEEEEE);
+  Color _passwordBorder = const Color(0xFFEEEEEE);
 
   void _showSnack(String msg) {
     if (!mounted) return;
@@ -39,6 +46,8 @@ class _LoginState extends State<Login> {
       } else {
         // print(cred.credential);
         _showSnack('登入成功：${cred.user?.email ?? ''}');
+        // 登入成功後註冊 FCM token
+        _authService.activateFcmToken();
         // 成功後導向首頁（用 replace 避免返回登入頁）
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const Index()),
@@ -49,6 +58,29 @@ class _LoginState extends State<Login> {
       if (mounted) _showSnack('登入失敗：$e');
     } finally {
       if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    if (_appleLoading) return;
+    setState(() => _appleLoading = true);
+    try {
+      final cred = await _authService.signInWithApple();
+      if (!mounted) return;
+      if (cred == null) {
+        _showSnack('已取消 Apple 登入');
+      } else {
+        _showSnack('登入成功：${cred.user?.email ?? ''}');
+        _authService.activateFcmToken();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const Index()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) _showSnack('登入失敗：$e');
+    } finally {
+      if (mounted) setState(() => _appleLoading = false);
     }
   }
 
@@ -92,7 +124,7 @@ class _LoginState extends State<Login> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(
-                            color: const Color(0xFFEEEEEE),
+                            color: _accountBorder,
                             width: 1,
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -118,16 +150,39 @@ class _LoginState extends State<Login> {
                             fontFamily: 'PingFang TC',
                             fontWeight: FontWeight.w400,
                           ),
-
+                          onChanged: (_) {
+                            if (_accountBorder != const Color(0xFFEEEEEE)) {
+                              setState(() {
+                                _accountBorder = const Color(0xFFEEEEEE);
+                                _accountError = '';
+                                _loginError = '';
+                              });
+                            }
+                          },
                         ),
                       ),
+                      if (_accountError.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _accountError,
+                            style: const TextStyle(
+                              color: Color(0xFFFF3F23),
+                              fontSize: 12,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
                       SizedBox(height: 32,),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(
-                            color: const Color(0xFFEEEEEE),
+                            color: _passwordBorder,
                             width: 1,
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -156,6 +211,15 @@ class _LoginState extends State<Login> {
                                   fontFamily: 'PingFang TC',
                                   fontWeight: FontWeight.w400,
                                 ),
+                                onChanged: (_) {
+                                  if (_passwordBorder != const Color(0xFFEEEEEE)) {
+                                    setState(() {
+                                      _passwordBorder = const Color(0xFFEEEEEE);
+                                      _passwordError = '';
+                                      _loginError = '';
+                                    });
+                                  }
+                                },
                               ),
                             ),
                             GestureDetector(
@@ -169,6 +233,36 @@ class _LoginState extends State<Login> {
                           ],
                         ),
                       ),
+                      if (_passwordError.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _passwordError,
+                            style: const TextStyle(
+                              color: Color(0xFFFF3F23),
+                              fontSize: 12,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (_loginError.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _loginError,
+                            style: const TextStyle(
+                              color: Color(0xFFFF3F23),
+                              fontSize: 12,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
                       SizedBox(height: 32,),
                       GestureDetector(
                         child: Container(
@@ -190,17 +284,60 @@ class _LoginState extends State<Login> {
                           ),
                         ),
                         onTap: () {
+                          // 重置錯誤狀態
                           setState(() {
-                            futureData = _authService.login(controllerAccount.text, controllerPassword.text);
+                            _accountError = '';
+                            _passwordError = '';
+                            _loginError = '';
+                            _accountBorder = const Color(0xFFEEEEEE);
+                            _passwordBorder = const Color(0xFFEEEEEE);
+                          });
+
+                          final account = controllerAccount.text.trim();
+                          final password = controllerPassword.text;
+
+                          // 空值檢查
+                          if (account.isEmpty && password.isEmpty) {
+                            setState(() {
+                              _accountBorder = const Color(0xFFFF3F23);
+                              _passwordBorder = const Color(0xFFFF3F23);
+                              _accountError = '請輸入信箱';
+                              _passwordError = '請輸入密碼';
+                            });
+                            return;
+                          }
+                          if (account.isEmpty) {
+                            setState(() {
+                              _accountBorder = const Color(0xFFFF3F23);
+                              _accountError = '請輸入信箱';
+                            });
+                            return;
+                          }
+                          if (password.isEmpty) {
+                            setState(() {
+                              _passwordBorder = const Color(0xFFFF3F23);
+                              _passwordError = '請輸入密碼';
+                            });
+                            return;
+                          }
+
+                          // 呼叫 API
+                          setState(() {
+                            futureData = _authService.login(account, password);
                             futureData.then((result) {
                               if (result['message'] == 'Login successful') {
+                                _authService.activateFcmToken();
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(builder: (context) => const Index()),
-                                      (Route<dynamic> route) => false, // 移除所有先前頁面
+                                      (Route<dynamic> route) => false,
                                 );
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
+                                setState(() {
+                                  _accountBorder = const Color(0xFFFF3F23);
+                                  _passwordBorder = const Color(0xFFFF3F23);
+                                  _loginError = '帳號或密碼錯誤';
+                                });
                               }
                             });
                           });
@@ -300,21 +437,32 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                           SizedBox(width: 16,),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            alignment: Alignment.center,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 1,
-                                  color: const Color(0xFFE7E7E7),
+                          GestureDetector(
+                            onTap: () {
+                              FocusScopeNode currentFocus = FocusScope.of(context);
+                              if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+                                currentFocus.unfocus();
+                              }
+                              if (!_appleLoading) {
+                                _handleAppleSignIn();
+                              }
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.center,
+                              decoration: ShapeDecoration(
+                                color: Colors.white.withValues(alpha: _appleLoading ? 0.6 : 1),
+                                shape: RoundedRectangleBorder(
+                                  side: const BorderSide(width: 1, color: Color(0xFFE7E7E7)),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                borderRadius: BorderRadius.circular(6),
                               ),
+                              child: _appleLoading
+                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                  : SvgPicture.asset('assets/icons/apple.svg'),
                             ),
-                            child: SvgPicture.asset('assets/icons/apple.svg'),
                           ),
                         ],
                       ),

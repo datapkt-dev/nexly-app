@@ -1,4 +1,5 @@
 // import 'package:speedingservice/modules/login/pages/resetPWD.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -27,6 +28,35 @@ class _ForgetState extends State<Forget> {
   TextEditingController controllerNumber = TextEditingController();
   String number = '';
   TextEditingController controllerCode = TextEditingController();
+
+  // 重寄驗證碼倒數
+  Timer? _resendTimer;
+  int _resendCountdown = 0;
+
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => _resendCountdown = 180);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendCountdown <= 1) {
+        timer.cancel();
+        setState(() => _resendCountdown = 0);
+      } else {
+        setState(() => _resendCountdown--);
+      }
+    });
+  }
+
+  void _handleResendCode() {
+    if (_resendCountdown > 0) return;
+    // TODO: 呼叫忘記密碼的 send-code API，成功後啟動倒數
+    _startResendCountdown();
+  }
+
+  @override
+  void dispose() {
+    _resendTimer?.cancel();
+    super.dispose();
+  }
 
   // Future<Map<String, dynamic>> sendCode(String tempNumber) async {
   //   final url = Uri.parse('$baseUrl/auth/send-code');
@@ -260,6 +290,7 @@ class _ForgetState extends State<Forget> {
                 //     _number = const Color(0xFFFF3F23);
                 //   }
                 // });
+                _startResendCountdown();
                 layer++;
               });
             },
@@ -337,15 +368,22 @@ class _ForgetState extends State<Forget> {
           ),
           const SizedBox(height: 32,),
           Align(
-            alignment: AlignmentGeometry.centerRight,
-            child: Text(
-              '重寄驗證碼(180s)',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: const Color(0xFF2C538A),
-                fontSize: 14,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w500,
+            alignment: AlignmentDirectional.centerEnd,
+            child: GestureDetector(
+              onTap: _resendCountdown > 0 ? null : _handleResendCode,
+              child: Text(
+                _resendCountdown > 0
+                    ? '重寄驗證碼(${_resendCountdown}s)'
+                    : '重寄驗證碼',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: _resendCountdown > 0
+                      ? const Color(0xFFB0B0B0)
+                      : const Color(0xFF2C538A),
+                  fontSize: 14,
+                  fontFamily: 'PingFang TC',
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),

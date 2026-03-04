@@ -22,12 +22,16 @@ class CommentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = DateTime
-        .parse(comment['time_added'])
-        .toLocal()
-        .toString()
-        .substring(0, 16)
-        .replaceAll('T', ' ');
+    final timeAdded = comment['time_added'];
+    final bool isPending = timeAdded == null;
+    final formatted = isPending
+        ? '發佈中......'
+        : DateTime
+            .parse(timeAdded)
+            .toLocal()
+            .toString()
+            .substring(0, 16)
+            .replaceAll('T', ' ');
 
     return GestureDetector(
       onLongPressStart: (details) async {
@@ -54,7 +58,11 @@ class CommentItem extends StatelessWidget {
                   children: [
                     Text(
                       formatted,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: isPending ? FontStyle.italic : FontStyle.normal,
+                      ),
                     ),
                     // if (onReply != null) ...[
                     //   const SizedBox(width: 10),

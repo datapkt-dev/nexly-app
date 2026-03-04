@@ -3,23 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com</string>
+	<string>706139555720-t1tcb6or88dkkisq0sqsn63vfk281n32.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.680908606851-snecbj1iqgl031qfhmv99pjn556evkqs</string>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>680908606851-gnp6a2oed4l4el49fngbjggrkbc4mnad.apps.googleusercontent.com</string>
+	<string>com.googleusercontent.apps.706139555720-t1tcb6or88dkkisq0sqsn63vfk281n32</string>
 	<key>API_KEY</key>
-	<string>AIzaSyCvIo8e2NTWsCqDbCbpHJ4FPZ4cEEE3doE</string>
+	<string>AIzaSyDiiL8BNhjgywNJWi9sHRwtvky5PmXF4qE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>680908606851</string>
+	<string>706139555720</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>tw.com.datapkt.nexly</string>
 	<key>PROJECT_ID</key>
-	<string>nexly-d2dcc</string>
+	<string>nexly-production</string>
 	<key>STORAGE_BUCKET</key>
-	<string>nexly-d2dcc.firebasestorage.app</string>
+	<string>nexly-production.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:680908606851:ios:7aece545c55db7494d7ab6</string>
+	<string>1:706139555720:ios:91d9d0ede5172439415c3d</string>
 </dict>
 </plist>

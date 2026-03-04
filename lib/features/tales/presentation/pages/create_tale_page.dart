@@ -2,21 +2,23 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/features/tales/presentation/widgets/submit_button.dart';
 import '../../../../app/config/app_config.dart';
+import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
 import '../widgets/category_chips.dart';
 
-class CreateTalePage extends StatefulWidget {
+class CreateTalePage extends ConsumerStatefulWidget {
   final String? filePath;
   const CreateTalePage({super.key, this.filePath});
 
   @override
-  State<CreateTalePage> createState() => _ContentEditState();
+  ConsumerState<CreateTalePage> createState() => _ContentEditState();
 }
 
-class _ContentEditState extends State<CreateTalePage> {
+class _ContentEditState extends ConsumerState<CreateTalePage> {
   Future<void>? futureData;
 
   TextEditingController controllerTitle = TextEditingController();
@@ -34,16 +36,22 @@ class _ContentEditState extends State<CreateTalePage> {
 
   Future<Map<String, dynamic>> uploadImg(String filePath) async {
     final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
     final file = File(filePath);
     if (!await file.exists()) {
       return {'error': 'File not found: $filePath'};
     }
 
-    final uri = Uri.parse('$baseUrl/upload-image'); // 若有 HTTPS 請改 https
+    final uri = Uri.parse('$baseUrl/upload-image');
     final request = http.MultipartRequest('POST', uri);
 
+    String? token = await authStorage.getToken();
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+
     request.files.add(
-      await http.MultipartFile.fromPath('files', filePath), // 不帶 contentType
+      await http.MultipartFile.fromPath('files', filePath),
     );
 
     final streamed = await request.send();
@@ -116,29 +124,84 @@ class _ContentEditState extends State<CreateTalePage> {
   }
 
   Future<void> _submitPost() async {
-    final selectedCategory = categories.firstWhere(
-          (c) => c['is_active'] == true,
-      orElse: () => {},
-    );
+    // ✅ 在 pop 之前先儲存所有表單值（pop 後 controller 會被 dispose）
+    final title = controllerTitle.text;
+    final content = controllerContent.text;
+    final savedFilePath = filePath;
+    final savedCategories = List<Map<String, dynamic>>.from(categories);
 
-    final uploadResult = await uploadImg(filePath);
+    // ✅ 啟動全域進度條（帶縮圖）
+    final notifier = ref.read(uploadProgressProvider.notifier);
+    notifier.start(thumbnailPath: savedFilePath);
 
-    if (uploadResult['message'] != 'Upload successful') {
-      throw Exception('Upload failed');
-    }
+    // ✅ 立刻返回首頁，讓使用者繼續瀏覽
+    if (mounted) Navigator.pop(context);
 
-    await postTale({
-      "title": controllerTitle.text,
-      "content": controllerContent.text,
-      "category_id": selectedCategory['id'],
-      "image_url": uploadResult['data']['urls'][0],
-      "publish_type": "personal",
-    });
+    try {
+      // Step 1: 上傳圖片（進度 0 → 0.5）
+      notifier.updateProgress(0.1);
+      print('📤 開始上傳圖片：$savedFilePath');
+      final uploadResult = await uploadImg(savedFilePath);
+      print('📤 上傳結果：$uploadResult');
 
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('發佈成功')));
-      Navigator.pop(context);
+      if (uploadResult == null || uploadResult['error'] != null) {
+        print('❌ 圖片上傳失敗：$uploadResult');
+        notifier.reset();
+        return;
+      }
+
+      notifier.updateProgress(0.5);
+
+      // 取得上傳後的圖片 URL（API 回傳 data.urls 陣列）
+      final urls = uploadResult['data']?['urls'];
+      final String? imageUrl = (urls is List && urls.isNotEmpty)
+          ? urls[0]
+          : uploadResult['data']?['url'] ?? uploadResult['url'];
+      if (imageUrl == null) {
+        print('❌ 圖片上傳成功但未取得 URL：$uploadResult');
+        notifier.reset();
+        return;
+      }
+      print('✅ 圖片 URL：$imageUrl');
+
+      // Step 2: 取得選中的分類
+      final selectedCategory = savedCategories.firstWhere(
+        (c) => c['is_active'] == true,
+        orElse: () => {},
+      );
+
+      // Step 3: 發佈文章（進度 0.5 → 1.0）
+      notifier.updateProgress(0.7);
+      final taleBody = {
+        'title': title,
+        'content': content,
+        'image_url': imageUrl,
+        'publish_type': 'personal',
+        if (selectedCategory.isNotEmpty && selectedCategory['id'] != null)
+          'category_id': selectedCategory['id'],
+      };
+      print('📝 發佈文章：$taleBody');
+      final taleResult = await postTale(taleBody);
+      print('📝 發佈結果：$taleResult');
+
+      notifier.updateProgress(1.0);
+
+      if (taleResult['error'] != null || (taleResult['code'] != null && taleResult['message'] != 'Tale created successfully')) {
+        print('❌ 文章發佈失敗：$taleResult');
+        notifier.reset();
+        return;
+      }
+
+      print('✅ 文章發佈成功：$taleResult');
+
+      // ✅ 完成：隱藏進度條 + 顯示 SnackBar
+      notifier.complete();
+      await Future.delayed(const Duration(milliseconds: 300));
+      notifier.reset();
+    } catch (e, stack) {
+      print('❌ 發佈流程錯誤：$e');
+      print(stack);
+      notifier.reset();
     }
   }
 
@@ -354,9 +417,7 @@ class _ContentEditState extends State<CreateTalePage> {
                           .showSnackBar(const SnackBar(content: Text('標題與描述不可為空')));
                       return;
                     }
-                    setState(() {
-                      futureData = _submitPost(); // ⭐ 關鍵
-                    });
+                    _submitPost(); // ✅ 不用 setState，因為會立刻 pop
                   },
                 ),
               ),

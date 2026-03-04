@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:nexly/modules/account_setting/account_setting.dart';
 import 'package:nexly/modules/cooperation/cooperation.dart';
 import 'package:nexly/modules/profile/widgets/ProfileTaleShimmer.dart';
@@ -35,6 +38,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
   int page = 1;
   bool isLoading = false;
   bool hasMore = true; // API 還有沒有下一頁
+  bool isPrivate = false; // 對方隱私設定關閉
 
   late Future<Map<String, dynamic>> futureUser;
   late Future<Map<String, dynamic>> futureAchievement;
@@ -63,17 +67,38 @@ class _ProfilePageState extends ConsumerState<Profile> {
       page: page,
     );
 
+    // 隱私設定關閉時，API 回傳 code 40300000
+    if (result['code'] == 40300000) {
+      setState(() {
+        isLoading = false;
+        hasMore = false;
+        isPrivate = true;
+      });
+      return;
+    }
+
     // 假設未來三者都會回傳這種格式
     final List newItems;
     if (selectedIndex == 0) {
       newItems = result['data']['items'] ?? [];
-    } else if (selectedIndex == 2) {
-      newItems = result['data']['favorites'] ?? [];
     } else if (selectedIndex == 1) {
-      newItems = result['data']['cotales'] ?? [];
+      newItems = result['data']['favorites'] ?? [];
     } else {
       newItems = [];
     }
+
+    // ✅ 預載所有圖片，完成後再一次顯示
+    if (newItems.isNotEmpty && mounted) {
+      await Future.wait(
+        newItems
+            .where((item) => item['image_url'] != null && item['image_url'].toString().isNotEmpty)
+            .map((item) => _precacheImage(item['image_url']))
+            .toList(),
+      );
+    }
+
+    if (!mounted) return;
+
     setState(() {
       page += 1;
       isLoading = false;
@@ -84,13 +109,18 @@ class _ProfilePageState extends ConsumerState<Profile> {
     });
   }
 
+  Future<void> _precacheImage(String url) async {
+    try {
+      await precacheImage(CachedNetworkImageProvider(url), context);
+    } catch (_) {}
+  }
+
   Future<Map<String, dynamic>> _fetchData({required int index, required int page,}) {
     switch (index) {
       case 0:
         return profileController.getUserTales(widget.userId, page);
+      // case: cooperation 暫時隱藏
       case 1:
-        return profileController.getCoTales(widget.userId, page);
-      case 2:
         return profileController.getFavorites(widget.userId, page);
       default:
         throw Exception('Unknown index');
@@ -102,10 +132,20 @@ class _ProfilePageState extends ConsumerState<Profile> {
       page = 1;
       hasMore = true;
       isLoading = false;
+      isPrivate = false;
       items.clear();
     });
 
     await loadMore();
+  }
+
+  Future<void> _onRefreshProfile() async {
+    setState(() {
+      futureUser = profileController.getProfile(widget.userId);
+      futureAchievement = profileController.getAchievement(widget.userId);
+      _isFollowing = null;
+    });
+    await _reloadData();
   }
 
   void onTabChanged(int index) {
@@ -149,7 +189,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
 
     final category = [
       t.tale,
-      t.cooperation,
+      // t.cooperation,
       t.collection,
     ];
 
@@ -166,7 +206,11 @@ class _ProfilePageState extends ConsumerState<Profile> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: RefreshIndicator(
+          onRefresh: _onRefreshProfile,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               Padding(
@@ -184,6 +228,9 @@ class _ProfilePageState extends ConsumerState<Profile> {
                           style: const TextStyle(color: Colors.red, fontSize: 16),
                         ),
                       );
+                    }
+                    if (snapshot.data == null || snapshot.data!['data'] == null) {
+                      return ProfileUserShimmer();
                     }
                     final account = snapshot.data!['data'];
                     _isFollowing ??= account['is_following'] ?? false;
@@ -213,6 +260,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -260,47 +308,52 @@ class _ProfilePageState extends ConsumerState<Profile> {
   Widget _buildUserRow(Map account) {
     return Row(
       children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: ShapeDecoration(
-            image: DecorationImage(
-              image: NetworkImage(account['avatar_url']),
-              fit: BoxFit.cover,
-            ),
-            shape: OvalBorder(
-              side: BorderSide(
-                width: 2,
-                color: const Color(0xFFE7E7E7),
-              ),
+        ClipOval(
+          child: Image(
+            image: CachedNetworkImageProvider(account['avatar_url'] ?? ''),
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (_, __, ___) => Container(
+              width: 60,
+              height: 60,
+              color: const Color(0xFFE7E7E7),
+              child: const Icon(Icons.person, color: Colors.grey),
             ),
           ),
         ),
         SizedBox(width: 10,),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${account['name']}',
-              style: TextStyle(
-                color: const Color(0xFF333333),
-                fontSize: 16,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w500,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${account['name']}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF333333),
+                  fontSize: 16,
+                  fontFamily: 'PingFang TC',
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            Text(
-              '${account['account']}',
-              style: TextStyle(
-                color: const Color(0xFF838383),
-                fontSize: 14,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w400,
+              Text(
+                '${account['account']}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF838383),
+                  fontSize: 14,
+                  fontFamily: 'PingFang TC',
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 10),
         if (!myself) _buildFollowButton(account['id']),
       ],
     );
@@ -309,23 +362,49 @@ class _ProfilePageState extends ConsumerState<Profile> {
   Widget _buildFollowButton(int id) {
     final following = _isFollowing ?? false;
     return InkWell(
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
         width: 80,
         height: 32,
         alignment: Alignment.center,
         decoration: ShapeDecoration(
+          color: following ? Colors.transparent : const Color(0xFFF46C3F),
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: Color(0xFFE7E7E7)),
+            side: BorderSide(
+              color: following ? const Color(0xFFE7E7E7) : const Color(0xFFF46C3F),
+            ),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        child: Text('追蹤${following? '中' : ''}'),
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 250),
+          style: TextStyle(
+            color: following ? const Color(0xFF333333) : Colors.white,
+            fontSize: 14,
+            fontFamily: 'PingFang TC',
+            fontWeight: FontWeight.w500,
+          ),
+          child: Text('追蹤${following ? '中' : ''}'),
+        ),
       ),
       onTap: () {
+        HapticFeedback.lightImpact();
+        final willFollow = !following;
         setState(() {
-          _isFollowing = !following;
+          _isFollowing = willFollow;
         });
         profileController.postFollow(id);
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              willFollow ? '已追蹤' : '已取消追蹤',
+              textAlign: TextAlign.center,
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+          ),
+        );
       },
     );
   }
@@ -379,14 +458,39 @@ class _ProfilePageState extends ConsumerState<Profile> {
     );
   }
 
+  bool _bioExpanded = false;
+
   Widget _buildBio(String bio) {
-    return Text(
-      bio,
-      style: TextStyle(
-        color: const Color(0xFF333333),
-        fontSize: 14,
-        fontFamily: 'PingFang TC',
-        fontWeight: FontWeight.w400,
+    const int maxLength = 200;
+    final bool needsTruncate = bio.length > maxLength && !_bioExpanded;
+    final String displayText = needsTruncate
+        ? bio.substring(0, maxLength)
+        : bio;
+
+    return GestureDetector(
+      onTap: bio.length > maxLength
+          ? () => setState(() => _bioExpanded = !_bioExpanded)
+          : null,
+      child: RichText(
+        text: TextSpan(
+          style: const TextStyle(
+            color: Color(0xFF333333),
+            fontSize: 14,
+            fontFamily: 'PingFang TC',
+            fontWeight: FontWeight.w400,
+          ),
+          children: [
+            TextSpan(text: displayText),
+            if (needsTruncate)
+              const TextSpan(
+                text: '…more',
+                style: TextStyle(
+                  color: Color(0xFF838383),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -529,6 +633,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
   }
 
   Widget _buildCategoryTabs(List<String> category) {
+    final tabCount = category.length;
     return Container(
       width: double.infinity,
       height: 32,
@@ -539,7 +644,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(99),
         ),
-        shadows: [
+        shadows: const [
           BoxShadow(
             color: Color(0x26000000),
             blurRadius: 4,
@@ -548,35 +653,56 @@ class _ProfilePageState extends ConsumerState<Profile> {
           )
         ],
       ),
-      child: Row(
-        children: List.generate(category.length, (index) {
-          return Expanded(
-            child: GestureDetector(
-              child: Container(
-                width: double.infinity,
-                height: double.infinity,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: ShapeDecoration(
-                  color: selectedIndex == index ? const Color(0xFFF46C3F) : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                child: Text(
-                  category[index],
-                  style: TextStyle(
-                    color: selectedIndex == index ? Colors.white : const Color(0xFF333333),
-                    fontSize: 14,
-                    fontFamily: 'PingFang TC',
-                    fontWeight: FontWeight.w500,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tabWidth = constraints.maxWidth / tabCount;
+          return Stack(
+            children: [
+              // ===== 橘色滑塊 =====
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                left: selectedIndex * tabWidth,
+                top: 0,
+                bottom: 0,
+                width: tabWidth,
+                child: Container(
+                  decoration: ShapeDecoration(
+                    color: const Color(0xFFF46C3F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(99),
+                    ),
                   ),
                 ),
               ),
-              onTap: () => onTabChanged(index),
-            ),
+              // ===== 文字標籤 =====
+              Row(
+                children: List.generate(tabCount, (index) {
+                  return Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onTabChanged(index),
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 250),
+                          style: TextStyle(
+                            color: selectedIndex == index
+                                ? Colors.white
+                                : const Color(0xFF333333),
+                            fontSize: 14,
+                            fontFamily: 'PingFang TC',
+                            fontWeight: FontWeight.w500,
+                          ),
+                          child: Text(category[index]),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ],
           );
-        }),
+        },
       ),
     );
   }
@@ -584,11 +710,49 @@ class _ProfilePageState extends ConsumerState<Profile> {
   // ================= Content =================
 
   Widget _buildContent() {
-    if (selectedIndex == 1) return _buildCooperation();
+    if (isPrivate) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.lock_outline, size: 48, color: Color(0xFFB0B0B0)),
+              SizedBox(height: 12),
+              Text(
+                '此內容為私人',
+                style: TextStyle(
+                  color: Color(0xFF838383),
+                  fontSize: 16,
+                  fontFamily: 'PingFang TC',
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return _buildPostGrid();
   }
 
   Widget _buildPostGrid() {
+    // ✅ 首次載入或切 tab 載入中：顯示 shimmer 佔位
+    if (items.isEmpty && isLoading) {
+      return _buildGridShimmer();
+    }
+
+    if (items.isEmpty && !hasMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text(
+            '目前沒有貼文',
+            style: TextStyle(color: Color(0xFF838383), fontSize: 14),
+          ),
+        ),
+      );
+    }
+
     return GridView.builder(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
@@ -602,11 +766,17 @@ class _ProfilePageState extends ConsumerState<Profile> {
       itemCount: items.length,
       itemBuilder: (_, index) {
         final item = items[index];
+        final itemId = item['${selectedIndex == 0 ? '' : 'tales_'}id'];
+        final heroTag = 'profile-$selectedIndex-tale-image-$itemId';
         return GestureDetector(
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Post(id: item['${selectedIndex==0 ? '' : 'tales_'}id'],), //按照是否為自己的貼文提供狀態
+              builder: (_) => Post(
+                id: itemId,
+                previewData: item,
+                heroTag: heroTag,
+              ),
             ),
           ).then((result) {
             if (result == 'refresh') {
@@ -615,16 +785,43 @@ class _ProfilePageState extends ConsumerState<Profile> {
               futureData = _reloadData();
             }
           }),
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(item['image_url']),
+          child: Hero(
+            tag: heroTag,
+            child: ClipRect(
+              child: Image(
+                image: CachedNetworkImageProvider(item['image_url'] ?? ''),
                 fit: BoxFit.cover,
+                gaplessPlayback: true,
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFFE7E7E7),
+                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// 載入中的 shimmer 佔位格
+  Widget _buildGridShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: GridView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 1,
+          mainAxisSpacing: 1,
+          mainAxisExtent: 171,
+        ),
+        itemCount: 9,
+        itemBuilder: (_, __) => Container(color: Colors.grey),
+      ),
     );
   }
 

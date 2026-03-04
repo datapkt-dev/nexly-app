@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nexly/features/tales/presentation/pages/tale_detail_page.dart';
 import '../../../../app/config/app_config.dart';
 import '../../../../modules/index/widgets/action_menu_bottom_sheet.dart';
+import '../../../../modules/index/widgets/upload_progress_overlay.dart';
+import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
-import '../../di/tales_providers.dart';
 import '../widgets/TaleCardShimmer.dart';
 import '../widgets/filter_overlay.dart';
 import '../widgets/tag_selector.dart';
@@ -19,18 +23,21 @@ class IndexPage extends ConsumerStatefulWidget {
   ConsumerState<IndexPage> createState() => _IndexState();
 }
 
-class _IndexState extends ConsumerState<IndexPage> {
+class _IndexState extends ConsumerState<IndexPage> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
-  // List tales = [];
+  final List<Map<String, dynamic>> _tales = []; // ✅ local list 驅動 GridView
+  int _visibleCount = 0; // ✅ 控制實際顯示的卡片數量，確保同批同時出現
+  int _prevVisibleCount = 0; // ✅ 上一批已顯示的數量（這些卡片保持 opacity=1）
+  bool _batchReady = false; // ✅ 新批次卡片是否已就緒（控制整批同時顯示）
   int page = 1;
   bool isLoading = false;
-  bool hasMore = true; // API 還有沒有下一頁
+  bool hasMore = true;
 
   Future<Map<String, dynamic>> futureData = Future.value({});
 
   bool _showOverlay = false;
   List<Map<String, dynamic>> tags = [];
-  List<bool> tagsActive = [true, false, false, false, false,];
+  List<bool> tagsActive = [true, false, false, false, false, false, false,];
 
   Future<List<Map<String, dynamic>>> getCategories() async {
     final AuthService authStorage = AuthService();
@@ -88,8 +95,8 @@ class _IndexState extends ConsumerState<IndexPage> {
 
     // 組 query
     final query = isAll
-        ? 'page=$page&page_size=5'
-        : 'page=$page&page_size=5&category_id=${selectedTags.join(',')}';
+        ? 'page=$page&page_size=6'
+        : 'page=$page&page_size=6&category_id=${selectedTags.join(',')}';
 
     final url = Uri.parse('$baseUrl/projects/1/tales/others?$query');
 
@@ -126,17 +133,71 @@ class _IndexState extends ConsumerState<IndexPage> {
 
     final List newItems = result['data']['items'];
 
+    if (!mounted) return;
+
+    final typedItems = newItems
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
+    // ✅ 先加入 _tales（但 _visibleCount 還沒更新，所以 UI 不會顯示這些新卡片）
+    _tales.addAll(typedItems);
+
+    // ✅ 預載所有圖片到記憶體快取，並 resolve ImageProvider 確保 bitmap 就緒
+    if (typedItems.isNotEmpty && mounted) {
+      final futures = typedItems
+          .where((item) => item['image_url'] != null && item['image_url'].toString().isNotEmpty)
+          .map((item) => _precacheAndResolve(item['image_url']))
+          .toList();
+      await Future.wait(futures);
+    }
+
+    if (!mounted) return;
+
+    // ✅ 圖片 bitmap 全部就緒，一次性更新 _visibleCount
+    //    但先用 _batchReady = false 讓 Opacity=0，等一幀 build 完再顯示
     setState(() {
       page += 1;
       isLoading = false;
+      _prevVisibleCount = _visibleCount; // 記住舊的數量
+      _batchReady = false;
+      _visibleCount = _tales.length;
       if (newItems.isEmpty) hasMore = false;
     });
 
-    // ✅ 同步更新 Riverpod 共用狀態
-    ref.read(talesFeedProvider.notifier).state = [
-      ...ref.read(talesFeedProvider),
-      ...newItems,
-    ];
+    // ✅ 等兩幀：第一幀 build widget tree，第二幀 layout + paint 完成
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _batchReady = true;
+          });
+        }
+      });
+    });
+  }
+
+  /// 預載圖片到記憶體快取，並 resolve ImageProvider 確保 bitmap 已就緒
+  Future<void> _precacheAndResolve(String url) async {
+    try {
+      final provider = CachedNetworkImageProvider(url);
+      await precacheImage(provider, context);
+      // 額外 resolve 確保 ImageStream 已完成，bitmap 在 memory cache 裡
+      final stream = provider.resolve(ImageConfiguration.empty);
+      final completer = Completer<void>();
+      late ImageStreamListener listener;
+      listener = ImageStreamListener(
+        (_, __) {
+          stream.removeListener(listener);
+          if (!completer.isCompleted) completer.complete();
+        },
+        onError: (_, __) {
+          stream.removeListener(listener);
+          if (!completer.isCompleted) completer.complete();
+        },
+      );
+      stream.addListener(listener);
+      await completer.future;
+    } catch (_) {}
   }
 
   Future<void> postFavoriteTale(int id) async {
@@ -152,17 +213,12 @@ class _IndexState extends ConsumerState<IndexPage> {
       'Authorization': 'Bearer $token',
     };
 
-    // final body = jsonEncode(temp);
-
     try {
       final response = await http.post(url, headers: headers,);
       final responseData = jsonDecode(response.body);
       print(responseData);
-
-      // return responseData;
     } catch (e) {
       print('請求錯誤：$e');
-      // return {'error': e.toString()};
     }
   }
 
@@ -172,8 +228,12 @@ class _IndexState extends ConsumerState<IndexPage> {
     hasMore = true;
     isLoading = false;
 
-    // 清空舊資料
-    ref.read(talesFeedProvider.notifier).state = [];
+    setState(() {
+      _tales.clear();
+      _visibleCount = 0;
+      _prevVisibleCount = 0;
+      _batchReady = false;
+    });
 
     // 重新抓第一頁
     await loadMoreTales();
@@ -187,15 +247,15 @@ class _IndexState extends ConsumerState<IndexPage> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      ref.read(talesFeedProvider.notifier).state = [];
-    });
-
-    _initPage();
+    if (_tales.isEmpty) {
+      _initPage();
+    }
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent) {
+      // ✅ 提前預載：距離底部 200px 時開始載入下一頁
+      final position = _scrollController.position;
+      if (position.pixels >= position.maxScrollExtent - 200 &&
+          position.maxScrollExtent > 0) {
         loadMoreTales();
       }
     });
@@ -207,9 +267,28 @@ class _IndexState extends ConsumerState<IndexPage> {
     super.dispose();
   }
 
+  bool _wasUploading = false;
+
   @override
   Widget build(BuildContext context) {
-    final tales = ref.watch(talesFeedProvider);
+    super.build(context);
+    // ✅ 監聽上傳進度：完成時顯示 SnackBar
+    final uploadState = ref.watch(uploadProgressProvider);
+    if (_wasUploading && !uploadState.isUploading && uploadState.progress >= 1.0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '發佈成功 🎉',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+      });
+    }
+    _wasUploading = uploadState.isUploading;
 
     return SafeArea(
       child: Stack(
@@ -258,27 +337,132 @@ class _IndexState extends ConsumerState<IndexPage> {
                     ],
                   ),
                 ),
+                // ✅ 發文進度條 — 在標籤列下方、GridView 上方
+                const UploadProgressOverlay(),
                 Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _onRefresh,
-                    child: GridView.builder(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(0),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 10,
-                        mainAxisExtent: 278,
-                      ),
-                      itemCount: tales.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == tales.length) {
-                          if (isLoading) {
-                            return TaleCardShimmer();
-                          }
-                          if (!hasMore) {
-                            return const Padding(
+                  child: Stack(
+                    children: [
+                      RefreshIndicator(
+                        onRefresh: _onRefresh,
+                        child: CustomScrollView(
+                          controller: _scrollController,
+                          physics: uploadState.isUploading
+                              ? const NeverScrollableScrollPhysics()
+                              : const AlwaysScrollableScrollPhysics(),
+                          cacheExtent: 1500,
+                          slivers: [
+                        // ===== 首次載入 shimmer =====
+                        if (_visibleCount == 0 && isLoading)
+                          SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 6,
+                              mainAxisSpacing: 10,
+                              mainAxisExtent: 278,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => const TaleCardShimmer(),
+                              childCount: 4,
+                            ),
+                          ),
+
+                        // ===== 貼文卡片 =====
+                        if (_visibleCount > 0)
+                          SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 6,
+                              mainAxisSpacing: 10,
+                              mainAxisExtent: 278,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              addAutomaticKeepAlives: true,
+                              (context, index) {
+                                final taleContent = _tales[index];
+                                // ✅ 舊卡片永遠可見，新卡片等整批就緒才同時出現
+                                final isOldCard = index < _prevVisibleCount;
+                                final opacity = isOldCard || _batchReady ? 1.0 : 0.0;
+                                return Opacity(
+                                  opacity: opacity,
+                                  child: TaleCard(
+                                  key: ValueKey(taleContent['id']),
+                                  heroTag: taleContent['id'],
+                                  networkImage: taleContent['image_url'] ?? '',
+                                  tag: taleContent['category']['name'],
+                                  title: taleContent['title'],
+                                  isCollected: taleContent['is_favorited'],
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => Post(
+                                          id: taleContent['id'],
+                                          previewData: taleContent,
+                                        ),
+                                      ),
+                                    ).then((result) {
+                                      if (result == 'refresh') {
+                                        _reloadTales();
+                                      }
+                                    });
+                                  },
+                                  onCollectTap: () {
+                                    HapticFeedback.lightImpact();
+                                    final id = taleContent['id'];
+                                    postFavoriteTale(id);
+                                    final willFavorite = !(taleContent['is_favorited'] as bool);
+                                    setState(() {
+                                      taleContent['is_favorited'] = willFavorite;
+                                    });
+                                    if (willFavorite) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('已收藏', textAlign: TextAlign.center),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  onMoreTap: () {
+                                    final id = taleContent['id'];
+                                    ActionMenuBottomSheet.show(
+                                      context,
+                                      rootContext: context,
+                                      targetId: id,
+                                      onCollect: () {
+                                        postFavoriteTale(id);
+                                        setState(() {
+                                          taleContent['is_favorited'] = !(taleContent['is_favorited'] as bool);
+                                        });
+                                      },
+                                    );
+                                  },
+                                ),
+                                );
+                              },
+                              childCount: _visibleCount,
+                            ),
+                          ),
+
+                        // ===== 底部：載入中 shimmer 或「沒有更多貼文」=====
+                        if (_visibleCount > 0 && isLoading)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                children: const [
+                                  Expanded(child: TaleCardShimmer()),
+                                  SizedBox(width: 6),
+                                  Expanded(child: TaleCardShimmer()),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        if (!hasMore && _visibleCount > 0)
+                          const SliverToBoxAdapter(
+                            child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 24),
                               child: Center(
                                 child: Text(
@@ -289,61 +473,21 @@ class _IndexState extends ConsumerState<IndexPage> {
                                   ),
                                 ),
                               ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        }
-                        final taleContent = tales[index];
-                        return TaleCard(
-                          networkImage: taleContent['image_url'] ?? '',
-                          tag: taleContent['category']['name'],
-                          title: taleContent['title'],
-                          isCollected: taleContent['is_favorited'],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => Post(id: taleContent['id'],)),
-                            );
-                          },
-                          onCollectTap: () {
-                            final id = taleContent['id'];
-                            postFavoriteTale(id);
-                            ref.read(talesFeedProvider.notifier).state = [
-                              for (final tale in ref.read(talesFeedProvider))
-                                if (tale['id'] == id)
-                                  {
-                                    ...tale,
-                                    'is_favorited': !(tale['is_favorited'] as bool),
-                                  }
-                                else
-                                  tale,
-                            ];
-                          },
-                          onMoreTap: () {
-                            final id = taleContent['id'];
-                            ActionMenuBottomSheet.show(
-                              context,
-                              rootContext: context,
-                              targetId: id,
-                              onCollect: () {
-                                postFavoriteTale(id);
-
-                                ref.read(talesFeedProvider.notifier).state = [
-                                  for (final tale in ref.read(talesFeedProvider))
-                                    if (tale['id'] == id)
-                                      {
-                                        ...tale,
-                                        'is_favorited': !(tale['is_favorited'] as bool),
-                                      }
-                                    else
-                                      tale,
-                                ];
-                              },
-                            );
-                          },
-                        );
-                      },
+                            ),
+                          ),
+                      ],
                     ),
+                  ),
+                  // ✅ 上傳中：霧面遮罩覆蓋文章區域
+                  if (uploadState.isUploading)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    ],
                   ),
                 ),
               ],
@@ -379,4 +523,7 @@ class _IndexState extends ConsumerState<IndexPage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -1,11 +1,13 @@
 // lib/services/auth_service.dart
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform, debugPrint;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gsi;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../app/config/app_config.dart';
 
@@ -98,7 +100,7 @@ class AuthService {
     return null;
   }
 
-  Future<Map<String, dynamic>> authWithThirdParty() async {
+  Future<Map<String, dynamic>> authWithThirdParty({String provider = 'google'}) async {
     // 取得最新的 Firebase ID Token（true 會強制刷新）
     final idToken = await FirebaseAuth.instance.currentUser!.getIdToken(true);
 
@@ -108,7 +110,7 @@ class AuthService {
       uri,
       headers: const {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'provider': 'google',
+        'provider': provider,
         'token': idToken, // ← 用 Firebase ID Token
       }),
     )
@@ -206,6 +208,39 @@ class AuthService {
   /// 登出
   /// - 僅登出（保留授權，下次不需重授權）：使用 signOut()
   /// - 連同撤銷授權（下次需重授權）：使用 disconnect()
+
+  /// Apple 登入（iOS 原生 Sign in with Apple → Firebase → 後端）
+  Future<UserCredential?> signInWithApple() async {
+    try {
+      final appleProvider = AppleAuthProvider()
+        ..addScope('email')
+        ..addScope('name');
+
+      final userCred = await _auth.signInWithProvider(appleProvider);
+
+      // 成功登入 Firebase 後，把 Firebase ID Token 打給後端
+      try {
+        await authWithThirdParty(provider: 'apple');
+      } catch (e) {
+        debugPrint('third-party (apple) login failed: $e');
+      }
+
+      return userCred;
+    } on FirebaseAuthException catch (e) {
+      // 使用者取消
+      if (e.code == 'canceled' || e.code == 'web-context-canceled') {
+        return null;
+      }
+      rethrow;
+    } catch (e) {
+      // 使用者取消 (iOS native dialog)
+      if (e.toString().contains('AuthorizationErrorCode.canceled')) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
   Future<void> signOut({bool revoke = false}) async {
     if (!kIsWeb) {
       try {
@@ -251,6 +286,49 @@ class AuthService {
     } catch (e) {
       print('請求錯誤：$e');
       return {'error': e.toString()};
+    }
+  }
+
+  /// 向後端註冊 FCM token，啟用推播
+  Future<void> activateFcmToken() async {
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken == null) {
+        debugPrint('⚠️ activateFcmToken: FCM token is null, skip');
+        return;
+      }
+
+      final token = await getToken();
+      if (token == null) {
+        debugPrint('⚠️ activateFcmToken: user token is null, skip');
+        return;
+      }
+
+      // 判斷 device_type
+      String deviceType = 'web';
+      if (!kIsWeb) {
+        if (Platform.isIOS) {
+          deviceType = 'ios';
+        } else if (Platform.isAndroid) {
+          deviceType = 'android';
+        }
+      }
+
+      final url = Uri.parse('$baseUrl/projects/1/fcms/me/activate');
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+      final body = jsonEncode({
+        'token': fcmToken,
+        'device_type': deviceType,
+      });
+
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+      debugPrint('✅ activateFcmToken response: $responseData');
+    } catch (e) {
+      debugPrint('❌ activateFcmToken failed: $e');
     }
   }
 }

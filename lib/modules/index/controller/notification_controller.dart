@@ -7,6 +7,27 @@ class NotificationController {
   final AuthService authStorage = AuthService();
   final String baseUrl = AppConfig.baseURL;
 
+  /// 取得未讀通知數量
+  Future<int> getUnreadCount() async {
+    final url = Uri.parse('$baseUrl/projects/1/notifications/me/unread-count');
+    String? token = await authStorage.getToken();
+    if (token == null) return 0;
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+      return responseData['data']?['unread_count'] ?? 0;
+    } catch (e) {
+      print('getUnreadCount 錯誤：$e');
+      return 0;
+    }
+  }
+
   Future<Map<String, dynamic>> getNotifications() async {
     final url = Uri.parse('$baseUrl/projects/1/notifications/me');
     String? token = await authStorage.getToken();

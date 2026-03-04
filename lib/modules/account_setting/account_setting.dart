@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/account_setting/pages/changePWD.dart';
 import 'package:nexly/modules/account_setting/pages/profile_edit.dart';
@@ -11,6 +12,8 @@ import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../language_setting/language_setting.dart';
 import 'controller/accountSetting_controller.dart';
+import 'widgets/country_data.dart';
+import 'widgets/country_picker_sheet.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -205,22 +208,27 @@ class _ProfileState extends State<AccountSetting> {
                             UploadImageWidget(
                               child: Stack(
                                 children: [
-                                  Container(
-                                    width: 80,
-                                    height: 80,
-                                    decoration: ShapeDecoration(
-                                      image: temp != '' ? DecorationImage(
-                                        image: NetworkImage(temp),
-                                        // image: AssetImage(temp),
-                                        fit: BoxFit.cover,
-                                      ) : null,
-                                      shape: OvalBorder(
-                                        side: BorderSide(
-                                          width: 2,
-                                          color: const Color(0xFFE7E7E7),
-                                        ),
-                                      ),
-                                    ),
+                                  ClipOval(
+                                    child: temp != ''
+                                        ? Image(
+                                            image: CachedNetworkImageProvider(temp),
+                                            width: 80,
+                                            height: 80,
+                                            fit: BoxFit.cover,
+                                            gaplessPlayback: true,
+                                            errorBuilder: (_, __, ___) => Container(
+                                              width: 80,
+                                              height: 80,
+                                              color: const Color(0xFFE7E7E7),
+                                              child: const Icon(Icons.person, color: Colors.grey),
+                                            ),
+                                          )
+                                        : Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: const Color(0xFFE7E7E7),
+                                            child: const Icon(Icons.person, color: Colors.grey),
+                                          ),
                                   ),
                                   Positioned(
                                     right: 0,
@@ -592,7 +600,7 @@ class _ProfileState extends State<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  '美國紐約',
+                                  countryName(user?['country']),
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,

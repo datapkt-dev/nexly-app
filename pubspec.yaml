@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: 'none'
 
-version: 1.0.2+1
+version: 1.0.3+1
 
 environment:
   sdk: ^3.9.0
@@ -28,7 +28,11 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_riverpod: ^2.5.1
   flutter_launcher_icons: ^0.13.1
+
+  flutter_local_notifications: ^13.0.0
   shimmer: ^3.0.0
+  firebase_messaging: ^16.1.2
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:

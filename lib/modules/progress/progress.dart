@@ -134,56 +134,79 @@ class _ProgressState extends State<Progress> {
                       ),
                       child: Column(
                         children: [
-                          // Container(
-                          //   height: 32,
-                          //   padding: const EdgeInsets.all(2),
-                          //   decoration: ShapeDecoration(
-                          //     color: Colors.white,
-                          //     shape: RoundedRectangleBorder(
-                          //       borderRadius: BorderRadius.circular(99),
-                          //     ),
-                          //     shadows: [
-                          //       BoxShadow(
-                          //         color: Color(0x26000000),
-                          //         blurRadius: 4,
-                          //         offset: Offset(0, 0),
-                          //         spreadRadius: 0,
-                          //       )
-                          //     ],
-                          //   ),
-                          //   child: Row(
-                          //     children: List.generate(tags.length, (index) {
-                          //       return Expanded(
-                          //         child: GestureDetector(
-                          //           child: Container(
-                          //             alignment: Alignment.center,
-                          //             decoration: ShapeDecoration(
-                          //               color: selectedTag == index ? const Color(0xFFF46C3F) : Colors.white,
-                          //               shape: RoundedRectangleBorder(
-                          //                 borderRadius: BorderRadius.circular(99),
-                          //               ),
-                          //             ),
-                          //             child: Text(
-                          //               tags[index],
-                          //               textAlign: TextAlign.center,
-                          //               style: TextStyle(
-                          //                 color: selectedTag == index ? Colors.white : const Color(0xFF333333),
-                          //                 fontSize: 14,
-                          //                 fontFamily: 'PingFang TC',
-                          //                 fontWeight: FontWeight.w500,
-                          //               ),
-                          //             ),
-                          //           ),
-                          //           onTap: () {
-                          //             setState(() {
-                          //               selectedTag = index;
-                          //             });
-                          //           },
-                          //         ),
-                          //       );
-                          //     }),
-                          //   ),
-                          // ),
+                          Container(
+                            height: 32,
+                            padding: const EdgeInsets.all(2),
+                            decoration: ShapeDecoration(
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              shadows: const [
+                                BoxShadow(
+                                  color: Color(0x26000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 0),
+                                  spreadRadius: 0,
+                                )
+                              ],
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final tabCount = tags.length;
+                                final tabWidth = constraints.maxWidth / tabCount;
+                                return Stack(
+                                  children: [
+                                    AnimatedPositioned(
+                                      duration: const Duration(milliseconds: 250),
+                                      curve: Curves.easeInOut,
+                                      left: selectedTag * tabWidth,
+                                      top: 0,
+                                      bottom: 0,
+                                      width: tabWidth,
+                                      child: Container(
+                                        decoration: ShapeDecoration(
+                                          color: const Color(0xFFF46C3F),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(99),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: List.generate(tabCount, (index) {
+                                        return Expanded(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              setState(() {
+                                                selectedTag = index;
+                                              });
+                                            },
+                                            child: Center(
+                                              child: AnimatedDefaultTextStyle(
+                                                duration: const Duration(milliseconds: 250),
+                                                style: TextStyle(
+                                                  color: selectedTag == index
+                                                      ? Colors.white
+                                                      : const Color(0xFF333333),
+                                                  fontSize: 14,
+                                                  fontFamily: 'PingFang TC',
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                child: Text(tags[index]),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           Expanded(
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(vertical: 10),

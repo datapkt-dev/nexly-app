@@ -50,21 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA_jOKibgk_ReD6DsLDEcP5ElCMbN2sNo4',
-    appId: '1:680908606851:android:76f867b478180ce74d7ab6',
-    messagingSenderId: '680908606851',
-    projectId: 'nexly-d2dcc',
-    storageBucket: 'nexly-d2dcc.firebasestorage.app',
+    apiKey: 'AIzaSyB7tNOPsdAHCNrvutdfUGeE5rYpZAw0YRo',
+    appId: '1:706139555720:android:c6a263007ecee672415c3d',
+    messagingSenderId: '706139555720',
+    projectId: 'nexly-production',
+    storageBucket: 'nexly-production.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCvIo8e2NTWsCqDbCbpHJ4FPZ4cEEE3doE',
-    appId: '1:680908606851:ios:7aece545c55db7494d7ab6',
-    messagingSenderId: '680908606851',
-    projectId: 'nexly-d2dcc',
-    storageBucket: 'nexly-d2dcc.firebasestorage.app',
-    androidClientId: '680908606851-gnp6a2oed4l4el49fngbjggrkbc4mnad.apps.googleusercontent.com',
-    iosClientId: '680908606851-snecbj1iqgl031qfhmv99pjn556evkqs.apps.googleusercontent.com',
+    apiKey: 'AIzaSyDiiL8BNhjgywNJWi9sHRwtvky5PmXF4qE',
+    appId: '1:706139555720:ios:91d9d0ede5172439415c3d',
+    messagingSenderId: '706139555720',
+    projectId: 'nexly-production',
+    storageBucket: 'nexly-production.firebasestorage.app',
     iosBundleId: 'tw.com.datapkt.nexly',
   );
 

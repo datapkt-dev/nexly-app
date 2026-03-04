@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import '../../../components/widgets/DateInputFormatter.dart';
 import '../controller/accountSetting_controller.dart';
+import '../widgets/country_data.dart';
+import '../widgets/country_picker_sheet.dart';
 
 class ProfileEdit extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -21,6 +23,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   TextEditingController controllerBio = TextEditingController();
   TextEditingController controllerBirth = TextEditingController();
   String? selectedGenderCode;
+  String? selectedCountryCode;
   Map<String, dynamic> gender = {
     'M' : '男性',
     'F' : '女性',
@@ -40,12 +43,19 @@ class _ProfileEditState extends State<ProfileEdit> {
           controllerBirth.text = '';
         }
         selectedGenderCode = profileData['gender'];
+        selectedCountryCode = profileData['country'];
       });
     });
   }
 
   void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, textAlign: TextAlign.center),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   @override
@@ -87,6 +97,7 @@ class _ProfileEditState extends State<ProfileEdit> {
                   "name": controllerName.text,
                   "birthday": controllerBirth.text,
                   "gender": selectedGenderCode, // M, F, Other
+                  "country": selectedCountryCode,
                   "bio": controllerBio.text
                 };
                 futureData = accountSettingController.editUser(tempData);
@@ -363,14 +374,35 @@ class _ProfileEditState extends State<ProfileEdit> {
                               ),
                             ),
                             Spacer(),
-                            Text(
-                              // widget.userProfile?['displayPhone'],
-                              '美國紐約',
-                              style: TextStyle(
-                                color: const Color(0xFF333333),
-                                fontSize: 14,
-                                fontFamily: 'PingFang TC',
-                                fontWeight: FontWeight.w400,
+                            InkWell(
+                              onTap: () async {
+                                final selected = await CountryPickerSheet.show(
+                                  context,
+                                  currentCode: selectedCountryCode,
+                                );
+                                if (selected != null) {
+                                  setState(() {
+                                    selectedCountryCode = selected;
+                                  });
+                                }
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    countryName(selectedCountryCode),
+                                    style: TextStyle(
+                                      color: selectedCountryCode == null
+                                          ? const Color(0xFFB0B0B0)
+                                          : const Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.chevron_right, size: 18, color: Color(0xFF838383)),
+                                ],
                               ),
                             ),
                           ],

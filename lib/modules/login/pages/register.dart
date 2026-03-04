@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -35,6 +36,38 @@ class _RegisterState extends State<Register> {
   Color _password = Color(0xFFE7E7E7);
   Color _passwordCheck = Color(0xFFE7E7E7);
   // bool errCheck = false;
+
+  // 重寄驗證碼倒數
+  Timer? _resendTimer;
+  int _resendCountdown = 0;
+
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => _resendCountdown = 180);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendCountdown <= 1) {
+        timer.cancel();
+        setState(() => _resendCountdown = 0);
+      } else {
+        setState(() => _resendCountdown--);
+      }
+    });
+  }
+
+  void _handleResendCode() {
+    if (_resendCountdown > 0) return; // 倒數中不可重寄
+    postSendCode(mail).then((result) {
+      if (result['message'] == 'OTP sent, please check your email') {
+        _startResendCountdown();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _resendTimer?.cancel();
+    super.dispose();
+  }
 
   final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
 
@@ -322,6 +355,7 @@ class _RegisterState extends State<Register> {
                   print(result);
                   if (result['message'] == 'OTP sent, please check your email') {
                     mail = controllerMail.text;
+                    _startResendCountdown();
                     layer++;
                   } else {
                     err = result['message'];
@@ -417,15 +451,22 @@ class _RegisterState extends State<Register> {
           ),
           const SizedBox(height: 32,),
           Align(
-            alignment: AlignmentGeometry.centerRight,
-            child: Text(
-              '重寄驗證碼(180s)',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: const Color(0xFF2C538A),
-                fontSize: 14,
-                fontFamily: 'PingFang TC',
-                fontWeight: FontWeight.w500,
+            alignment: AlignmentDirectional.centerEnd,
+            child: GestureDetector(
+              onTap: _resendCountdown > 0 ? null : _handleResendCode,
+              child: Text(
+                _resendCountdown > 0
+                    ? '重寄驗證碼(${_resendCountdown}s)'
+                    : '重寄驗證碼',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: _resendCountdown > 0
+                      ? const Color(0xFFB0B0B0)
+                      : const Color(0xFF2C538A),
+                  fontSize: 14,
+                  fontFamily: 'PingFang TC',
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),

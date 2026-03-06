@@ -12,6 +12,8 @@ class Payment extends StatefulWidget {
 }
 
 class _PaymentState extends State<Payment> {
+  int selected = 1;
+
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top; // 狀態列高度
@@ -80,86 +82,56 @@ class _PaymentState extends State<Payment> {
                       children: [
                         PlanComparison(),
                         SizedBox(height: 20,),
-                        Container(
-                          width: double.infinity,
-                          height: 86,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 1,
-                                color: const Color(0xFFE7E7E7),
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                '每月方案',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: const Color(0xFF333333),
-                                  fontSize: 16,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w400,
+                        ...List.generate(2, (index) {
+                          return GestureDetector(
+                            child: index == 0
+                                ? Container(
+                              width: double.infinity,
+                              height: 86,
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(1),
+                              margin: EdgeInsets.only(bottom: 10),
+                              decoration: selected == 0
+                                  ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF5B86FF), // 左上藍
+                                    Color(0xFF79E2E8), // 右下青
+                                  ],
+                                ),
+                                boxShadow: [
+                                  // 很淡的外光/陰影，讓邊緣更柔
+                                  BoxShadow(
+                                    color: const Color(0xFF5B86FF).withOpacity(0.10),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              )
+                                  : ShapeDecoration(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    width: 1,
+                                    color: const Color(0xFFE7E7E7),
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              Spacer(),
-                              Text(
-                                '\$ 120',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: const Color(0xFF333333),
-                                  fontSize: 16,
-                                  fontFamily: 'PingFang TC',
-                                  fontWeight: FontWeight.w500,
+                              child: Container(
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16 - 0.5),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 10,),
-                        Container(
-                          width: double.infinity,
-                          height: 86,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF5B86FF), // 左上藍
-                                Color(0xFF79E2E8), // 右下青
-                              ],
-                            ),
-                            boxShadow: [
-                              // 很淡的外光/陰影，讓邊緣更柔
-                              BoxShadow(
-                                color: const Color(0xFF5B86FF).withOpacity(0.10),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Container(
-                            height: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16 - 0.5),
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              children: [
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Row(
                                   children: [
                                     Text(
-                                      '一年方案',
+                                      '每月方案',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: const Color(0xFF333333),
@@ -168,57 +140,138 @@ class _PaymentState extends State<Payment> {
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),
-                                    SizedBox(height: 6,),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        // 藍→青 的線性漸層
-                                        gradient: const LinearGradient(
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                          colors: [Color(0xFF5B86FF), Color(0xFF79E2E8)],
-                                        ),
-                                        borderRadius: BorderRadius.circular(999),
-                                        // 淡淡白色外框，讓邊緣更乾淨
-                                        border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
-                                        // 可選：一點陰影
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.08),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
+                                    Spacer(),
+                                    Text(
+                                      '\$ 120',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: const Color(0xFF333333),
+                                        fontSize: 16,
+                                        fontFamily: 'PingFang TC',
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                      child: const Text(
-                                        '20% OFF',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    )
-
+                                    ),
                                   ],
                                 ),
-                                Spacer(),
-                                Text(
-                                  '\$ 120',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 16,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              ),
+                            )
+                                : index == 1
+                                ? Container(
+                              width: double.infinity,
+                              height: 86,
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(1),
+                              decoration: selected == 1
+                                  ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF5B86FF), // 左上藍
+                                    Color(0xFF79E2E8), // 右下青
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
+                                boxShadow: [
+                                  // 很淡的外光/陰影，讓邊緣更柔
+                                  BoxShadow(
+                                    color: const Color(0xFF5B86FF).withOpacity(0.10),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              )
+                                  : ShapeDecoration(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    width: 1,
+                                    color: const Color(0xFFE7E7E7),
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Container(
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16 - 0.5),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Row(
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '一年方案',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: const Color(0xFF333333),
+                                            fontSize: 16,
+                                            fontFamily: 'PingFang TC',
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6,),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            // 藍→青 的線性漸層
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [Color(0xFF5B86FF), Color(0xFF79E2E8)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(999),
+                                            // 淡淡白色外框，讓邊緣更乾淨
+                                            border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+                                            // 可選：一點陰影
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.08),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Text(
+                                            '20% OFF',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        )
+
+                                      ],
+                                    ),
+                                    Spacer(),
+                                    Text(
+                                      '\$ 120',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: const Color(0xFF333333),
+                                        fontSize: 16,
+                                        fontFamily: 'PingFang TC',
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                                : Container(),
+                            onTap: () {
+                              setState(() {
+                                selected = index;
+                              });
+                            },
+                          );
+                        }),
                         SizedBox(height: 20,),
                         const NoticeBlock(
                           items: [

@@ -189,6 +189,7 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
                       ),
                       child: DropdownButtonFormField<ReportReason>(
                         value: _reason,
+                        dropdownColor: Colors.white,
                         decoration: InputDecoration(
                           hintText: '請選擇',
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

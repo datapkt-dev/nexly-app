@@ -492,14 +492,19 @@ class _ProfileState extends State<AccountSetting> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                Spacer(),
-                                Text(
-                                  '${user?['email']??'-'}',
-                                  style: TextStyle(
-                                    color: const Color(0xFF333333),
-                                    fontSize: 14,
-                                    fontFamily: 'PingFang TC',
-                                    fontWeight: FontWeight.w500,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    user?['email'] ?? '-',
+                                    textAlign: TextAlign.right,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF333333),
+                                      fontSize: 14,
+                                      fontFamily: 'PingFang TC',
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],

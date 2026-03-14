@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '706139555720',
     projectId: 'nexly-production',
     storageBucket: 'nexly-production.firebasestorage.app',
-    iosBundleId: 'tw.com.datapkt.nexly',
+    iosBundleId: 'com.halopodtech.nexly',
   );
 
 }

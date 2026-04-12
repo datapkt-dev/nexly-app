@@ -47,7 +47,7 @@ class _PostState extends ConsumerState<Post> {
   Future<Map<String, dynamic>> getTaleContent(int id) async {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
-    final url = Uri.parse('$baseUrl/projects/1/tales/$id');
+    final url = Uri.parse('$baseUrl/tales/$id');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -123,7 +123,7 @@ class _PostState extends ConsumerState<Post> {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/$id');
+    final url = Uri.parse('$baseUrl/tales/$id');
 
     String? token = await authStorage.getToken();
 

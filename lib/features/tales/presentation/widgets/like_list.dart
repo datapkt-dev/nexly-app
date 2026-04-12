@@ -25,7 +25,7 @@ class _LikeListState extends ConsumerState<LikeList> {
   Future<Map<String, dynamic>> getTaleContent(int id) async {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
-    final url = Uri.parse('$baseUrl/projects/1/tales/$id');
+    final url = Uri.parse('$baseUrl/tales/$id');
     String? token = await authStorage.getToken();
 
     final headers = {

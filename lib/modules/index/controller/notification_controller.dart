@@ -9,7 +9,7 @@ class NotificationController {
 
   /// 取得未讀通知數量
   Future<int> getUnreadCount() async {
-    final url = Uri.parse('$baseUrl/projects/1/notifications/me/unread-count');
+    final url = Uri.parse('$baseUrl/notifications/me/unread-count');
     String? token = await authStorage.getToken();
     if (token == null) return 0;
 
@@ -29,7 +29,7 @@ class NotificationController {
   }
 
   Future<Map<String, dynamic>> getNotifications() async {
-    final url = Uri.parse('$baseUrl/projects/1/notifications/me');
+    final url = Uri.parse('$baseUrl/notifications/me');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -57,7 +57,7 @@ class NotificationController {
   }
 
   Future<Map<String, dynamic>> postReadAll() async {
-    final url = Uri.parse('$baseUrl/projects/1/notifications/me/read-all');
+    final url = Uri.parse('$baseUrl/notifications/me/read-all');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -79,7 +79,7 @@ class NotificationController {
   }
 
   Future<Map<String, dynamic>> postReadOne(int id) async {
-    final url = Uri.parse('$baseUrl/projects/1/notifications/me/read');
+    final url = Uri.parse('$baseUrl/notifications/me/read');
     String? token = await authStorage.getToken();
 
     final headers = {

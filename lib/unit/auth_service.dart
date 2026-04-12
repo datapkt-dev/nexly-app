@@ -111,10 +111,11 @@ class AuthService {
       headers: const {'Content-Type': 'application/json'},
       body: jsonEncode({
         'provider': provider,
-        'token': idToken, // ← 用 Firebase ID Token
+        'token': idToken,
       }),
     )
         .timeout(const Duration(seconds: 15));
+
 
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
       await saveToken(jsonDecode(resp.body)['data']['access_token']);
@@ -161,7 +162,7 @@ class AuthService {
               ? null   // iOS 從 GoogleService-Info.plist 自動讀取
               : null,  // Android 不需要 clientId
           serverClientId: defaultTargetPlatform == TargetPlatform.android
-              ? '706139555720-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com' // TODO: 替換為你的 Web client ID
+              ? '49445219401-0btf2k6v1bdtjjtajvt8vbbjr2qs21s0.apps.googleusercontent.com'
               : null,
         );
         _gsiInitialized = true;
@@ -186,8 +187,8 @@ class AuthService {
 
       // 成功登入 Firebase 後再取 Firebase ID Token 丟給你的後端
       final idToken = await userCred.user!.getIdToken(true);
-      // debugPrint('firebaseIdToken length=${idToken?.length}');
-      // _printLong(idToken!);
+      debugPrint('🔑 Firebase ID Token:');
+      _printLong(idToken!);
 
       try {
         final backend = await authWithThirdParty(); // 內部會以 currentUser 重新抓 token
@@ -272,7 +273,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> delUser() async {
-    final uri = Uri.parse('$baseUrl/projects/1/users/me');
+    final uri = Uri.parse('$baseUrl/users/me');
     String? token = await getToken();
 
     final headers = {
@@ -319,7 +320,7 @@ class AuthService {
         }
       }
 
-      final url = Uri.parse('$baseUrl/projects/1/fcms/me/activate');
+      final url = Uri.parse('$baseUrl/fcms/me/activate');
       final headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

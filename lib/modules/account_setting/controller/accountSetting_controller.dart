@@ -8,7 +8,7 @@ class AccountSettingController {
   final String baseUrl = AppConfig.baseURL;
 
   Future<Map<String, dynamic>> getUserProfile(int id) async {
-    final url = Uri.parse('$baseUrl/projects/1/users/$id');
+    final url = Uri.parse('$baseUrl/users/$id');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -36,7 +36,7 @@ class AccountSettingController {
   }
 
   Future<Map<String, dynamic>> editUser(Map<String, dynamic> temp) async {
-    final url = Uri.parse('$baseUrl/projects/1/users/me');
+    final url = Uri.parse('$baseUrl/users/me');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -59,7 +59,7 @@ class AccountSettingController {
   }
 
   Future<Map<String, dynamic>> getUserBlackList() async {
-    final url = Uri.parse('$baseUrl/projects/1/users/me/block');
+    final url = Uri.parse('$baseUrl/users/me/block');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -87,7 +87,7 @@ class AccountSettingController {
   }
 
   Future<Map<String, dynamic>> postBlock(int id) async {
-    final url = Uri.parse('$baseUrl/projects/1/users/me/block');
+    final url = Uri.parse('$baseUrl/users/me/block');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -109,7 +109,7 @@ class AccountSettingController {
   }
 
   Future<Map<String, dynamic>> unBlock(int id) async {
-    final url = Uri.parse('$baseUrl/projects/1/users/me/block/$id');
+    final url = Uri.parse('$baseUrl/users/me/block/$id');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -160,7 +160,7 @@ class AccountSettingController {
   }
 
   Future<Map<String, dynamic>> postReport(String type, int id, String reason) async {
-    final url = Uri.parse('$baseUrl/projects/1/reports');
+    final url = Uri.parse('$baseUrl/reports');
     String? token = await authStorage.getToken();
 
     final headers = {

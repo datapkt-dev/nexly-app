@@ -8,7 +8,7 @@ class ProfileController {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/users/$id/profile');
+    final url = Uri.parse('$baseUrl/users/$id/profile');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -31,7 +31,7 @@ class ProfileController {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/others?page=$page&search_user_id=$userId&page_size=5');
+    final url = Uri.parse('$baseUrl/tales?search_user_id=$userId&page=$page&page_size=20');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -54,7 +54,7 @@ class ProfileController {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/users/$userId/cotales');
+    final url = Uri.parse('$baseUrl/users/$userId/cotales');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -77,7 +77,7 @@ class ProfileController {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/users/$userId/favorites');
+    final url = Uri.parse('$baseUrl/users/$userId/favorites');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -100,7 +100,7 @@ class ProfileController {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/users/me/follow/toggle');
+    final url = Uri.parse('$baseUrl/users/me/follow/toggle');
 
     String? token = await authStorage.getToken();
 
@@ -128,7 +128,7 @@ class ProfileController {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/users/$id/achievements');
+    final url = Uri.parse('$baseUrl/users/$id/achievements');
     String? token = await authStorage.getToken();
 
     final headers = {

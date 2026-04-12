@@ -65,7 +65,7 @@ class _ContentEditState extends ConsumerState<CreateTalePage> {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/tales');
+    final url = Uri.parse('$baseUrl/tales');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -90,7 +90,7 @@ class _ContentEditState extends ConsumerState<CreateTalePage> {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final url = Uri.parse('$baseUrl/categories');
     final token = await authStorage.getToken();
 
     final headers = {

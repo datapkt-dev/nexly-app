@@ -28,7 +28,7 @@ class _ProgressState extends State<Progress> {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/users/$id/achievements');
+    final url = Uri.parse('$baseUrl/users/$id/achievements');
     String? token = await authStorage.getToken();
 
     final headers = {

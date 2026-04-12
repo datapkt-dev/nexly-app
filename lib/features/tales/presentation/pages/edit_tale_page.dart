@@ -28,7 +28,7 @@ class _EditTalePageState extends State<EditTalePage> {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/$taleId');
+    final url = Uri.parse('$baseUrl/tales/$taleId');
     String? token = await authStorage.getToken();
 
     final headers = {
@@ -87,7 +87,7 @@ class _EditTalePageState extends State<EditTalePage> {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final url = Uri.parse('$baseUrl/categories');
     final token = await authStorage.getToken();
 
     final headers = {

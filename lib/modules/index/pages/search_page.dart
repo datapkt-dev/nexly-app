@@ -22,7 +22,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   late Future<void> futureData;
 
   // 原有資料
-  List group = ['挑戰', '學習', '旅遊'];
+  List group = [];
   final List<String> img = [
     'assets/images/landscape/goingup.jpg',
     'assets/images/landscape/egypt.jpg',
@@ -139,7 +139,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final url = Uri.parse('$baseUrl/categories');
     final token = await authStorage.getToken();
 
     final headers = {
@@ -147,35 +147,43 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       'Authorization': 'Bearer $token',
     };
 
-    final response = await http.get(url, headers: headers);
-    final responseData = jsonDecode(response.body);
-
-    final List apiCategories = responseData['data'];
-
-    return apiCategories;
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
+      final List apiCategories = responseData['data'];
+      return apiCategories;
+    } catch (e) {
+      print('getCategories 錯誤：$e');
+      return [];
+    }
   }
 
   Future<void> _initPage() async {
-    final results = await Future.wait([
-      getCategories(),
-      getTales(1, null),
-    ]);
+    try {
+      final results = await Future.wait([
+        getCategories(),
+        getTales(1, null),
+      ]);
 
-    final categories = results[0] as List;
-    final tales = (results[1] as Map)['data']['tales'] as List;
+      final categories = results[0] as List;
+      final talesData = results[1] as Map;
+      final tales = (talesData['data']?['tales'] as List?) ?? [];
 
-    // ✅ 預載所有分類圖片，全部完成後再一次顯示
-    if (mounted) {
-      await Future.wait(
-        tales
-            .where((t) => t['image_url'] != null && t['image_url'].toString().isNotEmpty)
-            .map((t) => _precacheImage(t['image_url']))
-            .toList(),
-      );
+      // ✅ 預載所有分類圖片，全部完成後再一次顯示
+      if (mounted && tales.isNotEmpty) {
+        await Future.wait(
+          tales
+              .where((t) => t['image_url'] != null && t['image_url'].toString().isNotEmpty)
+              .map((t) => _precacheImage(t['image_url']))
+              .toList(),
+        );
+      }
+
+      if (categories.isNotEmpty) group = categories;
+      categoryTales = tales;
+    } catch (e) {
+      print('_initPage 錯誤：$e');
     }
-
-    group = categories;
-    categoryTales = tales;
   }
 
   /// 預載單張圖片到快取

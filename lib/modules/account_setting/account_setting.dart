@@ -99,7 +99,7 @@ class _ProfileState extends State<AccountSetting> {
 
   Future<Map<String, dynamic>> editUserImg(String newImgUrl) async {
     final String baseUrl = AppConfig.baseURL;
-    final url = Uri.parse('$baseUrl/projects/1/users/me');
+    final url = Uri.parse('$baseUrl/users/me');
     String? token = await authStorage.getToken();
 
     final headers = {

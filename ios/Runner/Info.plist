@@ -29,12 +29,12 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.706139555720-t1tcb6or88dkkisq0sqsn63vfk281n32</string>
+				<string>com.googleusercontent.apps.49445219401-dehkm01noji9pg9cnqsfkkbv9gp5esvb</string>
 			</array>
 		</dict>
 	</array>
 	<key>GIDClientID</key>
-	<string>706139555720-t1tcb6or88dkkisq0sqsn63vfk281n32.apps.googleusercontent.com</string>
+	<string>49445219401-dehkm01noji9pg9cnqsfkkbv9gp5esvb.apps.googleusercontent.com</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSApplicationQueriesSchemes</key>

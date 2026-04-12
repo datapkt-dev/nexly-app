@@ -43,7 +43,7 @@ class _IndexState extends ConsumerState<IndexPage> with AutomaticKeepAliveClient
     final AuthService authStorage = AuthService();
     final String baseUrl = AppConfig.baseURL;
 
-    final url = Uri.parse('$baseUrl/projects/1/categories');
+    final url = Uri.parse('$baseUrl/categories');
     final token = await authStorage.getToken();
 
     final headers = {
@@ -51,27 +51,38 @@ class _IndexState extends ConsumerState<IndexPage> with AutomaticKeepAliveClient
       'Authorization': 'Bearer $token',
     };
 
-    final response = await http.get(url, headers: headers);
-    final responseData = jsonDecode(response.body);
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body);
 
-    final List apiCategories = responseData['data'] as List;
+      final List apiCategories = responseData['data'] as List;
 
-    return [
-      // ⭐「全部」固定在第一筆
-      {
-        'id': 0,
-        'name': '全部',
-        'is_active': true,
-      },
-
-      // ⭐ API 原資料完整保留，只改 is_active
-      ...apiCategories.map<Map<String, dynamic>>(
-            (c) => {
-          ...Map<String, dynamic>.from(c),
-          'is_active': false,
+      return [
+        // ⭐「全部」固定在第一筆
+        {
+          'id': 0,
+          'name': '全部',
+          'is_active': true,
         },
-      ),
-    ];
+
+        // ⭐ API 原資料完整保留，只改 is_active
+        ...apiCategories.map<Map<String, dynamic>>(
+              (c) => {
+            ...Map<String, dynamic>.from(c),
+            'is_active': false,
+          },
+        ),
+      ];
+    } catch (e) {
+      print('getCategories 錯誤：$e');
+      return [
+        {
+          'id': 0,
+          'name': '全部',
+          'is_active': true,
+        },
+      ];
+    }
   }
 
   Future<void> _initPage() async {
@@ -95,10 +106,10 @@ class _IndexState extends ConsumerState<IndexPage> with AutomaticKeepAliveClient
 
     // 組 query
     final query = isAll
-        ? 'page=$page&page_size=6'
-        : 'page=$page&page_size=6&category_id=${selectedTags.join(',')}';
+        ? 'page=$page&page_size=5'
+        : 'page=$page&page_size=5&category_id=${selectedTags.join(',')}';
 
-    final url = Uri.parse('$baseUrl/projects/1/tales/others?$query');
+    final url = Uri.parse('$baseUrl/tales?$query');
 
     String? token = await authStorage.getToken();
 
@@ -131,7 +142,17 @@ class _IndexState extends ConsumerState<IndexPage> with AutomaticKeepAliveClient
         .toList();
     final result = await getTales(page, selected);
 
-    final List newItems = result['data']['items'];
+    // 檢查 API 是否成功
+    if (result['error'] != null || result['data'] == null) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      return;
+    }
+
+    final List newItems = result['data']['items'] ?? [];
 
     if (!mounted) return;
 

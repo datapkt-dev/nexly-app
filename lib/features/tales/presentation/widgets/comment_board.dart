@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 import '../../../../app/config/app_config.dart';
+import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
 import 'comment_board/comment_input_bar.dart';
@@ -43,9 +44,7 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
   // List<bool> like = [false, false];
 
   Future<Map<String, dynamic>> futureData = Future.value({});
-  Map<String, dynamic>? user;
   late int id;
-  // List? comments;
 
   Future<Map<String, dynamic>> getCommentsList(int postID, int page) async {
     final AuthService authStorage = AuthService();
@@ -111,11 +110,6 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
         hasMore = false;
       }
     });
-  }
-
-  Future<void> loadUser() async {
-    final AuthService authStorage = AuthService();
-    user = await authStorage.getProfile();
   }
 
   Future<bool> postLikeComment(int id) async {
@@ -303,8 +297,6 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
       });
     });
 
-    loadUser();
-
     if (widget.id > 0) {
       id = widget.id;
       _initComments();
@@ -382,6 +374,7 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProfileProvider);
     final kb = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: kb),
@@ -474,21 +467,24 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                     },
                     onLongPressMenu: (ctx, globalPos, targetComment) async {
                       HapticFeedback.selectionClick();
-                      final myId = user?['id'];
+                      final myId = user['id'];
                       // 型別寬鬆比較（避免 int vs num/String 造成永遠 false）
                       final isOwn = myId != null &&
                           targetComment['user_id'] != null &&
                           myId.toString() == targetComment['user_id'].toString();
                       final isReply = targetComment['parent_id'] != null;
+                      final commentId = targetComment['id'];
+                      final isPending = commentId is! int || commentId == 0;
+                      final validId = isPending ? null : commentId as int;
 
                       debugPrint(
                           '[ActionMenu] myId=$myId targetUserId=${targetComment['user_id']} '
-                          'isOwn=$isOwn isReply=$isReply');
+                          'isOwn=$isOwn isReply=$isReply isPending=$isPending');
 
                       return showActionMenuAt(ctx, globalPos, (pop) {
                         return [
-                          // 回覆（只有主留言才能回覆；自己的也不用回覆自己）
-                          if (!isReply && !isOwn)
+                          // 回覆（只有主留言才能回覆；自己和他人皆可）
+                          if (!isReply)
                             ActionMenuItem(
                               title: '回覆',
                               textColor: const Color(0xFF333333),
@@ -515,20 +511,24 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                                 });
                               },
                             ),
-                          // 編輯（只有自己的留言才出現）
+                          // 編輯（只有自己的留言才出現；樂觀中顯示灰色）
                           if (isOwn)
                             ActionMenuItem(
                               title: '編輯',
-                              textColor: const Color(0xFF333333),
+                              textColor: isPending
+                                  ? const Color(0xFFB0B0B0)
+                                  : const Color(0xFF333333),
                               onTap: () {
+                                if (isPending) {
+                                  pop('edit');
+                                  return;
+                                }
                                 pop('edit');
-                                final commentId = targetComment['id'];
-                                if (commentId is! int || commentId == 0) return;
                                 final existing =
                                     (targetComment['content'] ?? '').toString();
                                 setState(() {
                                   _editMode = true;
-                                  _editingCommentId = commentId;
+                                  _editingCommentId = validId!;
                                   _replyMode = false;
                                   replyTemp = null;
                                   _mentions.clear();
@@ -542,15 +542,19 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                                 });
                               },
                             ),
-                          // 刪除（只有自己的留言才出現）
+                          // 刪除（只有自己的留言才出現；樂觀中顯示灰色）
                           if (isOwn)
                             ActionMenuItem(
                               title: '刪除',
-                              textColor: const Color(0xFFE9416C),
+                              textColor: isPending
+                                  ? const Color(0xFFB0B0B0)
+                                  : const Color(0xFFE9416C),
                               onTap: () async {
+                                if (isPending) {
+                                  pop('delete');
+                                  return;
+                                }
                                 pop('delete');
-                                final commentId = targetComment['id'];
-                                if (commentId is! int || commentId == 0) return;
 
                                 // 樂觀刪除
                                 setState(() {
@@ -560,17 +564,17 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                                     if (idx != -1) {
                                       final p = comments[idx] as Map;
                                       final replies = List.from((p['replies'] as List?) ?? []);
-                                      replies.removeWhere((r) => r['id'] == commentId);
+                                      replies.removeWhere((r) => r['id'] == validId);
                                       p['replies'] = replies;
                                       p['has_replies'] = replies.isNotEmpty;
                                       p['reply_count'] = replies.length;
                                     }
                                   } else {
-                                    comments.removeWhere((c) => c['id'] == commentId);
+                                    comments.removeWhere((c) => c['id'] == validId);
                                   }
                                 });
 
-                                final ok = await deleteComment(commentId);
+                                final ok = await deleteComment(validId!);
                                 if (!mounted) return;
                                 if (!ok) {
                                   ScaffoldMessenger.of(context).showSnackBar(

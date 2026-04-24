@@ -304,8 +304,8 @@ class _PostState extends ConsumerState<Post> {
                       return await controller.postReport(
                         report.targetType.name,
                         report.targetId,
-                        report.reason.name,
-                        // note: report.note,
+                        report.reasonId,
+                        reasonDetail: report.note,
                       );
                     },
                   );

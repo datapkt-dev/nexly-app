@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
@@ -5,6 +6,7 @@ import 'package:nexly/modules/login/pages/forget.dart';
 import 'package:nexly/modules/login/pages/register.dart';
 import '../index/index.dart';
 import 'package:nexly/unit/auth_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -35,6 +37,25 @@ class _LoginState extends State<Login> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Future<void> _showBannedDialog() async {
+    if (!mounted) return;
+    final t = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text(t.account_banned_title),
+        content: Text(t.account_banned_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(t.confirm),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleGoogleSignIn() async {
     if (_googleLoading) return;
     setState(() => _googleLoading = true);
@@ -55,7 +76,11 @@ class _LoginState extends State<Login> {
         );
       }
     } catch (e) {
-      if (mounted) _showSnack('登入失敗：$e');
+      if (e is UserBannedException) {
+        await _showBannedDialog();
+      } else if (mounted) {
+        _showSnack('登入失敗：$e');
+      }
     } finally {
       if (mounted) setState(() => _googleLoading = false);
     }
@@ -78,7 +103,11 @@ class _LoginState extends State<Login> {
         );
       }
     } catch (e) {
-      if (mounted) _showSnack('登入失敗：$e');
+      if (e is UserBannedException) {
+        await _showBannedDialog();
+      } else if (mounted) {
+        _showSnack('登入失敗：$e');
+      }
     } finally {
       if (mounted) setState(() => _appleLoading = false);
     }
@@ -339,6 +368,10 @@ class _LoginState extends State<Login> {
                                   _loginError = '帳號或密碼錯誤';
                                 });
                               }
+                            }).catchError((e) {
+                              if (e is UserBannedException) {
+                                _showBannedDialog();
+                              }
                             });
                           });
                         },
@@ -436,34 +469,36 @@ class _LoginState extends State<Login> {
                                   : SvgPicture.asset('assets/icons/google.svg'),
                             ),
                           ),
-                          SizedBox(width: 16,),
-                          GestureDetector(
-                            onTap: () {
-                              FocusScopeNode currentFocus = FocusScope.of(context);
-                              if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
-                                currentFocus.unfocus();
-                              }
-                              if (!_appleLoading) {
-                                _handleAppleSignIn();
-                              }
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              width: 48,
-                              height: 48,
-                              alignment: Alignment.center,
-                              decoration: ShapeDecoration(
-                                color: Colors.white.withValues(alpha: _appleLoading ? 0.6 : 1),
-                                shape: RoundedRectangleBorder(
-                                  side: const BorderSide(width: 1, color: Color(0xFFE7E7E7)),
-                                  borderRadius: BorderRadius.circular(6),
+                          if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                            SizedBox(width: 16,),
+                            GestureDetector(
+                              onTap: () {
+                                FocusScopeNode currentFocus = FocusScope.of(context);
+                                if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+                                  currentFocus.unfocus();
+                                }
+                                if (!_appleLoading) {
+                                  _handleAppleSignIn();
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                width: 48,
+                                height: 48,
+                                alignment: Alignment.center,
+                                decoration: ShapeDecoration(
+                                  color: Colors.white.withValues(alpha: _appleLoading ? 0.6 : 1),
+                                  shape: RoundedRectangleBorder(
+                                    side: const BorderSide(width: 1, color: Color(0xFFE7E7E7)),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
                                 ),
+                                child: _appleLoading
+                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : SvgPicture.asset('assets/icons/apple.svg'),
                               ),
-                              child: _appleLoading
-                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                  : SvgPicture.asset('assets/icons/apple.svg'),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],

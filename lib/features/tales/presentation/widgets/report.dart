@@ -1,46 +1,43 @@
 // report_bottom_sheet.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../../../../app/config/app_config.dart';
+import '../../../../unit/auth_service.dart';
 
-/// 檢舉結果資料（只在 BottomSheet 內部使用）
+// ── 資料模型 ──────────────────────────────────────────────
+
+class ReportReasonItem {
+  final int id;
+  final String code;
+  final String description;
+
+  const ReportReasonItem({
+    required this.id,
+    required this.code,
+    required this.description,
+  });
+}
+
 class ReportResult {
   ReportResult({
     required this.targetId,
     required this.targetType,
-    required this.reason,
+    required this.reasonId,
+    required this.reasonCode,
     this.note,
   });
 
   final int targetId;
   final ReportTarget targetType;
-  final ReportReason reason;
+  final int reasonId;
+  final String reasonCode;
   final String? note;
 }
 
-enum ReportTarget { tales, user }
+enum ReportTarget { tales, user, comment }
 
-enum ReportReason {
-  hateOrViolence,
-  sexualOrAdult,
-  scamOrSpam,
-  misinformation,
-  selfHarm,
-  illegalGoodsOrRestricted,
-  intellectualProperty,
-  other,
-}
-
-extension ReportReasonText on ReportReason {
-  String get label => switch (this) {
-    ReportReason.hateOrViolence => '霸凌、暴力歧視或仇恨',
-    ReportReason.sexualOrAdult => '裸露或性行為',
-    ReportReason.scamOrSpam => '詐騙、詐欺或垃圾訊息',
-    ReportReason.misinformation => '不實資訊',
-    ReportReason.selfHarm => '自殺、自殘',
-    ReportReason.illegalGoodsOrRestricted => '販售或推廣管制商品',
-    ReportReason.intellectualProperty => '智慧財產權',
-    ReportReason.other => '其他',
-  };
-}
+// ── BottomSheet ───────────────────────────────────────────
 
 class ReportBottomSheet extends StatefulWidget {
   const ReportBottomSheet({
@@ -48,24 +45,21 @@ class ReportBottomSheet extends StatefulWidget {
     required this.targetId,
     required this.targetType,
     required this.onSubmit,
-    this.initialReason,
   });
 
   final int targetId;
   final ReportTarget targetType;
-  final ReportReason? initialReason;
 
   /// ⭐ 由外部注入的送出行為（API）
   final Future<Map<String, dynamic>> Function(ReportResult result) onSubmit;
 
-  /// ⭐【方案 3】唯一對外入口
+  /// ⭐ 唯一對外入口
   static Future<Map<String, dynamic>?> showAndSubmit(
-      BuildContext context, {
-        required int targetId,
-        required ReportTarget targetType,
-        required Future<Map<String, dynamic>> Function(ReportResult result) onSubmit,
-        ReportReason? initialReason,
-      }) {
+    BuildContext context, {
+    required int targetId,
+    required ReportTarget targetType,
+    required Future<Map<String, dynamic>> Function(ReportResult result) onSubmit,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -73,7 +67,6 @@ class ReportBottomSheet extends StatefulWidget {
       builder: (_) => ReportBottomSheet(
         targetId: targetId,
         targetType: targetType,
-        initialReason: initialReason,
         onSubmit: onSubmit,
       ),
     );
@@ -87,19 +80,51 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _noteCtrl = TextEditingController();
 
-  ReportReason? _reason;
+  List<ReportReasonItem> _reasons = [];
+  ReportReasonItem? _selected;
+  bool _loadingReasons = true;
   bool _submitting = false;
 
   @override
   void initState() {
     super.initState();
-    _reason = widget.initialReason;
+    _fetchReasons();
   }
 
   @override
   void dispose() {
     _noteCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchReasons() async {
+    try {
+      final type = widget.targetType.name; // tales / user / comment
+      final url = Uri.parse('${AppConfig.baseURL}/report-reasons?type=$type');
+      final token = await AuthService().getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+      final resp = await http.get(url, headers: headers);
+      final data = jsonDecode(resp.body);
+      final items = (data['data'] as List?)
+              ?.map((e) => ReportReasonItem(
+                    id: e['id'],
+                    code: e['code'],
+                    description: e['description'],
+                  ))
+              .toList() ??
+          [];
+      if (mounted) {
+        setState(() {
+          _reasons = items;
+          _loadingReasons = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingReasons = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -110,15 +135,15 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
     final result = ReportResult(
       targetId: widget.targetId,
       targetType: widget.targetType,
-      reason: _reason!,
+      reasonId: _selected!.id,
+      reasonCode: _selected!.code,
       note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
     );
 
     try {
       final response = await widget.onSubmit(result);
-
       if (!mounted) return;
-      Navigator.pop(context, response); // ⭐ 把 API 回傳值往外丟
+      Navigator.pop(context, response);
     } catch (e) {
       setState(() => _submitting = false);
       if (!mounted) return;
@@ -131,7 +156,8 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final title =
-    widget.targetType == ReportTarget.tales ? '檢舉此貼文' : '檢舉此用戶';
+        widget.targetType == ReportTarget.tales ? '檢舉此貼文' : '檢舉此用戶';
+    final isOther = _selected?.code == 'other';
 
     return Padding(
       padding: EdgeInsets.only(
@@ -141,8 +167,7 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius:
-          const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.12),
@@ -175,62 +200,74 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
               ),
               const SizedBox(height: 12),
 
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('您想檢舉什麼內容？'),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFEEEEEE)),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonFormField<ReportReason>(
-                        value: _reason,
-                        dropdownColor: Colors.white,
-                        decoration: InputDecoration(
-                          hintText: '請選擇',
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          border: InputBorder.none, // ← 移除預設下匡線
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
+              if (_loadingReasons)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: CircularProgressIndicator(),
+                )
+              else
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('您想檢舉什麼內容？'),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: const Color(0xFFEEEEEE)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        items: ReportReason.values
-                            .map(
-                              (r) => DropdownMenuItem(
-                            value: r,
-                            child: Text(r.label),
+                        child: DropdownButtonFormField<ReportReasonItem>(
+                          value: _selected,
+                          isExpanded: true,
+                          dropdownColor: Colors.white,
+                          decoration: const InputDecoration(
+                            hintText: '請選擇',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
                           ),
-                        )
-                            .toList(),
-                        onChanged: (v) => setState(() => _reason = v),
-                        validator: (v) =>
-                        v == null ? '請選擇檢舉原因' : null,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    if (_reason == ReportReason.other)
-                      TextFormField(
-                        controller: _noteCtrl,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText: '檢舉原因',
-                          border: OutlineInputBorder(),
+                          items: _reasons
+                              .map((r) => DropdownMenuItem(
+                                    value: r,
+                                    child: Text(
+                                      r.description,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ))
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _selected = v),
+                          validator: (v) =>
+                              v == null ? '請選擇檢舉原因' : null,
                         ),
-                        validator: (v) =>
-                        v == null || v.trim().isEmpty
-                            ? '請填寫原因'
-                            : null,
                       ),
-                  ],
+                      const SizedBox(height: 10),
+                      if (isOther)
+                        TextFormField(
+                          controller: _noteCtrl,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            hintText: '請填寫補充說明',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty
+                                  ? '請填寫原因'
+                                  : null,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
 
               const SizedBox(height: 12),
               GestureDetector(
-                onTap: _submitting ? null : _submit,
+                onTap: (_submitting || _loadingReasons) ? null : _submit,
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -241,17 +278,17 @@ class _ReportBottomSheetState extends State<ReportBottomSheet> {
                   ),
                   child: _submitting
                       ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text(
-                    '確定',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                          '確定',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ),
               const SizedBox(height: 10),

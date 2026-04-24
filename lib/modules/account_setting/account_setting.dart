@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:nexly/modules/payment/payment.dart';
 import 'package:nexly/modules/account_setting/pages/changePWD.dart';
 import 'package:nexly/modules/account_setting/pages/profile_edit.dart';
@@ -54,24 +55,39 @@ class _ProfileState extends State<AccountSetting> {
 
     // 兩個請求併發，提高速度
     final f1 = accountSettingController.getUserProfile(user?['id']);
-    f1.then((result) {
-      setState(() {
-        user = result['data']['user'];
-        temp = user?['avatar_url'];
-      });
-    });
     final f2 = accountSettingController.getUserBlackList();
     final results = await Future.wait([f1, f2]);
 
-    final userRes  = results[0];
-    profile = userRes['data']['user'];
-    print(profile);
+    final userRes = results[0];
     final blackRes = results[1];
-    blockList = blackRes['data']['items'];
-    print(blockList);
+
+    // 相容兩種 API 回傳格式：
+    //   1) { data: { name, ... } }
+    //   2) { data: { user: { name, ... }, ... } }
+    final rawUserData = userRes['data'];
+    final Map<String, dynamic> userData = (rawUserData is Map && rawUserData['user'] is Map)
+        ? {
+            ...Map<String, dynamic>.from(rawUserData),
+            ...Map<String, dynamic>.from(rawUserData['user'] as Map),
+          }
+        : Map<String, dynamic>.from(rawUserData ?? {});
+
+    // API 回來後立即更新 state（不依賴 .then 非同步回呼，避免 race condition）
+    if (mounted) {
+      setState(() {
+        user = userData;
+        temp = (user?['avatar_url'] ?? '') as String;
+        profile = userData;
+        blockList = blackRes['data']?['items'];
+      });
+    } else {
+      user = userData;
+      profile = userData;
+      blockList = blackRes['data']?['items'];
+    }
 
     return {
-      'user'     : userRes['data']?['user'],
+      'user'     : userData,
       'blacklist': List<Map<String, dynamic>>.from(blackRes['data']?['items'] ?? []),
     };
   }
@@ -142,6 +158,70 @@ class _ProfileState extends State<AccountSetting> {
     futureData = _loadUser();
   }
 
+  Widget _buildShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 80, height: 80,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 120, height: 16, color: Colors.white),
+                    const SizedBox(height: 8),
+                    Container(width: 80, height: 12, color: Colors.white),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            width: double.infinity,
+            height: 68,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: List.generate(6, (i) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(width: 80, height: 14, color: Colors.white),
+                    Container(width: 100, height: 14, color: Colors.white),
+                  ],
+                ),
+              )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,9 +267,7 @@ class _ProfileState extends State<AccountSetting> {
                 future: futureData,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return _buildShimmer();
                   }
                   if (snapshot.hasError) {
                     return Center(
@@ -678,52 +756,52 @@ class _ProfileState extends State<AccountSetting> {
                       ),
                     ),
                     SizedBox(height: 20,),
-                    InkWell(
-                      child: Row(
-                        children: [
-                          Text(
-                            '🔒 隱私設定',
-                            style: TextStyle(
-                              color: const Color(0xFF333333),
-                              fontSize: 14,
-                              fontFamily: 'PingFang TC',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Spacer(),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                      onTap: () async {
-                        final step = await showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (ctx) => Privacy(
-                            dataPass: {
-                              "privacy_tales": profile?['privacy_tales'],
-                              "privacy_cotales": profile?['privacy_cotales'],
-                              "privacy_favorites": profile?['privacy_favorites'],
-                            },
-                          ),
-                        );
-
-                        if (step == 'open_blacklist') {
-                          final res = await showModalBottomSheet<String>(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (ctx) => BlackList(blockList: blockList),
-                          );
-                          print(res);
-                        }
-
-                        _loadUser();
-                      },
-                    ),
+                    // InkWell(
+                    //   child: Row(
+                    //     children: [
+                    //       Text(
+                    //         '🔒 隱私設定',
+                    //         style: TextStyle(
+                    //           color: const Color(0xFF333333),
+                    //           fontSize: 14,
+                    //           fontFamily: 'PingFang TC',
+                    //           fontWeight: FontWeight.w500,
+                    //         ),
+                    //       ),
+                    //       Spacer(),
+                    //       Icon(
+                    //         Icons.arrow_forward_ios,
+                    //         size: 16,
+                    //       ),
+                    //     ],
+                    //   ),
+                    //   onTap: () async {
+                    //     final step = await showModalBottomSheet(
+                    //       context: context,
+                    //       isScrollControlled: true,
+                    //       backgroundColor: Colors.transparent,
+                    //       builder: (ctx) => Privacy(
+                    //         dataPass: {
+                    //           "privacy_tales": profile?['privacy_tales'],
+                    //           "privacy_cotales": profile?['privacy_cotales'],
+                    //           "privacy_favorites": profile?['privacy_favorites'],
+                    //         },
+                    //       ),
+                    //     );
+                    //
+                    //     if (step == 'open_blacklist') {
+                    //       final res = await showModalBottomSheet<String>(
+                    //         context: context,
+                    //         isScrollControlled: true,
+                    //         backgroundColor: Colors.transparent,
+                    //         builder: (ctx) => BlackList(blockList: blockList),
+                    //       );
+                    //       print(res);
+                    //     }
+                    //
+                    //     _loadUser();
+                    //   },
+                    // ),
                     Divider(height: 40,),
                     InkWell(
                       child: Row(

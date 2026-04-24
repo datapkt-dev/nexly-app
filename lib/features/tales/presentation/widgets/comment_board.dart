@@ -11,6 +11,7 @@ import '../../di/tales_providers.dart';
 import 'comment_board/comment_input_bar.dart';
 import 'comment_board/comment_list.dart';
 import 'comment_board/reply_indicator.dart';
+import 'comment_board/action_menu_card.dart';
 
 class CommentBoard extends ConsumerStatefulWidget {
   final int id;
@@ -36,6 +37,9 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
   bool _isFocused = false;
   bool _replyMode = false;
   Map<String, dynamic>? replyTemp;
+  final List<int> _mentions = []; // 即將隨留言送出的 mention user ids
+  bool _editMode = false;
+  int? _editingCommentId;
   // List<bool> like = [false, false];
 
   Future<Map<String, dynamic>> futureData = Future.value({});
@@ -72,8 +76,11 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
 
     final result = await getCommentsList(postId, page);
 
-    final List newItems =
+    final List rawItems =
         (result['data']?['comments'] as List?) ?? [];
+
+    // ✅ 若後端回傳是扁平的（含 parent_id），前端自動聚合成巢狀
+    final List newItems = _nestReplies(rawItems);
 
     // ✅ 預載所有頭像到記憶體快取，完成後再一次顯示
     if (newItems.isNotEmpty && mounted) {
@@ -164,7 +171,9 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
     }
   }
 
-  Future<Map<String, dynamic>> postReplyComment(int postId, int replyId, String comment) async {
+  Future<Map<String, dynamic>> postReplyComment(
+      int postId, int replyId, String comment,
+      {List<int>? mentions}) async {
     final String baseUrl = AppConfig.baseURL;
     final AuthService authStorage = AuthService();
 
@@ -178,7 +187,8 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
 
     final body = jsonEncode({
       "content": comment,
-      "parent_id": replyId
+      "parent_id": replyId,
+      if (mentions != null && mentions.isNotEmpty) "mentions": mentions,
     });
 
     try {
@@ -192,11 +202,88 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
     }
   }
 
+  Future<bool> deleteComment(int commentId) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/comments/$commentId');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.delete(url, headers: headers);
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('deleteComment 請求錯誤：$e');
+      return false;
+    }
+  }
+
+  Future<bool> editComment(int commentId, String content) async {
+    final String baseUrl = AppConfig.baseURL;
+    final AuthService authStorage = AuthService();
+
+    final url = Uri.parse('$baseUrl/tales/comments/$commentId');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+    final body = jsonEncode({'content': content});
+
+    try {
+      final response =
+          await http.patch(url, headers: headers, body: body);
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      print('editComment 請求錯誤：$e');
+      return false;
+    }
+  }
+
   void _initComments() {
     page = 1;
     comments.clear();
     hasMore = true;
     isLoading = false;
+  }
+
+  /// 把扁平的 comments（含 parent_id）聚合成巢狀結構：
+  /// 父留言多一個 'replies' 陣列、'has_replies' 旗標、'reply_count'。
+  /// 若後端已經巢狀回傳就直接保留不破壞。
+  List _nestReplies(List raw) {
+    final List parents = [];
+    final Map<int, List<Map>> childrenByParent = {};
+
+    for (final c in raw) {
+      final m = Map<String, dynamic>.from(c as Map);
+      final pid = m['parent_id'];
+      if (pid is int) {
+        childrenByParent.putIfAbsent(pid, () => []).add(m);
+      } else {
+        parents.add(m);
+      }
+    }
+
+    for (final p in parents) {
+      final id = p['id'];
+      final existingReplies = (p['replies'] is List)
+          ? List<Map>.from(p['replies'] as List)
+          : <Map>[];
+      final fromFlat = childrenByParent[id] ?? [];
+      final merged = [...existingReplies, ...fromFlat];
+      if (merged.isNotEmpty) {
+        p['replies'] = merged;
+        p['has_replies'] = true;
+        p['reply_count'] = merged.length;
+      }
+    }
+    return parents;
   }
 
   @override
@@ -208,7 +295,11 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
     _focusNode.addListener(() {
       setState(() {
         _isFocused = _focusNode.hasFocus;
-        if (!_isFocused) _replyMode = false;
+        if (!_isFocused) {
+          _replyMode = false;
+          _editMode = false;
+          _editingCommentId = null;
+        }
       });
     });
 
@@ -266,6 +357,20 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
 
   bool _hasComment(int commentId) {
     return comments.any((c) => c['id'] == commentId);
+  }
+
+  /// 找出指定 id 的 comment（支援頂層與 replies 內）
+  Map? _findCommentById(int commentId) {
+    for (final c in comments) {
+      if (c['id'] == commentId) return c as Map;
+      final replies = c['replies'];
+      if (replies is List) {
+        for (final r in replies) {
+          if (r['id'] == commentId) return r as Map;
+        }
+      }
+    }
+    return null;
   }
 
   @override
@@ -349,26 +454,172 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                       }
                     },
                     onReply: (comment) {
+                      final targetName = (comment['user_name'] ?? '').toString();
+                      final targetUserId = comment['user_id'];
+                      final prefix = targetName.isNotEmpty ? '@$targetName ' : '';
                       setState(() {
                         _replyMode = true;
-                        replyTemp = Map<String, dynamic>.from(comment);;
+                        replyTemp = Map<String, dynamic>.from(comment);
+                        _mentions
+                          ..clear();
+                        if (targetUserId is int) _mentions.add(targetUserId);
+                        _controller.text = prefix;
+                        _controller.selection = TextSelection.fromPosition(
+                          TextPosition(offset: prefix.length),
+                        );
                         Future.delayed(const Duration(milliseconds: 50), () {
                           FocusScope.of(context).requestFocus(_focusNode);
                         });
                       });
                     },
-                    onLongPressMenu: (context, globalPos) async {
+                    onLongPressMenu: (ctx, globalPos, targetComment) async {
+                      HapticFeedback.selectionClick();
+                      final myId = user?['id'];
+                      // 型別寬鬆比較（避免 int vs num/String 造成永遠 false）
+                      final isOwn = myId != null &&
+                          targetComment['user_id'] != null &&
+                          myId.toString() == targetComment['user_id'].toString();
+                      final isReply = targetComment['parent_id'] != null;
+
+                      debugPrint(
+                          '[ActionMenu] myId=$myId targetUserId=${targetComment['user_id']} '
+                          'isOwn=$isOwn isReply=$isReply');
+
+                      return showActionMenuAt(ctx, globalPos, (pop) {
+                        return [
+                          // 回覆（只有主留言才能回覆；自己的也不用回覆自己）
+                          if (!isReply && !isOwn)
+                            ActionMenuItem(
+                              title: '回覆',
+                              textColor: const Color(0xFF333333),
+                              onTap: () {
+                                pop('reply');
+                                final targetName =
+                                    (targetComment['user_name'] ?? '').toString();
+                                final targetUserId = targetComment['user_id'];
+                                final prefix = targetName.isNotEmpty ? '@$targetName ' : '';
+                                setState(() {
+                                  _replyMode = true;
+                                  _editMode = false;
+                                  _editingCommentId = null;
+                                  replyTemp = Map<String, dynamic>.from(targetComment);
+                                  _mentions.clear();
+                                  if (targetUserId is int) _mentions.add(targetUserId);
+                                  _controller.text = prefix;
+                                  _controller.selection = TextSelection.fromPosition(
+                                    TextPosition(offset: prefix.length),
+                                  );
+                                  Future.delayed(const Duration(milliseconds: 50), () {
+                                    FocusScope.of(context).requestFocus(_focusNode);
+                                  });
+                                });
+                              },
+                            ),
+                          // 編輯（只有自己的留言才出現）
+                          if (isOwn)
+                            ActionMenuItem(
+                              title: '編輯',
+                              textColor: const Color(0xFF333333),
+                              onTap: () {
+                                pop('edit');
+                                final commentId = targetComment['id'];
+                                if (commentId is! int || commentId == 0) return;
+                                final existing =
+                                    (targetComment['content'] ?? '').toString();
+                                setState(() {
+                                  _editMode = true;
+                                  _editingCommentId = commentId;
+                                  _replyMode = false;
+                                  replyTemp = null;
+                                  _mentions.clear();
+                                  _controller.text = existing;
+                                  _controller.selection = TextSelection.fromPosition(
+                                    TextPosition(offset: existing.length),
+                                  );
+                                  Future.delayed(const Duration(milliseconds: 50), () {
+                                    FocusScope.of(context).requestFocus(_focusNode);
+                                  });
+                                });
+                              },
+                            ),
+                          // 刪除（只有自己的留言才出現）
+                          if (isOwn)
+                            ActionMenuItem(
+                              title: '刪除',
+                              textColor: const Color(0xFFE9416C),
+                              onTap: () async {
+                                pop('delete');
+                                final commentId = targetComment['id'];
+                                if (commentId is! int || commentId == 0) return;
+
+                                // 樂觀刪除
+                                setState(() {
+                                  if (isReply) {
+                                    final parentId = targetComment['parent_id'];
+                                    final idx = comments.indexWhere((c) => c['id'] == parentId);
+                                    if (idx != -1) {
+                                      final p = comments[idx] as Map;
+                                      final replies = List.from((p['replies'] as List?) ?? []);
+                                      replies.removeWhere((r) => r['id'] == commentId);
+                                      p['replies'] = replies;
+                                      p['has_replies'] = replies.isNotEmpty;
+                                      p['reply_count'] = replies.length;
+                                    }
+                                  } else {
+                                    comments.removeWhere((c) => c['id'] == commentId);
+                                  }
+                                });
+
+                                final ok = await deleteComment(commentId);
+                                if (!mounted) return;
+                                if (!ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('刪除失敗，請稍後再試')),
+                                  );
+                                } else {
+                                  HapticFeedback.lightImpact();
+                                  ref.read(talesFeedProvider.notifier).state = [
+                                    for (final tale in ref.read(talesFeedProvider))
+                                      if (tale['id'] == id)
+                                        {
+                                          ...tale,
+                                          'comment_count':
+                                              ((tale['comment_count'] ?? 0) as int) - 1,
+                                        }
+                                      else
+                                        tale,
+                                  ];
+                                }
+                              },
+                            ),
+                        ];
+                      });
                     },
                   ),
                 ),
                 Divider(),
                 if (_replyMode) ...[
                   ReplyIndicator(
-                    name: replyTemp!['user_name'],
+                    label: '正在回覆 ${replyTemp!['user_name']}',
                     onCancel: () {
                       setState(() {
                         replyTemp = null;
                         _replyMode = false;
+                        _mentions.clear();
+                        _controller.clear();
+                        _focusNode.unfocus();
+                      });
+                    },
+                  ),
+                ],
+                if (_editMode) ...[
+                  ReplyIndicator(
+                    label: '編輯中',
+                    onCancel: () {
+                      setState(() {
+                        _editMode = false;
+                        _editingCommentId = null;
+                        _controller.clear();
                         _focusNode.unfocus();
                       });
                     },
@@ -382,13 +633,95 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                     final text = _controller.text.trim();
                     if (text.isEmpty) return;
 
-                    if (_replyMode) {
-                      futureData = postReplyComment(id, replyTemp!['id'], text);
-                      futureData.then((result) {
-                        print(result);
+                    // ✅ 編輯模式
+                    if (_editMode && _editingCommentId != null) {
+                      final editId = _editingCommentId!;
+                      final original = _findCommentById(editId);
+
+                      setState(() {
+                        // 樂觀更新畫面
+                        if (original != null) original['content'] = text;
+                        _editMode = false;
+                        _editingCommentId = null;
+                        _controller.clear();
+                        _focusNode.unfocus();
                       });
-                      _controller.clear();
-                      _focusNode.unfocus();
+
+                      editComment(editId, text).then((ok) {
+                        if (!mounted) return;
+                        if (!ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('編輯失敗，請稍後再試')),
+                          );
+                        } else {
+                          HapticFeedback.lightImpact();
+                        }
+                      });
+                      return;
+                    }
+
+                    if (_replyMode) {
+                      final parent = replyTemp!;
+                      final parentId = parent['id'] as int;
+
+                      // ✅ 樂觀更新：立即把新回覆塞進父留言的 replies
+                      final pendingReply = <String, dynamic>{
+                        'id': 0,
+                        'content': text,
+                        'parent_id': parentId,
+                        'user_id': user?['id'],
+                        'user_name': user?['name'],
+                        'user_avatar_url': user?['avatar_url'],
+                        'like_count': 0,
+                        'is_liked': false,
+                        'time_added': null,
+                      };
+
+                      setState(() {
+                        final idx = comments.indexWhere((c) => c['id'] == parentId);
+                        if (idx != -1) {
+                          final parentComment = comments[idx] as Map;
+                          final List replies = (parentComment['replies'] as List?) ?? [];
+                          parentComment['replies'] = [...replies, pendingReply];
+                          parentComment['has_replies'] = true;
+                          parentComment['reply_count'] =
+                              ((parentComment['reply_count'] ?? parentComment['replies_count'] ?? 0) as int) + 1;
+                        }
+                        _controller.clear();
+                        _focusNode.unfocus();
+                        _replyMode = false;
+                        replyTemp = null;
+                      });
+
+                      // ✅ 背景打 API（帶 mentions）
+                      final mentionsSnapshot = List<int>.from(_mentions);
+                      _mentions.clear();
+                      postReplyComment(id, parentId, text,
+                              mentions: mentionsSnapshot)
+                          .then((result) {
+                        if (!mounted) return;
+                        if (result['message'] == 'Comment created successfully') {
+                          final data = result['data'];
+                          setState(() {
+                            pendingReply['time_added'] = data?['time_added'];
+                            if (data?['id'] != null) {
+                              pendingReply['id'] = data['id'];
+                            }
+                          });
+                          HapticFeedback.lightImpact();
+                          widget.onCommentAdded?.call();
+                          ref.read(talesFeedProvider.notifier).state = [
+                            for (final tale in ref.read(talesFeedProvider))
+                              if (tale['id'] == id)
+                                {
+                                  ...tale,
+                                  'comment_count': (tale['comment_count'] as int) + 1,
+                                }
+                              else
+                                tale,
+                          ];
+                        }
+                      });
                       return;
                     }
 

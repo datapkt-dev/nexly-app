@@ -82,4 +82,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collection => 'Collection';
+
+  @override
+  String get no_tales => 'No posts yet';
+
+  @override
+  String get account_banned_title => 'Account Suspended';
+
+  @override
+  String get account_banned_message => 'Your account has been suspended due to a violation of our terms of service. Please contact support if you have any questions.';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get no_notifications => 'No notifications yet';
 }

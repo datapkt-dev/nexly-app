@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../features/tales/presentation/widgets/report.dart';
 import '../../account_setting/controller/accountSetting_controller.dart';
-import 'share_bottom_sheet.dart';
 
 class ActionMenuBottomSheet extends StatelessWidget {
   const ActionMenuBottomSheet({
@@ -94,8 +93,8 @@ class ActionMenuBottomSheet extends StatelessWidget {
                 return await controller.postReport(
                   report.targetType.name,
                   report.targetId,
-                  report.reason.name,
-                  // note: report.note,
+                  report.reasonId,
+                  reasonDetail: report.note,
                 );
               },
             );

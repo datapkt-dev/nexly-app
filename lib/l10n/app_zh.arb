@@ -24,5 +24,10 @@
   "personal": "個人",
   "group": "團體",
   "cooperation": "協作",
-  "collection": "收藏"
+  "collection": "收藏",
+  "no_tales": "目前沒有貼文",
+  "account_banned_title": "帳號已被停用",
+  "account_banned_message": "您的帳號因違反使用條款已被停用，如有疑問請聯絡客服。",
+  "confirm": "確定",
+  "no_notifications": "目前沒有通知"
 }

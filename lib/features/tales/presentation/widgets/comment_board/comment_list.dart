@@ -15,6 +15,7 @@ class CommentList extends StatelessWidget {
   final Future<String?> Function(
       BuildContext context,
       Offset globalPosition,
+      Map comment,
       ) onLongPressMenu;
 
   const CommentList({
@@ -75,9 +76,9 @@ class CommentList extends StatelessWidget {
 
     return ListView.separated(
       controller: scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.zero,
       itemCount: totalCount,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => const SizedBox.shrink(),
       itemBuilder: (context, index) {
         // 底部 shimmer / 沒有更多
         if (index >= comments.length) {
@@ -94,51 +95,48 @@ class CommentList extends StatelessWidget {
         final isHighlighted = highlightCommentId != null && comment['id'] == highlightCommentId;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 500),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           decoration: BoxDecoration(
             color: isHighlighted
                 ? const Color(0xFFF46C3F).withValues(alpha: 0.1)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+                : Colors.white,
           ),
           child: Column(
-          children: [
-            CommentItem(
-              comment: comment,
-              onLike: () => onLike(comment),
-              onReply: () => onReply(comment),
-              onLongPressMenu: onLongPressMenu,
-            ),
-            if (comment['has_replies'] == true)
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Column(
+            children: [
+              // ── 主留言（Figma: padding 16/8）──
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: CommentItem(
+                  comment: comment,
+                  onLike: () => onLike(comment),
+                  onReply: () => onReply(comment),
+                  onLongPressMenu: onLongPressMenu,
+                ),
+              ),
+              // ── 回覆清單（Figma: padding top 8 / left 64 / right 16 / bottom 8）──
+              if (comment['has_replies'] == true && comment['replies'] is List)
+                Column(
                   children: List.generate(
-                    comment['replies'].length,
+                    (comment['replies'] as List).length,
                         (i) {
                       final reply = comment['replies'][i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(width: 48),
-                            Expanded(
-                              child: CommentItem(
-                                comment: reply,
-                                onLike: () => onLike(reply),
-                                onReply: null,
-                                onLongPressMenu: onLongPressMenu,
-                              ),
-                            ),
-                          ],
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(
+                          top: 8, left: 64, right: 16, bottom: 8,
+                        ),
+                        child: CommentItem(
+                          comment: reply,
+                          isReply: true,
+                          onLike: () => onLike(reply),
+                          onReply: null,
+                          onLongPressMenu: onLongPressMenu,
                         ),
                       );
                     },
                   ),
                 ),
-              ),
-          ],
+            ],
           ),
         );
       },

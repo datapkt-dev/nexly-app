@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../controller/notification_controller.dart';
 import '../widgets/NotificationItemShimmer.dart';
@@ -26,19 +27,6 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
     });
   }
 
-  void _readAll() async {
-    await notificationController.postReadAll();
-    // ✅ 後端只清數字，前端手動把所有通知標為已讀（清紅點 + 淺色背景）
-    setState(() {
-      if (notifications != null) {
-        for (final n in notifications!) {
-          n['is_read'] = true;
-        }
-      }
-    });
-    _refreshUnreadCount();
-  }
-
   void _readOne(id) async {
     await notificationController.postReadOne(id);
     _refreshUnreadCount();
@@ -57,6 +45,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return SafeArea(
       child: Column(
         children: [
@@ -74,20 +63,6 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: _readAll,
-                child: Text(
-                  '全部已讀',
-                  style: TextStyle(
-                    color: const Color(0xFF333333),
-                    fontSize: 16,
-                    fontFamily: 'PingFang TC',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ],
           ),
           Expanded(
             child: RefreshIndicator(
@@ -99,14 +74,14 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                   ? const NotificationItemShimmer()
                   : notifications!.isEmpty
                       ? ListView(
-                          children: const [
-                            SizedBox(height: 120),
+                          children: [
+                            const SizedBox(height: 120),
                             Center(
                               child: Column(
                                 children: [
-                                  Icon(Icons.notifications_none, size: 48, color: Color(0xFFD9D9D9)),
-                                  SizedBox(height: 12),
-                                  Text('目前沒有通知', style: TextStyle(color: Color(0xFF838383), fontSize: 16)),
+                                  const Icon(Icons.notifications_none, size: 48, color: Color(0xFFD9D9D9)),
+                                  const SizedBox(height: 12),
+                                  Text(t.no_notifications, style: const TextStyle(color: Color(0xFF838383), fontSize: 16)),
                                 ],
                               ),
                             ),

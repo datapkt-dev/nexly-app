@@ -24,5 +24,10 @@
   "personal": "Personal",
   "group": "Group",
   "cooperation": "Cooperation",
-  "collection": "Collection"
+  "collection": "Collection",
+  "no_tales": "No posts yet",
+  "account_banned_title": "Account Suspended",
+  "account_banned_message": "Your account has been suspended due to a violation of our terms of service. Please contact support if you have any questions.",
+  "confirm": "Confirm",
+  "no_notifications": "No notifications yet"
 }

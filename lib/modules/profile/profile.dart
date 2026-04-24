@@ -232,7 +232,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
                     if (snapshot.data == null || snapshot.data!['data'] == null) {
                       return ProfileUserShimmer();
                     }
-                    final account = snapshot.data!['data'];
+                    final raw = snapshot.data!['data'] as Map;
+                    // 相容兩種 API 回傳格式：
+                    //   1) { data: { name, avatar_url, ... } }
+                    //   2) { data: { user: { name, avatar_url, ... }, ... } }
+                    final account = (raw['user'] is Map)
+                        ? {...raw, ...(raw['user'] as Map)}
+                        : raw;
                     _isFollowing ??= account['is_following'] ?? false;
                     return _buildHeader(context, account, info, category);
                   },
@@ -742,12 +748,13 @@ class _ProfilePageState extends ConsumerState<Profile> {
     }
 
     if (items.isEmpty && !hasMore) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
+      final t = AppLocalizations.of(context)!;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
           child: Text(
-            '目前沒有貼文',
-            style: TextStyle(color: Color(0xFF838383), fontSize: 14),
+            t.no_tales,
+            style: const TextStyle(color: Color(0xFF838383), fontSize: 14),
           ),
         ),
       );
@@ -1048,8 +1055,8 @@ class _ProfilePageState extends ConsumerState<Profile> {
                 return await controller.postReport(
                   report.targetType.name,
                   report.targetId,
-                  report.reason.name,
-                  // note: report.note,
+                  report.reasonId,
+                  reasonDetail: report.note,
                 );
               },
             );

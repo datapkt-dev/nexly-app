@@ -11,6 +11,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../app/config/app_config.dart';
 
+/// 帳號被停用時拋出此例外
+class UserBannedException implements Exception {
+  const UserBannedException();
+}
+
 class AuthService {
   final String baseUrl = AppConfig.baseURL;
   final _storage = const FlutterSecureStorage();
@@ -44,6 +49,9 @@ class AuthService {
     try {
       final response = await http.post(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
+      if (responseData['code'] == 40300007 || responseData['message'] == 'User is banned') {
+        throw const UserBannedException();
+      }
       if (response.statusCode == 200) {
         await saveToken(responseData['data']['access_token']);
         await saveProfile(responseData['data']['user']);
@@ -51,6 +59,7 @@ class AuthService {
       print(responseData);
       return responseData;
     } catch (e) {
+      if (e is UserBannedException) rethrow;
       print('請求錯誤：$e');
       return {'error': e.toString()};
     }
@@ -118,11 +127,16 @@ class AuthService {
 
 
     if (resp.statusCode >= 200 && resp.statusCode < 300) {
-      await saveToken(jsonDecode(resp.body)['data']['access_token']);
-      await saveProfile(jsonDecode(resp.body)['data']['user']);
-      print(jsonDecode(resp.body)['data']['user']);
-      return jsonDecode(resp.body) as Map<String, dynamic>;
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      await saveToken(body['data']['access_token']);
+      await saveProfile(body['data']['user']);
+      print(body['data']['user']);
+      return body;
     } else {
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      if (body['code'] == 40300007 || body['message'] == 'User is banned') {
+        throw const UserBannedException();
+      }
       throw Exception('HTTP ${resp.statusCode}: ${resp.body}');
     }
   }
@@ -146,8 +160,8 @@ class AuthService {
           final backend = await authWithThirdParty(); // 這個方法裡已會抓 currentUser 的 token
           // debugPrint('third-party OK (web): $backend');
         } catch (e) {
+          if (e is UserBannedException) rethrow;
           debugPrint('third-party (web) failed: $e');
-          // 視需求：要不要在後端失敗時登出/阻擋
         }
         return cred;
       }
@@ -194,9 +208,8 @@ class AuthService {
         final backend = await authWithThirdParty(); // 內部會以 currentUser 重新抓 token
         // debugPrint('third-party OK: $backend');
       } catch (e) {
+        if (e is UserBannedException) rethrow;
         debugPrint('third-party login failed: $e');
-        // 視需求決定是否要 throw，或僅提示使用者後端登入失敗
-        // rethrow; // 若你要把失敗傳回 UI，就打開這行
       }
 
       return userCred;
@@ -228,6 +241,7 @@ class AuthService {
       try {
         await authWithThirdParty(provider: 'apple');
       } catch (e) {
+        if (e is UserBannedException) rethrow;
         debugPrint('third-party (apple) login failed: $e');
       }
 

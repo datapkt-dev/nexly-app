@@ -244,6 +244,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collection'**
   String get collection;
+
+  /// No description provided for @no_tales.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet'**
+  String get no_tales;
+
+  /// No description provided for @account_banned_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Suspended'**
+  String get account_banned_title;
+
+  /// No description provided for @account_banned_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been suspended due to a violation of our terms of service. Please contact support if you have any questions.'**
+  String get account_banned_message;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @no_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get no_notifications;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

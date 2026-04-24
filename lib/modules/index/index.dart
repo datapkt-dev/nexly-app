@@ -96,12 +96,13 @@ class _IndexFrameState extends ConsumerState<Index> {
       });
     }
 
-    // ✅ 上傳完成 → 強制 Profile 重建
+    // ✅ 上傳完成 → 強制 Profile 重建 + 跳轉到個人頁面
     if (_wasUploading && !isUploading && uploadState.progress >= 1.0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
             _profileKey++;
+            contentIndex = 3; // 切到個人頁面
           });
         }
       });

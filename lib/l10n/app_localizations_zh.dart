@@ -82,4 +82,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get collection => '收藏';
+
+  @override
+  String get no_tales => '目前沒有貼文';
+
+  @override
+  String get account_banned_title => '帳號已被停用';
+
+  @override
+  String get account_banned_message => '您的帳號因違反使用條款已被停用，如有疑問請聯絡客服。';
+
+  @override
+  String get confirm => '確定';
+
+  @override
+  String get no_notifications => '目前沒有通知';
 }

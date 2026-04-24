@@ -159,24 +159,27 @@ class AccountSettingController {
     }
   }
 
-  Future<Map<String, dynamic>> postReport(String type, int id, String reason) async {
+  Future<Map<String, dynamic>> postReport(
+      String type, int id, int reasonId, {String? reasonDetail}) async {
     final url = Uri.parse('$baseUrl/reports');
     String? token = await authStorage.getToken();
 
     final headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // 假設 API 是 Bearer Token
+      'Authorization': 'Bearer $token',
     };
 
-    final body = jsonEncode({
-      "report_type": type, // tales user comment
+    final bodyMap = {
+      "report_type": type,
       "target_id": id,
-      "reason": "scam" // needs to be oneof bullying scam misinformation self_harm illegal_goods copyright other
-      // "reason_type": // must include when reason is other
-    });
+      "reason_id": reasonId,
+      if (reasonDetail != null && reasonDetail.isNotEmpty)
+        "reason_detail": reasonDetail,
+    };
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response =
+          await http.post(url, headers: headers, body: jsonEncode(bodyMap));
       final responseData = jsonDecode(response.body);
       print(responseData);
 

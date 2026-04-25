@@ -195,3 +195,9 @@ String countryName(String? code) {
   if (code == null || code.isEmpty) return '未設定';
   return countryCodeToName[code.toUpperCase()] ?? code;
 }
+
+/// 檢查是否為我們支援的國家代碼（用於從 device locale 預填時判斷）
+bool isSupportedCountry(String? code) {
+  if (code == null || code.isEmpty) return false;
+  return countryCodeToName.containsKey(code.toUpperCase());
+}

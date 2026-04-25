@@ -49,8 +49,38 @@ class AccountSettingController {
     try {
       final response = await http.patch(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
-      await authStorage.saveProfile(responseData['data']['user']);
+      if (responseData is Map &&
+          responseData['data'] is Map &&
+          (responseData['data'] as Map)['user'] is Map) {
+        await authStorage.saveProfile(
+          Map<String, dynamic>.from(
+              (responseData['data'] as Map)['user'] as Map),
+        );
+      }
 
+      return Map<String, dynamic>.from(responseData as Map);
+    } catch (e) {
+      print('請求錯誤：$e');
+      return {'error': e.toString()};
+    }
+  }
+
+  /// 檢查社交帳號（account）是否可用。
+  /// 回傳格式：
+  ///   { "account": "...", "available": true }                           // 可用
+  ///   { "account": "...", "available": false, "reason": "..." }         // 不可用
+  Future<Map<String, dynamic>> checkAccountAvailability(String account) async {
+    final url = Uri.parse('$baseUrl/users/me/check-account?account=${Uri.encodeQueryComponent(account)}');
+    String? token = await authStorage.getToken();
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
       return responseData;
     } catch (e) {
       print('請求錯誤：$e');

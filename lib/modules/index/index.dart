@@ -10,7 +10,6 @@ import 'package:nexly/modules/index/pages/notification_page.dart';
 import 'package:nexly/modules/index/pages/search_page.dart';
 import '../../features/tales/presentation/pages/create_tale_page.dart';
 import '../../features/tales/presentation/pages/tale_feed_page.dart';
-import '../../unit/auth_service.dart';
 import '../profile/profile.dart';
 import '../providers.dart';
 import 'controller/notification_controller.dart';
@@ -39,24 +38,12 @@ class _IndexFrameState extends ConsumerState<Index> {
   }
 
   Future<void> _loadData() async {
-    // final current = ref.read(userProfileProvider);
-    //
-    // // ⭐ 已經有資料就直接跳過
-    // if (current.isNotEmpty) {
-    //   debugPrint('userProfileProvider 已有資料，略過讀取');
-    //   return;
-    // }
+    // 透過共用 UserNotifier 初始化：先讀 secure storage 快取秒開，
+    // 再背景刷新 /me。任何頁面都能訂閱 userProvider 拿到同一份資料。
+    await ref.read(userProvider.notifier).bootstrap();
 
-    final authStorage = AuthService();
-    final result = await authStorage.getProfile();
-
-    if (result == null) return;
-
-    ref.read(userProfileProvider.notifier).state =
-    Map<String, dynamic>.from(result);
-
-    // ✅ 登入後立即預快取大頭照到磁碟快取
-    final avatarUrl = result['avatar_url'];
+    // 登入後立即預快取大頭照到磁碟快取
+    final avatarUrl = ref.read(userProvider)['avatar_url'];
     if (avatarUrl != null && avatarUrl.toString().isNotEmpty && mounted) {
       try {
         await precacheImage(CachedNetworkImageProvider(avatarUrl), context);

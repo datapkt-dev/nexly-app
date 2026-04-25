@@ -33,6 +33,7 @@ class _ContentEditState extends ConsumerState<CreateTalePage> {
   ];
   List<Map<String, dynamic>> categories = [];
   String filePath = '';
+  bool completed = false;
 
   Future<Map<String, dynamic>> uploadImg(String filePath) async {
     final String baseUrl = AppConfig.baseURL;
@@ -177,6 +178,7 @@ class _ContentEditState extends ConsumerState<CreateTalePage> {
         'content': content,
         'image_url': imageUrl,
         'publish_type': 'personal',
+        'is_completed': completed,
         if (selectedCategory.isNotEmpty && selectedCategory['id'] != null)
           'category_id': selectedCategory['id'],
       };
@@ -357,6 +359,40 @@ class _ContentEditState extends ConsumerState<CreateTalePage> {
                             }
                           });
                         },
+                      ),
+                      SizedBox(height: 20,),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle_outline_rounded, size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              '完成Tales',
+                              style: TextStyle(
+                                color: const Color(0xFF333333),
+                                fontSize: 14,
+                                fontFamily: 'PingFang TC',
+                                fontWeight: FontWeight.w400,
+                                height: 1.50,
+                              ),
+                            ),
+                            Spacer(),
+                            Switch(
+                              value: completed,
+                              activeColor: Colors.white,
+                              activeTrackColor: const Color(0xFFD63C95),
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: const Color(0xFFE5E5E5),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  completed = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                       // SizedBox(height: 20,),
                       // Padding(

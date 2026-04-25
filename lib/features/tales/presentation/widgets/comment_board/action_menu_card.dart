@@ -20,7 +20,7 @@ class ActionMenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 120),
+      width: 161, // 固定寬度，避免放在 Positioned 中因為 unbounded 寬度造成畫面卡死
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -81,7 +81,7 @@ Future<String?> showActionMenuAt(
   }
 
   final screen = MediaQuery.of(context).size;
-  const double cardMinWidth = 140;
+  const double cardMinWidth = 161;
   final double cardApproxHeight = 44.0 * probeItems.length + 16;
 
   double left = globalPosition.dx;

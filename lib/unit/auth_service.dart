@@ -22,6 +22,16 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _gsiInitialized = false; // 只初始化一次
 
+  /// 第三方登入後 server 回傳的 is_new_user 旗標。
+  /// signInWithGoogle / signInWithApple 流程結束後，呼叫端可讀取此欄位
+  /// 來決定是否導向 onboarding 引導頁。
+  bool _lastIsNewUser = false;
+  bool get lastIsNewUser => _lastIsNewUser;
+
+  /// 第三方登入回傳的完整 user，供呼叫端在登入成功後寫入 userProvider
+  Map<String, dynamic>? _lastUser;
+  Map<String, dynamic>? get lastUser => _lastUser;
+
   /// 監聽登入狀態（可選）
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
@@ -130,6 +140,10 @@ class AuthService {
       final body = jsonDecode(resp.body) as Map<String, dynamic>;
       await saveToken(body['data']['access_token']);
       await saveProfile(body['data']['user']);
+      _lastIsNewUser = body['data']['is_new_user'] == true;
+      _lastUser = (body['data']['user'] is Map)
+          ? Map<String, dynamic>.from(body['data']['user'] as Map)
+          : null;
       print(body['data']['user']);
       return body;
     } else {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -12,29 +13,27 @@ import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
 import '../language_setting/language_setting.dart';
+import '../providers.dart';
 import 'controller/accountSetting_controller.dart';
 import 'widgets/country_data.dart';
-import 'widgets/country_picker_sheet.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
-class AccountSetting extends StatefulWidget {
+class AccountSetting extends ConsumerStatefulWidget {
   const AccountSetting({super.key});
 
   @override
-  State<AccountSetting> createState() => _ProfileState();
+  ConsumerState<AccountSetting> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<AccountSetting> {
+class _ProfileState extends ConsumerState<AccountSetting> {
   final AuthService authStorage = AuthService();
   final AccountSettingController accountSettingController = AccountSettingController();
-  Future<Map<String, dynamic>> futureData = Future.value({});
 
-  Map<String, dynamic>? user;
-  Map<String, dynamic>? profile;
+  /// 黑名單為此頁面專屬狀態，不放進全域 user provider。
   List? blockList;
-  // Map<String, dynamic> userProfile = {};
+  bool _blackListLoading = true;
 
   final genderMap = {
     "M": "男性",
@@ -43,53 +42,30 @@ class _ProfileState extends State<AccountSetting> {
   };
   String displayPhone = '';
 
-  String temp = '';
+  @override
+  void initState() {
+    super.initState();
+    // user 由 ref.watch(userProvider) 取得，這裡只負責：
+    // 1) 觸發初始化及背景刷新（bootstrap 會先讀 secure storage，再背景打 /me）
+    // 2) 載入此頁專屬的黑名單
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(userProvider.notifier).bootstrap();
+      _loadBlackList();
+    });
+  }
 
-  Future<Map<String, dynamic>> _loadUser() async {
-    user = await authStorage.getProfile();
-    print('loadUser');
-    print(user);
-    if (user == null) {
-      throw Exception('尚未登入或找不到使用者資料');
-    }
-
-    // 兩個請求併發，提高速度
-    final f1 = accountSettingController.getUserProfile(user?['id']);
-    final f2 = accountSettingController.getUserBlackList();
-    final results = await Future.wait([f1, f2]);
-
-    final userRes = results[0];
-    final blackRes = results[1];
-
-    // 相容兩種 API 回傳格式：
-    //   1) { data: { name, ... } }
-    //   2) { data: { user: { name, ... }, ... } }
-    final rawUserData = userRes['data'];
-    final Map<String, dynamic> userData = (rawUserData is Map && rawUserData['user'] is Map)
-        ? {
-            ...Map<String, dynamic>.from(rawUserData),
-            ...Map<String, dynamic>.from(rawUserData['user'] as Map),
-          }
-        : Map<String, dynamic>.from(rawUserData ?? {});
-
-    // API 回來後立即更新 state（不依賴 .then 非同步回呼，避免 race condition）
-    if (mounted) {
+  Future<void> _loadBlackList() async {
+    try {
+      final res = await accountSettingController.getUserBlackList();
+      if (!mounted) return;
       setState(() {
-        user = userData;
-        temp = (user?['avatar_url'] ?? '') as String;
-        profile = userData;
-        blockList = blackRes['data']?['items'];
+        blockList = res['data']?['items'];
+        _blackListLoading = false;
       });
-    } else {
-      user = userData;
-      profile = userData;
-      blockList = blackRes['data']?['items'];
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _blackListLoading = false);
     }
-
-    return {
-      'user'     : userData,
-      'blacklist': List<Map<String, dynamic>>.from(blackRes['data']?['items'] ?? []),
-    };
   }
 
   Future<Map<String, dynamic>> uploadImg(String filePath) async {
@@ -99,11 +75,11 @@ class _ProfileState extends State<AccountSetting> {
       return {'error': 'File not found: $filePath'};
     }
 
-    final uri = Uri.parse('$baseUrl/upload-image'); // 若有 HTTPS 請改 https
+    final uri = Uri.parse('$baseUrl/upload-image');
     final request = http.MultipartRequest('POST', uri);
 
     request.files.add(
-      await http.MultipartFile.fromPath('files', filePath), // 不帶 contentType
+      await http.MultipartFile.fromPath('files', filePath),
     );
 
     final streamed = await request.send();
@@ -124,12 +100,7 @@ class _ProfileState extends State<AccountSetting> {
     };
 
     final body = jsonEncode({
-      // "name" : userProfile['name'],
-      // "birthday" : userProfile['birthday'],
-      // "gender" : userProfile['gender'],
-      // "country" : "TW",
-      "avatar_url" : newImgUrl,
-      // "background_url" : ""
+      "avatar_url": newImgUrl,
     });
 
     try {
@@ -137,12 +108,11 @@ class _ProfileState extends State<AccountSetting> {
       final responseData = jsonDecode(response.body);
 
       if (responseData['message'] == 'User updated successfully') {
-        setState(() {
-          futureData = _loadUser();
-          futureData.then((result) async {
-            await authStorage.saveProfile(result['user']);
-          });
-        });
+        // 立即更新全域 user state，全 App 訂閱者（首頁頭像、留言區作者卡…）
+        // 一起同步，無須各自重打 API。
+        await ref
+            .read(userProvider.notifier)
+            .merge({'avatar_url': newImgUrl});
       }
 
       return responseData;
@@ -150,12 +120,6 @@ class _ProfileState extends State<AccountSetting> {
       print('請求錯誤：$e');
       return {'error': e.toString()};
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    futureData = _loadUser();
   }
 
   Widget _buildShimmer() {
@@ -224,12 +188,16 @@ class _ProfileState extends State<AccountSetting> {
 
   @override
   Widget build(BuildContext context) {
+    // 全 App 共用的 user 來源
+    final user = ref.watch(userProvider);
+    final temp = (user['avatar_url'] ?? '') as String;
+    final hasUser = user.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        // iconTheme: const IconThemeData(color: Color(0xFF333333)),
         title: Text(
           '帳號設定',
           style: TextStyle(
@@ -239,45 +207,17 @@ class _ProfileState extends State<AccountSetting> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          // TextButton(
-          //   onPressed: () {
-          //     setState(() {
-          //       futureData = editUserImg('');
-          //     });
-          //   },
-          //   child: Text(
-          //     'Block',
-          //     style: TextStyle(
-          //       color: const Color(0xFF333333),
-          //       fontSize: 16,
-          //       fontFamily: 'PingFang TC',
-          //       fontWeight: FontWeight.w400,
-          //     ),
-          //   ),
-          // ),
-        ],
+        actions: const [],
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              FutureBuilder(
-                future: futureData,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildShimmer();
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        '發生錯誤: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red, fontSize: 16),
-                      ),
-                    );
-                  }
-                  return Column(
+              if (!hasUser)
+                _buildShimmer()
+              else
+                Column(
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -331,25 +271,10 @@ class _ProfileState extends State<AccountSetting> {
                               ),
                               onImagePicked: (imgRoute) async {
                                 print('success pick');
-                                setState(() {
-                                  futureData = uploadImg(imgRoute);
-                                  futureData.then((result) {
-                                    if (result['message'] == 'Upload successful') {
-                                      futureData = editUserImg(result['data']['urls'][0]);
-                                    }
-                                    // editUserImg(newImgUrl);
-                                  });
-                                  // temp = imgRoute;
-                                });
-                                // final res = await uploadImg(imgRoute);
-                                // if (res.containsKey('error') && res['error'] != null) {
-                                //   print('有錯誤');
-                                //   print(res);
-                                // } else {//
-                                //   print('沒錯誤');
-                                //   print(res['local_urls'].first);
-                                //   editUserImg(res['local_urls'].first.toString());
-                                // }
+                                final upRes = await uploadImg(imgRoute);
+                                if (upRes['message'] == 'Upload successful') {
+                                  await editUserImg(upRes['data']['urls'][0]);
+                                }
                               },
                             ),
                             SizedBox(width: 16,),
@@ -364,9 +289,9 @@ class _ProfileState extends State<AccountSetting> {
                                       children: [
                                         // 名字：可多行
                                         Text(
-                                          '${user?['name'] ?? '-'}',
+                                          '${user['name'] ?? '-'}',
                                           softWrap: true,
-                                          overflow: TextOverflow.visible, // 讓長字串可往下換行顯示
+                                          overflow: TextOverflow.visible,
                                           style: const TextStyle(
                                             color: Color(0xFF333333),
                                             fontSize: 16,
@@ -403,14 +328,10 @@ class _ProfileState extends State<AccountSetting> {
                                     onTap: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => ProfileEdit(userProfile: user)),
-                                      ).then((result) {
-                                        if (result == 'refresh') {
-                                          setState(() {
-                                            futureData = _loadUser();
-                                          });
-                                        }
-                                      });
+                                        MaterialPageRoute(builder: (_) => const ProfileEdit()),
+                                      );
+                                      // 編輯頁直接呼叫 userProvider.merge()，
+                                      // 不再需要從 pop 結果合併。
                                     },
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -548,7 +469,7 @@ class _ProfileState extends State<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  '${user?['name']}',
+                                  '${user['name']}',
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -573,7 +494,7 @@ class _ProfileState extends State<AccountSetting> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    user?['email'] ?? '-',
+                                    user['account'] ?? '-',
                                     textAlign: TextAlign.right,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -605,7 +526,7 @@ class _ProfileState extends State<AccountSetting> {
                                     child: Align(
                                       alignment: Alignment.centerRight,
                                       child: Text(
-                                        '${user?['bio']??'-'}',
+                                        '${user['bio']??'-'}',
                                         style: TextStyle(
                                           color: const Color(0xFF333333),
                                           fontSize: 14,
@@ -632,8 +553,8 @@ class _ProfileState extends State<AccountSetting> {
                                 Spacer(),
                                 Text(
                                   (() {
-                                    final v = user?['birthday'];
-                                    if (v is String && v.length >= 10) return v.substring(0, 10); // 取 YYYY-MM-DD
+                                    final v = user['birthday'];
+                                    if (v is String && v.length >= 10) return v.substring(0, 10);
                                     return '未輸入';
                                   })(),
                                   style: TextStyle(
@@ -659,7 +580,7 @@ class _ProfileState extends State<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  genderMap[user?['gender']] ?? '未輸入',
+                                  genderMap[user['gender']] ?? '未輸入',
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -683,7 +604,33 @@ class _ProfileState extends State<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  countryName(user?['country']),
+                                  countryName(user['country']),
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Divider(height: 40,),
+                            Row(
+                              children: [
+                                Text(
+                                  '🏙️ 城市',
+                                  style: TextStyle(
+                                    color: const Color(0xFF333333),
+                                    fontSize: 14,
+                                    fontFamily: 'PingFang TC',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Spacer(),
+                                Text(
+                                  (user['city'] ?? '').toString().isEmpty
+                                      ? '未輸入'
+                                      : user['city'].toString(),
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -707,7 +654,7 @@ class _ProfileState extends State<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  '${user?['email']}',
+                                  '${user['email']}',
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -722,9 +669,7 @@ class _ProfileState extends State<AccountSetting> {
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
+                  ),
               Container(
                 width: double.infinity,
                 margin: EdgeInsets.symmetric(vertical: 20),
@@ -756,52 +701,53 @@ class _ProfileState extends State<AccountSetting> {
                       ),
                     ),
                     SizedBox(height: 20,),
-                    // InkWell(
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         '🔒 隱私設定',
-                    //         style: TextStyle(
-                    //           color: const Color(0xFF333333),
-                    //           fontSize: 14,
-                    //           fontFamily: 'PingFang TC',
-                    //           fontWeight: FontWeight.w500,
-                    //         ),
-                    //       ),
-                    //       Spacer(),
-                    //       Icon(
-                    //         Icons.arrow_forward_ios,
-                    //         size: 16,
-                    //       ),
-                    //     ],
-                    //   ),
-                    //   onTap: () async {
-                    //     final step = await showModalBottomSheet(
-                    //       context: context,
-                    //       isScrollControlled: true,
-                    //       backgroundColor: Colors.transparent,
-                    //       builder: (ctx) => Privacy(
-                    //         dataPass: {
-                    //           "privacy_tales": profile?['privacy_tales'],
-                    //           "privacy_cotales": profile?['privacy_cotales'],
-                    //           "privacy_favorites": profile?['privacy_favorites'],
-                    //         },
-                    //       ),
-                    //     );
-                    //
-                    //     if (step == 'open_blacklist') {
-                    //       final res = await showModalBottomSheet<String>(
-                    //         context: context,
-                    //         isScrollControlled: true,
-                    //         backgroundColor: Colors.transparent,
-                    //         builder: (ctx) => BlackList(blockList: blockList),
-                    //       );
-                    //       print(res);
-                    //     }
-                    //
-                    //     _loadUser();
-                    //   },
-                    // ),
+                    InkWell(
+                      child: Row(
+                        children: [
+                          Text(
+                            '🔒 隱私設定',
+                            style: TextStyle(
+                              color: const Color(0xFF333333),
+                              fontSize: 14,
+                              fontFamily: 'PingFang TC',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                      onTap: () async {
+                        final step = await showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (ctx) => Privacy(
+                            dataPass: {
+                              "privacy_tales": user['privacy_tales'],
+                              "privacy_cotales": user['privacy_cotales'],
+                              "privacy_favorites": user['privacy_favorites'],
+                            },
+                          ),
+                        );
+
+                        if (step == 'open_blacklist') {
+                          final res = await showModalBottomSheet<String>(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (ctx) => BlackList(blockList: blockList),
+                          );
+                          print(res);
+                        }
+
+                        // 隱私設定可能在 bottom sheet 內被改動，回來後背景刷新
+                        ref.read(userProvider.notifier).refreshFromServer();
+                      },
+                    ),
                     Divider(height: 40,),
                     InkWell(
                       child: Row(
@@ -825,7 +771,7 @@ class _ProfileState extends State<AccountSetting> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ChangePWD(id: user?['id'],)),
+                          MaterialPageRoute(builder: (context) => ChangePWD(id: user['id'],)),
                         );
                       },
                     ),
@@ -928,6 +874,8 @@ class _ProfileState extends State<AccountSetting> {
                                             ),
                                             onTap: () async {
                                               await authStorage.logout();
+                                              // 清空全域 user state，避免下個帳號殘留
+                                              ref.read(userProvider.notifier).clear();
                                               Navigator.pushAndRemoveUntil(
                                                 context,
                                                 MaterialPageRoute(builder: (context) => const Login()),
@@ -1050,6 +998,8 @@ class _ProfileState extends State<AccountSetting> {
                                             onTap: () async {
                                               final res = await authStorage.delUser();
                                               if (res['message'] == 'User deleted successfully') {
+                                                await authStorage.logout();
+                                                ref.read(userProvider.notifier).clear();
                                                 Navigator.pushAndRemoveUntil(
                                                   context,
                                                   MaterialPageRoute(builder: (context) => const Login()),

@@ -1,21 +1,24 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 import 'package:nexly/modules/login/pages/forget.dart';
 import 'package:nexly/modules/login/pages/register.dart';
 import '../index/index.dart';
+import '../onboarding/onboarding_page.dart';
+import '../providers.dart';
 import 'package:nexly/unit/auth_service.dart';
 import '../../l10n/app_localizations.dart';
 
-class Login extends StatefulWidget {
+class Login extends ConsumerStatefulWidget {
   const Login({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  ConsumerState<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends ConsumerState<Login> {
   bool _obscure = true;
   bool _googleLoading = false;           // 👈 Google 登入 loading 狀態
   bool _appleLoading = false;            // 👈 Apple 登入 loading 狀態
@@ -65,15 +68,11 @@ class _LoginState extends State<Login> {
       if (cred == null) {
         _showSnack('已取消 Google 登入');
       } else {
-        // print(cred.credential);
         _showSnack('登入成功：${cred.user?.email ?? ''}');
         // 登入成功後註冊 FCM token
         _authService.activateFcmToken();
-        // 成功後導向首頁（用 replace 避免返回登入頁）
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const Index()),
-              (route) => false,
-        );
+        // 第三方登入：新使用者導向 onboarding，舊使用者直接進主頁
+        _routeAfterThirdParty();
       }
     } catch (e) {
       if (e is UserBannedException) {
@@ -97,10 +96,7 @@ class _LoginState extends State<Login> {
       } else {
         _showSnack('登入成功：${cred.user?.email ?? ''}');
         _authService.activateFcmToken();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const Index()),
-              (route) => false,
-        );
+        _routeAfterThirdParty();
       }
     } catch (e) {
       if (e is UserBannedException) {
@@ -111,6 +107,24 @@ class _LoginState extends State<Login> {
     } finally {
       if (mounted) setState(() => _appleLoading = false);
     }
+  }
+
+  /// 第三方登入後的路由決策：
+  /// - 新使用者（後端 third-party API 回傳 is_new_user = true）→ Onboarding 引導頁
+  /// - 老使用者 → 直接進主頁
+  void _routeAfterThirdParty() {
+    // ✅ 把 server 回傳的完整 user 寫進全域 provider，
+    // 確保 AccountSetting / ProfileEdit 立即看到 account / email 等私密欄位
+    final user = _authService.lastUser;
+    if (user != null) {
+      ref.read(userProvider.notifier).setUser(user);
+    }
+    final isNewUser = _authService.lastIsNewUser;
+    final next = isNewUser ? const OnboardingPage() : const Index();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => next),
+      (route) => false,
+    );
   }
 
   @override
@@ -355,6 +369,14 @@ class _LoginState extends State<Login> {
                             futureData = _authService.login(account, password);
                             futureData.then((result) {
                               if (result['message'] == 'Login successful') {
+                                // ✅ 直接把登入回傳的完整 user 寫進全域 provider，
+                                // 這樣 AccountSetting / ProfileEdit 一進去就能看到 account / email 等私密欄位。
+                                final userMap = result['data']?['user'];
+                                if (userMap is Map) {
+                                  ref
+                                      .read(userProvider.notifier)
+                                      .setUser(Map<String, dynamic>.from(userMap));
+                                }
                                 _authService.activateFcmToken();
                                 Navigator.pushAndRemoveUntil(
                                   context,

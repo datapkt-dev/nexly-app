@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../features/notifications/notification_i18n.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers.dart';
@@ -130,7 +131,14 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            item['content'],
+                                            NotificationI18n.translate(
+                                              locale: Localizations.localeOf(context),
+                                              key: item['i18n_key'] as String?,
+                                              params: (item['i18n_params'] is Map)
+                                                  ? Map<String, dynamic>.from(item['i18n_params'] as Map)
+                                                  : null,
+                                              fallback: item['content'] as String?,
+                                            ),
                                             style: const TextStyle(
                                               color: Color(0xFF333333),
                                               fontSize: 14,

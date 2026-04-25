@@ -30,9 +30,9 @@ class _PrivacyState extends State<Privacy> {
   void initState() {
     super.initState();
     if (widget.dataPass != null) {
-      tales = widget.dataPass['privacy_tales'];
-      cooperate = widget.dataPass['privacy_cotales'];
-      collection = widget.dataPass['privacy_favorites'];
+      tales      = widget.dataPass['privacy_tales']     == true;
+      cooperate  = widget.dataPass['privacy_cotales']   == true;
+      collection = widget.dataPass['privacy_favorites'] == true;
     }
   }
 
@@ -45,7 +45,7 @@ class _PrivacyState extends State<Privacy> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),
@@ -95,7 +95,7 @@ class _PrivacyState extends State<Privacy> {
               const Spacer(),
               Switch(
                 value: tales,
-                activeColor: const Color(0xFFE9416C),
+                activeTrackColor: const Color(0xFFE9416C),
                 onChanged: (val) async {
                   setState(() {
                     tales = val;        // 先樂觀更新
@@ -118,7 +118,7 @@ class _PrivacyState extends State<Privacy> {
               const Spacer(),
               Switch(
                 value: cooperate,
-                activeColor: const Color(0xFFE9416C),
+                activeTrackColor: const Color(0xFFE9416C),
                 onChanged: (val) async {
                   setState(() {
                     cooperate = val;        // 先樂觀更新
@@ -141,7 +141,7 @@ class _PrivacyState extends State<Privacy> {
               const Spacer(),
               Switch(
                 value: collection,
-                activeColor: const Color(0xFFE9416C),
+                activeTrackColor: const Color(0xFFE9416C),
                 onChanged: (val) async {
                   setState(() {
                     collection = val;        // 先樂觀更新

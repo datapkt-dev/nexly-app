@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -98,30 +96,6 @@ class _IndexFrameState extends ConsumerState<Index> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
-      floatingActionButton: FloatingActionButton.small(
-        heroTag: 'copy_token',
-        backgroundColor: Colors.red,
-        onPressed: () async {
-          final user = FirebaseAuth.instance.currentUser;
-          if (user == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('尚未登入 Firebase')),
-            );
-            return;
-          }
-          final token = await user.getIdToken(true);
-          if (token != null) {
-            await Clipboard.setData(ClipboardData(text: token));
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('✅ Firebase ID Token 已複製到剪貼簿')),
-              );
-            }
-          }
-        },
-        child: const Icon(Icons.copy, color: Colors.white, size: 18),
-      ),
       body: IndexedStack(
         index: contentIndex,
         children: [

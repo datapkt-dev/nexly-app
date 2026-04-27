@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -331,6 +332,10 @@ class _ProfilePageState extends ConsumerState<Profile> {
     final String primary = nameStr.isNotEmpty ? nameStr : accountStr;
     // 副標題：一律顯示 email
     final String secondary = emailStr;
+    // 國旗 emoji（後端從 country 推導好回傳）
+    final String countryFlag = (myself
+            ? (liveUser['country_flag'] ?? account['country_flag'])
+            : account['country_flag']) ?.toString() ?? '';
 
     return Row(
       children: [
@@ -356,16 +361,30 @@ class _ProfilePageState extends ConsumerState<Profile> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                primary.isEmpty ? '-' : primary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: const Color(0xFF333333),
-                  fontSize: 16,
-                  fontFamily: 'PingFang TC',
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      primary.isEmpty ? '-' : primary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF333333),
+                        fontSize: 16,
+                        fontFamily: 'PingFang TC',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  if (countryFlag.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      countryFlag,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ],
               ),
               if (secondary.isNotEmpty)
                 Text(
@@ -1045,16 +1064,39 @@ class _ProfilePageState extends ConsumerState<Profile> {
       constraints: const BoxConstraints(minWidth: 180),
       itemBuilder: (_) => const [
         PopupMenuItem(value: 0, child: Text('帳號設定')),
+        PopupMenuItem(value: 1, child: Text('複製 Token')),
       ],
-      onSelected: (_) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AccountSetting()),
-        ).then((result) {
-          setState(() {
-            futureUser = profileController.getProfile(widget.userId);
+      onSelected: (value) async {
+        if (value == 0) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AccountSetting()),
+          ).then((result) {
+            setState(() {
+              futureUser = profileController.getProfile(widget.userId);
+            });
           });
-        });
+          return;
+        }
+        if (value == 1) {
+          // 複製 Firebase ID Token（給後端 Debug 用）
+          final fbUser = FirebaseAuth.instance.currentUser;
+          if (fbUser == null) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('尚未登入 Firebase')),
+            );
+            return;
+          }
+          final token = await fbUser.getIdToken(true);
+          if (token != null) {
+            await Clipboard.setData(ClipboardData(text: token));
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('✅ Firebase ID Token 已複製到剪貼簿')),
+            );
+          }
+        }
       },
     );
   }

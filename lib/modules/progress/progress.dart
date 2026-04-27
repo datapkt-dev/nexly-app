@@ -208,34 +208,86 @@ class _ProgressState extends State<Progress> {
                           ),
                           const SizedBox(height: 10),
                           Expanded(
-                            child: ListView.separated(
+                            child: Builder(builder: (_) {
+                              // ✅ 根據 tab 篩選：0 = 已完成、1 = 未完成
+                              final List rawList = data[current] ?? [];
+                              final List filtered = rawList.where((t) {
+                                final completed = t['is_completed'] == true;
+                                return selectedTag == 0 ? completed : !completed;
+                              }).toList();
+
+                              // 已完成依 completed_at 倒序、未完成依 created_at 倒序
+                              filtered.sort((a, b) {
+                                final keyA = (selectedTag == 0
+                                        ? a['completed_at']
+                                        : a['created_at']) ??
+                                    '';
+                                final keyB = (selectedTag == 0
+                                        ? b['completed_at']
+                                        : b['created_at']) ??
+                                    '';
+                                return keyB.toString().compareTo(keyA.toString());
+                              });
+
+                              if (filtered.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 40),
+                                    child: Text(
+                                      selectedTag == 0
+                                          ? '尚無完成的活動'
+                                          : '尚無未完成的活動',
+                                      style: const TextStyle(
+                                        color: Color(0xFF838383),
+                                        fontSize: 14,
+                                        fontFamily: 'PingFang TC',
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return ListView.separated(
                               padding: const EdgeInsets.symmetric(vertical: 10),
-                              itemCount: data[current].length, // 你的資料長度
+                                itemCount: filtered.length,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (context, index) {
-                                final item = data[current][index];
+                                  final item = filtered[index];
                                 String formatDate(String iso) {
                                   final dt = DateTime.parse(iso).toLocal();
                                   return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
                                 }
+                                  // 已完成顯示 completed_at；未完成顯示 created_at
+                                  final dateStr = (selectedTag == 0
+                                          ? (item['completed_at'] ?? item['created_at'])
+                                          : item['created_at']) ??
+                                      '';
+                                  final imageUrl = (item['image_url'] ?? '').toString();
                                 return Row(
                                   children: [
-                                    // 圖片卡（給固定寬/高避免擠壓）
+                                      // 圖片卡（沒圖時顯示佔位）
                                     Container(
                                       width: 125,
                                       height: 95,
                                       decoration: ShapeDecoration(
-                                        image: DecorationImage(
-                                          image: NetworkImage('${item['image_url']}'),
+                                          color: const Color(0xFFE7E7E7),
+                                          image: imageUrl.isNotEmpty
+                                              ? DecorationImage(
+                                                  image: NetworkImage(imageUrl),
                                           fit: BoxFit.cover,
-                                        ),
+                                                )
+                                              : null,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(20),
                                         ),
                                       ),
+                                        child: imageUrl.isEmpty
+                                            ? const Icon(Icons.image_outlined,
+                                                color: Colors.grey)
+                                            : null,
                                     ),
                                     const SizedBox(width: 20),
-                                    // 右側文字塊
+                                      // 右側文字
                                     Expanded(
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
@@ -243,16 +295,17 @@ class _ProgressState extends State<Progress> {
                                         children: [
                                           Text(
                                             '${item['title']}',
-                                            style: TextStyle(
+                                              style: const TextStyle(
                                               color: Color(0xFF333333),
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          SizedBox(height: 6),
+                                            const SizedBox(height: 6),
+                                            if (dateStr.toString().isNotEmpty)
                                           Text(
-                                            formatDate(item['created_at']),
-                                            style: TextStyle(
+                                                formatDate(dateStr.toString()),
+                                                style: const TextStyle(
                                               color: Color(0xFF24B7BD),
                                               fontSize: 14,
                                               fontFamily: 'PingFang TC',
@@ -265,7 +318,8 @@ class _ProgressState extends State<Progress> {
                                   ],
                                 );
                               },
-                            ),
+                              );
+                            }),
                           ),
                         ],
                       ),

@@ -9,6 +9,7 @@ import 'package:nexly/modules/profile/widgets/ProfileTaleShimmer.dart';
 import 'package:nexly/modules/profile/widgets/ProfileUserShimmer.dart';
 import 'package:nexly/modules/progress/progress.dart';
 import '../../../components/widgets/LabeledProgressBar.dart';
+import '../../../components/utils/display_name.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/tales/presentation/pages/tale_detail_page.dart';
 import '../../features/tales/presentation/widgets/report.dart';
@@ -312,11 +313,32 @@ class _ProfilePageState extends ConsumerState<Profile> {
   }
 
   Widget _buildUserRow(Map account) {
+    // ✅ 若是自己的 profile，資料來源優先用全域 userProvider，
+    //   因為 /users/{id}/profile 公開端點為了隱私通常不回傳 account / email，
+    //   只有「自己」的登入回應 / /users/me 才有完整欄位。
+    final liveUser = ref.watch(userProvider);
+    final String accountStr = (myself
+            ? (liveUser['account'] ?? account['account'])
+            : account['account']) ?.toString() ?? '';
+    final String nameStr = (myself
+            ? (liveUser['name'] ?? account['name'])
+            : account['name']) ?.toString() ?? '';
+    final String emailStr = (myself
+            ? (liveUser['email'] ?? account['email'])
+            : account['email']) ?.toString() ?? '';
+
+    // 主標題：name 優先，沒有 name 就用 account
+    final String primary = nameStr.isNotEmpty ? nameStr : accountStr;
+    // 副標題：一律顯示 email
+    final String secondary = emailStr;
+
     return Row(
       children: [
         ClipOval(
           child: Image(
-            image: CachedNetworkImageProvider(account['avatar_url'] ?? ''),
+            image: CachedNetworkImageProvider(
+              (myself ? (liveUser['avatar_url'] ?? account['avatar_url']) : account['avatar_url']) ?? '',
+            ),
             width: 60,
             height: 60,
             fit: BoxFit.cover,
@@ -335,7 +357,7 @@ class _ProfilePageState extends ConsumerState<Profile> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${account['name']}',
+                primary.isEmpty ? '-' : primary,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -345,17 +367,18 @@ class _ProfilePageState extends ConsumerState<Profile> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Text(
-                '${account['account']}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: const Color(0xFF838383),
-                  fontSize: 14,
-                  fontFamily: 'PingFang TC',
-                  fontWeight: FontWeight.w400,
+              if (secondary.isNotEmpty)
+                Text(
+                  secondary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF838383),
+                    fontSize: 14,
+                    fontFamily: 'PingFang TC',
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -425,9 +448,14 @@ class _ProfilePageState extends ConsumerState<Profile> {
         return InkWell(
           onTap: isClickable
               ? () {
+            // ✅ 標題顯示 account 優先；自己的 profile 用 userProvider 兜底
+            final liveUser = ref.read(userProvider);
+            final acc = (myself ? liveUser['account'] : null) ?? account['account'];
+            final nm  = (myself ? liveUser['name']    : null) ?? account['name'];
+            final title = displayAccountOrName(acc, nm);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => FollowList(userId: account['id'], userName: account['name'], act: index-1,)),
+              MaterialPageRoute(builder: (context) => FollowList(userId: account['id'], userName: title, act: index-1,)),
             ).then((result) {
               setState(() {
                 futureUser = profileController.getProfile(widget.userId);

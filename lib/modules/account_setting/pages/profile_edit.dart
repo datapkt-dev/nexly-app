@@ -322,11 +322,15 @@ class _ProfileEditState extends ConsumerState<ProfileEdit> {
                                 controller: controllerName,
                                 maxLines: 1,
                                 textAlign: TextAlign.end,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   isCollapsed: true,                 // 關閉額外裝飾高度
                                   contentPadding: EdgeInsets.zero,   // 內距 0
-                                  hintText: '輸入您的姓名',
-                                  hintStyle: TextStyle(
+                                  // 若使用者把 name 清空，提示告訴他將會顯示
+                                  // 哪個帳號（與其他頁面顯示邏輯一致）
+                                  hintText: liveAccount.isEmpty
+                                      ? '輸入您的姓名'
+                                      : '留空將顯示為 $liveAccount',
+                                  hintStyle: const TextStyle(
                                     color: Color(0xFFB0B0B0),
                                     fontSize: 14,
                                     fontFamily: 'PingFang TC',

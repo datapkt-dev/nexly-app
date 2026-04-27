@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../components/utils/display_name.dart';
 import 'comment_avatar.dart';
 import 'comment_header.dart';
 
@@ -54,7 +55,10 @@ class CommentItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommentHeader(name: comment['user_name'] ?? ''),
+                // ✅ 一律顯示 account（社交帳號），不 fallback 到 name
+                CommentHeader(
+                  name: (comment['user_account'] ?? comment['account'] ?? '').toString(),
+                ),
                 const SizedBox(height: 4),
                 _buildContent(comment['content'] ?? ''),
                 const SizedBox(height: 4),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../app/config/app_config.dart';
+import '../../../../components/utils/display_name.dart';
 import '../../../../modules/profile/controller/profile_controller.dart';
 import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
@@ -159,7 +160,7 @@ class _LikeListState extends ConsumerState<LikeList> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${likedUser['name']}',
+                                      displayAccountOrName(likedUser['account'], likedUser['name']),
                                       style: const TextStyle(
                                         color: Color(0xFF333333),
                                         fontSize: 14,

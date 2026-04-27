@@ -223,7 +223,8 @@ class _IndexFrameState extends ConsumerState<Index> {
           setState(() {
             contentIndex = 2;
           });
-          // ✅ 點鈴噹立即全部已讀 + 清紅點
+          // ✅ 點鈴噹立即清前端紅點數字，並背景呼叫 read-all 通知後端
+          //   列表不會跟著刷新，所以仍呈現未讀樣式（符合需求）
           ref.read(unreadNotificationCountProvider.notifier).state = 0;
           _notificationController.postReadAll();
         },

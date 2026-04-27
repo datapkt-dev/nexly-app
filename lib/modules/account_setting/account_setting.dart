@@ -9,6 +9,7 @@ import 'package:nexly/modules/account_setting/pages/profile_edit.dart';
 import 'package:nexly/modules/account_setting/widgets/black_list.dart';
 import 'package:nexly/modules/account_setting/widgets/privacy.dart';
 import '../../app/config/app_config.dart';
+import '../../components/utils/display_name.dart';
 import '../../unit/auth_service.dart';
 import '../../components/widgets/upload_image_widget.dart';
 import '../login/login.dart';
@@ -289,7 +290,9 @@ class _ProfileState extends ConsumerState<AccountSetting> {
                                       children: [
                                         // 名字：可多行
                                         Text(
-                                          '${user['name'] ?? '-'}',
+                                          displayNameOrAccount(user['name'], user['account']).isEmpty
+                                              ? '-'
+                                              : displayNameOrAccount(user['name'], user['account']),
                                           softWrap: true,
                                           overflow: TextOverflow.visible,
                                           style: const TextStyle(
@@ -299,24 +302,25 @@ class _ProfileState extends ConsumerState<AccountSetting> {
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        // 徽章
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF2C538A),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                        // 徽章（只有付費會員才顯示）
+                                        if ((user['membership_type'] ?? 'free') != 'free')
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: ShapeDecoration(
+                                              color: const Color(0xFF2C538A),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SvgPicture.asset('assets/icons/logo_main.svg'),
+                                                const SizedBox(width: 2),
+                                                SvgPicture.asset('assets/icons/logo_words.svg'),
+                                                const SizedBox(width: 2),
+                                                SvgPicture.asset('assets/icons/logo_+.svg'),
+                                              ],
+                                            ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SvgPicture.asset('assets/icons/logo_main.svg'),
-                                              const SizedBox(width: 2),
-                                              SvgPicture.asset('assets/icons/logo_words.svg'),
-                                              const SizedBox(width: 2),
-                                              SvgPicture.asset('assets/icons/logo_+.svg'),
-                                            ],
-                                          ),
-                                        ),
                                       ],
                                     ),
                                   ),
@@ -357,7 +361,9 @@ class _ProfileState extends ConsumerState<AccountSetting> {
                           ],
                         ),
                       ),
-                      Container(
+                      // 升級 banner（只有 free 會員才顯示）
+                      if ((user['membership_type'] ?? 'free') == 'free')
+                        Container(
                         margin: EdgeInsets.symmetric(vertical: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: ShapeDecoration(
@@ -469,7 +475,7 @@ class _ProfileState extends ConsumerState<AccountSetting> {
                                 ),
                                 Spacer(),
                                 Text(
-                                  '${user['name']}',
+                                  displayNameOrAccount(user['name'], user['account']),
                                   style: TextStyle(
                                     color: const Color(0xFF333333),
                                     fontSize: 14,
@@ -741,7 +747,10 @@ class _ProfileState extends ConsumerState<AccountSetting> {
                             backgroundColor: Colors.transparent,
                             builder: (ctx) => BlackList(blockList: blockList),
                           );
-                          print(res);
+                          // 黑名單頁可能解除過封鎖，回來後重新拉一次
+                          if (res == 'refresh') {
+                            await _loadBlackList();
+                          }
                         }
 
                         // 隱私設定可能在 bottom sheet 內被改動，回來後背景刷新

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nexly/components/widgets/keyboard_dismiss.dart';
 import '../../../../app/config/app_config.dart';
+import '../../../../components/utils/display_name.dart';
 import '../../../../modules/providers.dart';
 import '../../../../unit/auth_service.dart';
 import '../../di/tales_providers.dart';
@@ -447,7 +448,8 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                       }
                     },
                     onReply: (comment) {
-                      final targetName = (comment['user_name'] ?? '').toString();
+                      // ✅ 一律用 account，不 fallback name
+                      final targetName = (comment['user_account'] ?? comment['account'] ?? '').toString();
                       final targetUserId = comment['user_id'];
                       final prefix = targetName.isNotEmpty ? '@$targetName ' : '';
                       setState(() {
@@ -490,8 +492,8 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                               textColor: const Color(0xFF333333),
                               onTap: () {
                                 pop('reply');
-                                final targetName =
-                                    (targetComment['user_name'] ?? '').toString();
+                                // ✅ 一律用 account，不 fallback name
+                                final targetName = (targetComment['user_account'] ?? targetComment['account'] ?? '').toString();
                                 final targetUserId = targetComment['user_id'];
                                 final prefix = targetName.isNotEmpty ? '@$targetName ' : '';
                                 setState(() {
@@ -604,7 +606,7 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                 Divider(),
                 if (_replyMode) ...[
                   ReplyIndicator(
-                    label: '正在回覆 ${replyTemp!['user_name']}',
+                    label: '正在回覆 ${(replyTemp?['user_account'] ?? replyTemp?['account'] ?? '').toString()}',
                     onCancel: () {
                       setState(() {
                         replyTemp = null;
@@ -675,6 +677,7 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                         'parent_id': parentId,
                         'user_id': user?['id'],
                         'user_name': user?['name'],
+                        'user_account': user?['account'],
                         'user_avatar_url': user?['avatar_url'],
                         'like_count': 0,
                         'is_liked': false,
@@ -735,6 +738,7 @@ class _CommentBoardState extends ConsumerState<CommentBoard> {
                       'content': text,
                       'user_id': user?['id'],
                       'user_name': user?['name'],
+                      'user_account': user?['account'],
                       'user_avatar_url': user?['avatar_url'],
                       'like_count': 0,
                       'is_liked': false,

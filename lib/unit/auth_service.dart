@@ -144,6 +144,10 @@ class AuthService {
       _lastUser = (body['data']['user'] is Map)
           ? Map<String, dynamic>.from(body['data']['user'] as Map)
           : null;
+      // membership_type 在 data 層（不在 user 內），合併進 _lastUser 方便外部一次寫進 provider
+      if (_lastUser != null && body['data']['membership_type'] != null) {
+        _lastUser!['membership_type'] = body['data']['membership_type'];
+      }
       print(body['data']['user']);
       return body;
     } else {

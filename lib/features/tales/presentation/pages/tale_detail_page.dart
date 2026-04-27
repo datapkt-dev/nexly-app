@@ -8,6 +8,7 @@ import 'package:nexly/features/tales/presentation/widgets/comment_board.dart';
 import 'package:nexly/features/tales/presentation/widgets/like_list.dart';
 import 'package:nexly/features/tales/presentation/widgets/report.dart';
 import '../../../../app/config/app_config.dart';
+import '../../../../components/utils/display_name.dart';
 import '../../../../modules/account_setting/controller/accountSetting_controller.dart';
 import '../../../../modules/profile/profile.dart';
 import '../../../../modules/providers.dart';
@@ -109,10 +110,8 @@ class _PostState extends ConsumerState<Post> {
     // final body = jsonEncode(temp);
 
     try {
-      final response = await http.post(url, headers: headers,);
-      final responseData = jsonDecode(response.body);
-
-      // return responseData;
+      await http.post(url, headers: headers,);
+      // ✅ 成功就夠了，不需要拿回應資料
     } catch (e) {
       print('請求錯誤：$e');
       // return {'error': e.toString()};
@@ -432,10 +431,24 @@ class _PostState extends ConsumerState<Post> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              user['name'] ?? '',
-                              style: const TextStyle(fontWeight: FontWeight.w500),
-                            ),
+                            Builder(builder: (_) {
+                              // ⚠️ 後端 bug workaround：
+                              //   /tales/{id} 回傳的 user.account 目前是空字串，
+                              //   所以當作者就是自己時，從全域 userProvider 兜底取 account。
+                              //   待後端修好後可拿掉這段，直接 user['account']。
+                              String acc = (user['account'] ?? '').toString();
+                              if (acc.isEmpty && self) {
+                                acc = (ref.read(userProvider)['account'] ?? '').toString();
+                              }
+                              // 若仍然沒有 account，最後 fallback 顯示 name
+                              final display = acc.isNotEmpty
+                                  ? acc
+                                  : (user['name'] ?? '').toString();
+                              return Text(
+                                display,
+                                style: const TextStyle(fontWeight: FontWeight.w500),
+                              );
+                            }),
                           ] else ...[
                             // shimmer 佔位（API 還沒回來時）
                             const CircleAvatar(

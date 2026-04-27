@@ -20,6 +20,96 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
 
   List? notifications;
 
+  bool _isAdminNotification(Map item) {
+    return item['i18n_key'] == 'notification.admin.received' ||
+        item['type'] == 'admin';
+  }
+
+  String _notificationText(BuildContext context, Map item) {
+    if (_isAdminNotification(item)) {
+      return (item['content'] ?? item['title'] ?? '').toString();
+    }
+    return NotificationI18n.translate(
+      locale: Localizations.localeOf(context),
+      key: item['i18n_key'] as String?,
+      params: (item['i18n_params'] is Map)
+          ? Map<String, dynamic>.from(item['i18n_params'] as Map)
+          : null,
+      fallback: item['content'] as String?,
+    );
+  }
+
+  void _showAdminNotificationDetail(Map item) {
+    final title = (item['title'] ?? '公告').toString().trim();
+    final content = (item['content'] ?? '').toString().trim();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDADADA),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title.isEmpty ? '公告' : title,
+                        style: const TextStyle(
+                          color: Color(0xFF333333),
+                          fontSize: 18,
+                          fontFamily: 'PingFang TC',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  content.isEmpty ? '（無內容）' : content,
+                  style: const TextStyle(
+                    color: Color(0xFF333333),
+                    fontSize: 14,
+                    fontFamily: 'PingFang TC',
+                    fontWeight: FontWeight.w400,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _loadData() async {
     final result = await notificationController.getNotifications();
     if (!mounted) return;
@@ -28,9 +118,9 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
     });
   }
 
-  void _readOne(id) async {
+  Future<void> _readOne(int id) async {
     await notificationController.postReadOne(id);
-    _refreshUnreadCount();
+    await _refreshUnreadCount();
   }
 
   Future<void> _refreshUnreadCount() async {
@@ -131,14 +221,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            NotificationI18n.translate(
-                                              locale: Localizations.localeOf(context),
-                                              key: item['i18n_key'] as String?,
-                                              params: (item['i18n_params'] is Map)
-                                                  ? Map<String, dynamic>.from(item['i18n_params'] as Map)
-                                                  : null,
-                                              fallback: item['content'] as String?,
-                                            ),
+                                            _notificationText(context, item),
                                             style: const TextStyle(
                                               color: Color(0xFF333333),
                                               fontSize: 14,
@@ -176,11 +259,17 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                                   ],
                                 ),
                               ),
-                              onTap: () {
-                                _readOne(item['id']);
+                              onTap: () async {
+                                await _readOne(item['id']);
+                                if (!mounted) return;
                                 setState(() {
                                   item['is_read'] = true;
                                 });
+
+                                if (_isAdminNotification(item)) {
+                                  _showAdminNotificationDetail(item);
+                                  return;
+                                }
 
                                 final taleId = item['related_tales_id'];
                                 final commentId = item['related_comment_id'];

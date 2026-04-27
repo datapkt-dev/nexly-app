@@ -373,9 +373,13 @@ class _LoginState extends ConsumerState<Login> {
                                 // 這樣 AccountSetting / ProfileEdit 一進去就能看到 account / email 等私密欄位。
                                 final userMap = result['data']?['user'];
                                 if (userMap is Map) {
-                                  ref
-                                      .read(userProvider.notifier)
-                                      .setUser(Map<String, dynamic>.from(userMap));
+                                  final merged = Map<String, dynamic>.from(userMap);
+                                  // membership_type 在 data 層（不在 user 內），合併進來
+                                  final membership = result['data']?['membership_type'];
+                                  if (membership != null) {
+                                    merged['membership_type'] = membership;
+                                  }
+                                  ref.read(userProvider.notifier).setUser(merged);
                                 }
                                 _authService.activateFcmToken();
                                 Navigator.pushAndRemoveUntil(

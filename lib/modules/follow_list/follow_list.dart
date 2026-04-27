@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../unit/auth_service.dart';
+import '../../components/utils/display_name.dart';
 import '../profile/controller/profile_controller.dart';
 import 'controller/followed_controller.dart';
 
@@ -228,7 +229,7 @@ class _FollowedState extends State<FollowList> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${user['name']}',
+                                      displayAccountOrName(user['account'], user['name']),
                                       style: TextStyle(
                                         color: Color(0xFF333333),
                                         fontSize: 14,

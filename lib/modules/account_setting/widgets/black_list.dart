@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../components/utils/display_name.dart';
 import '../controller/accountSetting_controller.dart';
 
 class BlackList extends StatefulWidget {
@@ -14,14 +15,55 @@ class _BlackListState extends State<BlackList> {
   final AccountSettingController accountSettingController = AccountSettingController();
   List? blockList;
 
-  void unblock (int id) {
-    accountSettingController.unBlock(id);
+  /// ✅ 解除封鎖：樂觀更新 → 失敗 rollback → SnackBar
+  Future<void> _unblock(int index) async {
+    final removed = blockList![index];
+    final id = removed['id'] as int;
+
+    // 樂觀更新：先從 UI 移除
+    setState(() {
+      blockList!.removeAt(index);
+    });
+
+    final result = await accountSettingController.unBlock(id);
+    if (!mounted) return;
+
+    final success = result['message'] == 'Unblocked successfully' ||
+        result['code'] == 0 ||
+        result['error'] == null && result['message'] != null;
+
+    if (!success) {
+      // 失敗：把資料塞回去
+      setState(() {
+        blockList!.insert(index, removed);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('解除封鎖失敗，請稍後再試', textAlign: TextAlign.center),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('已解除封鎖', textAlign: TextAlign.center),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    // 全部都解除了 → 自動關閉並通知上層 refresh
+    if (blockList!.isEmpty && mounted) {
+      Navigator.pop(context, 'refresh');
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    print('打開封鎖名單');
     blockList = widget.blockList;
   }
 
@@ -113,7 +155,10 @@ class _BlackListState extends State<BlackList> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${blockList?[index]['name']}',
+                                displayAccountOrName(
+                                  blockList?[index]['account'],
+                                  blockList?[index]['name'],
+                                ),
                                 style: TextStyle(
                                   color: Color(0xFF333333),
                                   fontSize: 14,
@@ -122,7 +167,7 @@ class _BlackListState extends State<BlackList> {
                                 ),
                               ),
                               Text(
-                                '${blockList?[index]['name']}',
+                                (blockList?[index]['name'] ?? '').toString(),
                                 style: TextStyle(
                                   color: Color(0xFF898989),
                                   fontSize: 12,
@@ -144,9 +189,7 @@ class _BlackListState extends State<BlackList> {
                             elevation: 8,
                             constraints: const BoxConstraints(minWidth: 180), // 控制寬度（可調）
                             onSelected: (v) {
-                              print('解除');
-                              unblock(blockList?[index]['id']);
-                              Navigator.pop(context, 'refresh');
+                              _unblock(index);
                             },
                             itemBuilder: (context) => [
                               const PopupMenuItem(
